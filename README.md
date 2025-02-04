@@ -1,4 +1,4 @@
-# Bluesky Social App
+# Bluesky Social App (social-app)
 
 Welcome friends! This is the codebase for the Bluesky Social app.
 
