@@ -198,6 +198,17 @@ module.exports = function (config) {
         channel: UPDATES_CHANNEL,
       },
       plugins: [
+        ['expo-av',
+          {
+            "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+          }
+        ]
+        ['expo-camera',
+          {
+            "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+            "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+            "recordAudioAndroid": true
+          }],
         'expo-video',
         'expo-localization',
         USE_SENTRY && [
@@ -365,10 +376,11 @@ module.exports = function (config) {
           'react-native-vision-camera',
           {
             enableLocation: false,
-            cameraPermissionText: 'Bluesky needs access to your camera.',
-            enableMicrophonePermission: true,
-            microphonePermissionText:
-              'Bluesky needs access to your microphone.',
+            "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
+
+            // optionally, if you want to record audio:
+            "enableMicrophonePermission": true,
+            "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
           },
         ],
       ].filter(Boolean),

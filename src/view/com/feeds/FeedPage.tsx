@@ -29,6 +29,8 @@ import {FAB} from '../util/fab/FAB'
 import {ListMethods} from '../util/List'
 import {LoadLatestBtn} from '../util/load-latest/LoadLatestBtn'
 import {MainScrollProvider} from '../util/MainScrollProvider'
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'
+import {Audio, Video} from 'expo-av'
 
 const POLL_FREQ = 60e3 // 60sec
 
@@ -111,8 +113,25 @@ export function FeedPage({
     return listenSoftReset(onSoftReset)
   }, [onSoftReset, isPageFocused])
 
-  const onPressCompose = React.useCallback(() => {
-    openComposer({})
+  const [camPermission, requestCamPermission] = useCameraPermissions();
+  const [permissionResponse, requestAvPermission] = Audio.usePermissions();
+
+  const onPressCompose = React.useCallback(async () => {
+/*     if (!camPermission) {
+      // Camera permissions are still loading.
+      return <View />;
+    } */
+  
+    /* if (!camPermission?.granted) {
+      try {
+      // Camera permissions are not granted yet.
+      requestCamPermission()
+      }catch (error) {
+        console.error("Error requesting Camera permissions")
+      }
+    } */
+
+      openComposer({})
   }, [openComposer])
 
   const onPressLoadLatest = React.useCallback(() => {
