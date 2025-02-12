@@ -10,12 +10,15 @@ import React, {
 import {
   ActivityIndicator,
   BackHandler,
+  Button,
   Keyboard,
   KeyboardAvoidingView,
   LayoutChangeEvent,
   ScrollView,
   StyleProp,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native'
@@ -98,7 +101,8 @@ import {
 import {GifAltTextDialog} from '#/view/com/composer/GifAltText'
 import {LabelsBtn} from '#/view/com/composer/labels/LabelsBtn'
 import {Gallery} from '#/view/com/composer/photos/Gallery'
-import {OpenCameraBtn} from '#/view/com/composer/photos/OpenCameraBtn'
+//import {OpenCameraBtn} from '#/view/com/composer/photos/OpenCameraBtn'
+import {OpenCameraVideoBtn} from '#/view/com/composer/videos/OpenCameraVideoBtn'
 import {SelectGifBtn} from '#/view/com/composer/photos/SelectGifBtn'
 import {SelectPhotoBtn} from '#/view/com/composer/photos/SelectPhotoBtn'
 import {SelectLangBtn} from '#/view/com/composer/select-language/SelectLangBtn'
@@ -112,11 +116,11 @@ import {SubtitleDialogBtn} from '#/view/com/composer/videos/SubtitleDialog'
 import {VideoPreview} from '#/view/com/composer/videos/VideoPreview'
 import {VideoTranscodeProgress} from '#/view/com/composer/videos/VideoTranscodeProgress'
 import {LazyQuoteEmbed, QuoteX} from '#/view/com/util/post-embeds/QuoteEmbed'
-import {Text} from '#/view/com/util/text/Text'
+//import {Text} from '#/view/com/util/text/Text'
 import * as Toast from '#/view/com/util/Toast'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, native, useTheme} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+//import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {VerifyEmailDialog} from '#/components/dialogs/VerifyEmailDialog'
 import {CircleInfo_Stroke2_Corner0_Rounded as CircleInfo} from '#/components/icons/CircleInfo'
@@ -138,6 +142,10 @@ import {
 import {NO_VIDEO, NoVideoState, processVideo, VideoState} from './state/video'
 import {getVideoMetadata} from './videos/pickVideo'
 import {clearThumbnailCache} from './videos/VideoTranscodeBackdrop'
+//import { CameraView, CameraType, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
+//import {Audio, Video} from 'expo-av'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera'
 
 type CancelRef = {
   onPressCancel: () => void
@@ -610,97 +618,112 @@ export const ComposePost = ({
   )
 
   const isWebFooterSticky = !isNative && thread.posts.length > 1
-  return (
-    <BottomSheetPortalProvider>
-      <VerifyEmailDialog
-        control={emailVerificationControl}
-        onCloseWithoutVerifying={() => {
-          onClose()
-        }}
-        reasonText={_(
-          msg`Before creating a post, you must first verify your email.`,
-        )}
-      />
-      <KeyboardAvoidingView
-        testID="composePostView"
-        behavior={isIOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardVerticalOffset}
-        style={a.flex_1}>
-        <View
-          style={[a.flex_1, viewStyles]}
-          aria-modal
-          accessibilityViewIsModal>
-          <ComposerTopBar
-            canPost={canPost}
-            isReply={!!replyTo}
-            isPublishQueued={publishOnUpload}
-            isPublishing={isPublishing}
-            isThread={thread.posts.length > 1}
-            publishingStage={publishingStage}
-            topBarAnimatedStyle={topBarAnimatedStyle}
-            onCancel={onPressCancel}
-            onPublish={onPressPublish}>
-            {missingAltError && <AltTextReminder error={missingAltError} />}
-            <ErrorBanner
-              error={error}
-              videoState={erroredVideo}
-              clearError={() => setError('')}
-              clearVideo={
-                erroredVideoPostId
-                  ? () => clearVideo(erroredVideoPostId)
-                  : () => {}
-              }
-            />
-          </ComposerTopBar>
 
-          <Animated.ScrollView
-            ref={scrollViewRef}
-            layout={native(LinearTransition)}
-            onScroll={scrollHandler}
-            style={a.flex_1}
-            keyboardShouldPersistTaps="always"
-            onContentSizeChange={onScrollViewContentSizeChange}
-            onLayout={onScrollViewLayout}>
-            {replyTo ? <ComposerReplyTo replyTo={replyTo} /> : undefined}
-            {thread.posts.map((post, index) => (
-              <React.Fragment key={post.id}>
-                <ComposerPost
-                  post={post}
-                  dispatch={composerDispatch}
-                  textInput={post.id === activePost.id ? textInput : null}
-                  isFirstPost={index === 0}
-                  isPartOfThread={thread.posts.length > 1}
-                  isReply={index > 0 || !!replyTo}
-                  isActive={post.id === activePost.id}
-                  canRemovePost={thread.posts.length > 1}
-                  canRemoveQuote={index > 0 || !initQuote}
-                  onSelectVideo={selectVideo}
-                  onClearVideo={clearVideo}
-                  onPublish={onComposerPostPublish}
-                  onError={setError}
-                />
-                {isWebFooterSticky && post.id === activePost.id && (
-                  <View style={styles.stickyFooterWeb}>{footer}</View>
-                )}
-              </React.Fragment>
-            ))}
-          </Animated.ScrollView>
-          {!isWebFooterSticky && footer}
-        </View>
+//------------------------------------------------------------------------------------------------------------------------------
+const [isRecording, setIsRecording] = useState(false);
+const [videoUri, setVideoUri] = useState<string | null>(null);
+const { hasPermission: camPermission, requestPermission: requestCamPermission } = useCameraPermission()
+const { hasPermission: micPermission, requestPermission: requestMicPermission } = useMicrophonePermission()
+const device = useCameraDevice('back')!;
+const camera = useRef<Camera>(null)
 
-        <Prompt.Basic
-          control={discardPromptControl}
-          title={_(msg`Discard draft?`)}
-          description={_(msg`Are you sure you'd like to discard this draft?`)}
-          onConfirm={onClose}
-          confirmButtonCta={_(msg`Discard`)}
-          confirmButtonColor="negative"
-        />
-      </KeyboardAvoidingView>
-    </BottomSheetPortalProvider>
-  )
+// Request permissions when the component mounts
+React.useEffect(() => {
+  (async () => {
+    if (!camPermission) {
+      requestCamPermission();
+    }
+    if (!micPermission) {
+      requestMicPermission();
+    }
+  })();
+}, []);
+
+/* function toggleCameraFacing() {
+  setFacing((current) => (current === 'back' ? 'front' : 'back'));
+} */
+
+if(device == null) {
+  console.error("No camera detected")
 }
 
+// Toggle recording
+/* const recordVideo = async () => {
+  let video = null;
+  try{
+    if (isRecording) {
+      setIsRecording(false);
+      cameraRef.current?.stopRecording();
+      console.log("on stop", {video});
+      return;
+    }
+    setIsRecording(true);
+    console.log("before starting", {video})
+    console.log(camPermission, micPermission
+    video = await cameraRef.current?.recordAsync();
+    console.log("after starting", { video });
+  }catch(error) {
+    console.error(error);
+  }
+}; */
+
+const startRecording = async () => {
+  if(isRecording) {
+    setIsRecording(false);
+    await camera.current?.stopRecording();
+    return
+  }
+  setIsRecording(true);
+
+  camera.current?.startRecording({
+    onRecordingFinished: (video) => console.log(video),
+    onRecordingError: (error) => console.error(error)
+  })
+};
+
+const saveVideo = () => {
+  console.log("Saved Video URI:", videoUri);
+};
+
+return (
+  <View style={{ flex: 1 }}>
+      <Camera
+        style={ StyleSheet.absoluteFillObject }
+        ref={camera}
+        device={device}
+        isActive={true}
+        video={true}
+        audio={true}
+      />
+
+      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center", marginBottom: 20 }}>
+          <TouchableOpacity>
+            <Ionicons name="camera-reverse" size={50} color="transparent" />
+          </TouchableOpacity>
+          {videoUri ? (
+            <TouchableOpacity onPress={saveVideo}>
+              <Ionicons name="checkmark-circle" size={100} color="white" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={startRecording}>
+              {!isRecording ? (
+                <Ionicons name="radio-button-on" size={100} color="white" />
+              ) : (
+                <Ionicons name="pause-circle" size={100} color="red" />
+              )}
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity>
+            <Ionicons name="camera-reverse" size={50} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+);
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------
 let ComposerPost = React.memo(function ComposerPost({
   post,
   dispatch,
@@ -741,7 +764,7 @@ let ComposerPost = React.memo(function ComposerPost({
     ? isFirstPost
       ? _(msg`Write your reply`)
       : _(msg`Add another post`)
-    : _(msg`What's up?`)
+    : _(msg`Fuck's up?`)
   const discardPromptControl = Prompt.usePromptControl()
 
   const dispatchPost = useCallback(
@@ -838,7 +861,7 @@ let ComposerPost = React.memo(function ComposerPost({
 
       {canRemovePost && isActive && (
         <>
-          <Button
+ {/*          <Button
             label={_(msg`Delete post`)}
             size="small"
             color="secondary"
@@ -861,7 +884,7 @@ let ComposerPost = React.memo(function ComposerPost({
               }
             }}>
             <ButtonIcon icon={X} />
-          </Button>
+          </Button> */}
           <Prompt.Basic
             control={discardPromptControl}
             title={_(msg`Discard post?`)}
@@ -889,7 +912,7 @@ let ComposerPost = React.memo(function ComposerPost({
   )
 })
 
-function ComposerTopBar({
+/* function ComposerTopBar({
   canPost,
   isReply,
   isPublishQueued,
@@ -966,7 +989,7 @@ function ComposerTopBar({
     </Animated.View>
   )
 }
-
+ */
 function AltTextReminder({error}: {error: string}) {
   const pal = usePalette('default')
   return (
@@ -1232,12 +1255,12 @@ function ComposerFooter({
               disabled={!!media}
               setError={onError}
             />
-            <OpenCameraBtn
-              disabled={media?.type === 'images' ? isMaxImages : !!media}
-              onAdd={onImageAdd}
+            <OpenCameraVideoBtn
+              //disabled={media?.type === 'images' ? isMaxImages : !!media}
+              //onAdd={onImageAdd}
             />
             <SelectGifBtn onSelectGif={onSelectGif} disabled={!!media} />
-            {!isMobile ? (
+            {/* {!isMobile ? (
               <Button
                 onPress={onEmojiButtonPress}
                 style={a.p_sm}
@@ -1248,12 +1271,12 @@ function ComposerFooter({
                 color="primary">
                 <EmojiSmile size="lg" />
               </Button>
-            ) : null}
+            ) : null} */}
           </ToolbarWrapper>
         )}
       </View>
       <View style={[a.flex_row, a.align_center, a.justify_between]}>
-        {showAddButton && (
+        {/* {showAddButton && (
           <Button
             label={_(msg`Add new post`)}
             onPress={onAddPost}
@@ -1267,7 +1290,7 @@ function ComposerFooter({
               color={t.palette.primary_500}
             />
           </Button>
-        )}
+        )} */}
         <SelectLangBtn />
         <CharProgress
           count={post.shortenedGraphemeLength}
@@ -1572,7 +1595,7 @@ function ErrorBanner({
           <NewText style={[a.flex_1, a.leading_snug, {paddingTop: 1}]}>
             {error}
           </NewText>
-          <Button
+          {/* <Button
             label={_(msg`Dismiss error`)}
             size="tiny"
             color="secondary"
@@ -1581,7 +1604,7 @@ function ErrorBanner({
             style={[a.absolute, {top: 0, right: 0}]}
             onPress={onClearError}>
             <ButtonIcon icon={X} />
-          </Button>
+          </Button> */}
         </View>
         {videoError && videoState.jobId && (
           <NewText
