@@ -14,6 +14,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   LayoutChangeEvent,
+  Platform,
   ScrollView,
   StyleProp,
   StyleSheet,
@@ -143,9 +144,9 @@ import {NO_VIDEO, NoVideoState, processVideo, VideoState} from './state/video'
 import {getVideoMetadata} from './videos/pickVideo'
 import {clearThumbnailCache} from './videos/VideoTranscodeBackdrop'
 //import { CameraView, CameraType, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
-//import {Audio, Video} from 'expo-av'
+import {Audio, Video} from 'expo-av'
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera'
+import CameraWrapper from './CameraWrapper';
 
 type CancelRef = {
   onPressCancel: () => void
@@ -620,14 +621,9 @@ export const ComposePost = ({
   const isWebFooterSticky = !isNative && thread.posts.length > 1
 
 //------------------------------------------------------------------------------------------------------------------------------
-const [isRecording, setIsRecording] = useState(false);
 const [videoUri, setVideoUri] = useState<string | null>(null);
-const { hasPermission: camPermission, requestPermission: requestCamPermission } = useCameraPermission()
-const { hasPermission: micPermission, requestPermission: requestMicPermission } = useMicrophonePermission()
-const device = useCameraDevice('back')!;
-const camera = useRef<Camera>(null)
 
-// Request permissions when the component mounts
+/* // Request permissions when the component mounts
 React.useEffect(() => {
   (async () => {
     if (!camPermission) {
@@ -639,34 +635,12 @@ React.useEffect(() => {
   })();
 }, []);
 
-/* function toggleCameraFacing() {
-  setFacing((current) => (current === 'back' ? 'front' : 'back'));
-} */
 
 if(device == null) {
   console.error("No camera detected")
 }
 
 // Toggle recording
-/* const recordVideo = async () => {
-  let video = null;
-  try{
-    if (isRecording) {
-      setIsRecording(false);
-      cameraRef.current?.stopRecording();
-      console.log("on stop", {video});
-      return;
-    }
-    setIsRecording(true);
-    console.log("before starting", {video})
-    console.log(camPermission, micPermission
-    video = await cameraRef.current?.recordAsync();
-    console.log("after starting", { video });
-  }catch(error) {
-    console.error(error);
-  }
-}; */
-
 const startRecording = async () => {
   if(isRecording) {
     setIsRecording(false);
@@ -684,42 +658,22 @@ const startRecording = async () => {
 const saveVideo = () => {
   console.log("Saved Video URI:", videoUri);
 };
-
+ */
 return (
   <View style={{ flex: 1 }}>
-      <Camera
-        style={ StyleSheet.absoluteFillObject }
-        ref={camera}
-        device={device}
-        isActive={true}
-        video={true}
-        audio={true}
-      />
-
-      <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center", marginBottom: 20 }}>
-          <TouchableOpacity>
-            <Ionicons name="camera-reverse" size={50} color="transparent" />
-          </TouchableOpacity>
-          {videoUri ? (
-            <TouchableOpacity onPress={saveVideo}>
-              <Ionicons name="checkmark-circle" size={100} color="white" />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={startRecording}>
-              {!isRecording ? (
-                <Ionicons name="radio-button-on" size={100} color="white" />
-              ) : (
-                <Ionicons name="pause-circle" size={100} color="red" />
-              )}
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity>
-            <Ionicons name="camera-reverse" size={50} color="white" />
-          </TouchableOpacity>
-        </View>
+      {!videoUri ? (
+      <CameraWrapper onVideoRecorded={setVideoUri} />
+    ) : (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        {Platform.OS === "web" ? (
+          <video src={videoUri} controls style={{ width: "100%", height: 400 }} />
+        ) : (
+          <Video source={{ uri: videoUri }} style={{ width: "100%", height: 400 }} useNativeControls resizeMode="contain" />
+        )}
+        <Button title="Retake" onPress={() => setVideoUri(null)} />
       </View>
-    </View>
+    )}
+  </View>
 );
 };
 
