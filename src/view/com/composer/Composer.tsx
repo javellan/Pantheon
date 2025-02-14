@@ -623,42 +623,6 @@ export const ComposePost = ({
 //------------------------------------------------------------------------------------------------------------------------------
 const [videoUri, setVideoUri] = useState<string | null>(null);
 
-/* // Request permissions when the component mounts
-React.useEffect(() => {
-  (async () => {
-    if (!camPermission) {
-      requestCamPermission();
-    }
-    if (!micPermission) {
-      requestMicPermission();
-    }
-  })();
-}, []);
-
-
-if(device == null) {
-  console.error("No camera detected")
-}
-
-// Toggle recording
-const startRecording = async () => {
-  if(isRecording) {
-    setIsRecording(false);
-    await camera.current?.stopRecording();
-    return
-  }
-  setIsRecording(true);
-
-  camera.current?.startRecording({
-    onRecordingFinished: (video) => console.log(video),
-    onRecordingError: (error) => console.error(error)
-  })
-};
-
-const saveVideo = () => {
-  console.log("Saved Video URI:", videoUri);
-};
- */
 return (
   <View style={{ flex: 1 }}>
       {!videoUri ? (
