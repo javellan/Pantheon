@@ -1,9 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useComposerControls } from "#/state/shell";
 
+// Determines if web or if iOS/Android to determine appropriate tools
 const isWeb = Platform.OS === "web";
 
+// Lazy import react-native-vision-camera to prevent web build issues
 let Camera: any, useCameraDevice: any, useCameraPermission: any, useMicrophonePermission: any;
 if (!isWeb) {
   const visionCamera = require("react-native-vision-camera");
@@ -31,8 +34,12 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
   const [text, setText] = useState<string>("");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean>(false);
   const [hasMicrophonePermission, setHasMicrophonePermission] = useState<boolean>(false);
+  const [cameraClosed, setCameraClosed] = useState<boolean>(false);  // Added state
+  const {closeComposer} = useComposerControls()
 
   const device = isWeb ? null : useCameraDevice("back");
+
+  // Get cam/mic permissions
   const { hasPermission: camPermission, requestPermission: requestCamPermission } = isWeb
     ? { hasPermission: hasCameraPermission, requestPermission: () => {} }
     : useCameraPermission();
@@ -45,9 +52,24 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
-          videoRef.current!.srcObject = stream;
-          setHasCameraPermission(true);
-          setHasMicrophonePermission(true);
+          const mediaStream = stream as MediaStream;
+
+          if (mediaStream instanceof MediaStream) {
+            videoRef.current!.srcObject = mediaStream;
+            setHasCameraPermission(true);
+            setHasMicrophonePermission(true);
+
+            const tracks = mediaStream.getTracks();
+            tracks.forEach((track) => {
+              if (track.kind === 'video') {
+                console.log('Video track:', track);
+              } else if (track.kind === 'audio') {
+                console.log('Audio track:', track);
+              }
+            });
+          } else {
+            console.warn("The stream is not a valid MediaStream.");
+          }
         })
         .catch((error) => {
           console.warn("Error accessing media devices: ", error);
@@ -74,13 +96,10 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
 
   console.log("Camera Ready:", Camera, device, camPermission, micPermission);
 
-  if (!device) {
-    console.warn("No camera device found.");
-  }
-
   const handleCameraAction = async () => {
     if (mode === "TEXT") return;
 
+    // Take Photo
     if (isWeb) {
       if (mode === "PHOTO") {
         const canvas = document.createElement("canvas");
@@ -105,7 +124,6 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
         try {
           const photo = await camera.current.takePhoto();
           const photoUri = `file://${photo.path}`;
-          console.log("Captured photo URI:", photoUri);
           setCapturedPhoto(photoUri);
           onPhotoCaptured(photoUri);
         } catch (error) {
@@ -131,9 +149,31 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
     }
   };
 
+  const closeCameraView = () => {
+    if (isWeb) {
+      const tracks = (videoRef.current?.srcObject as MediaStream)?.getTracks();
+      tracks?.forEach((track: MediaStreamTrack) => track.stop());
+    } else {
+      if (camera.current) {
+        if (isRecording) {
+          setIsRecording(false);
+          camera.current.stopRecording();
+        }
+
+        if (camera.current.isActive) {
+          camera.current.pausePreview();
+        }
+
+        camera.current = null; // Reset camera reference
+      }
+    }
+    setCameraClosed(true); // Update state to indicate the camera is closed
+    closeComposer()
+  };
+
   return (
     <View style={{ flex: 1 }}>
-      {mode === "TEXT" ? (
+      { mode === "TEXT" ? (
         <TextInput
           style={{ flex: 1, padding: 20, fontSize: 18 }}
           multiline
@@ -162,6 +202,10 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
         </View>
       )}
 
+      <TouchableOpacity onPress={closeCameraView} style={{ position: "absolute", top: 30, left: 20 }}>
+        <Ionicons name="close-circle" size={40} color="white" />
+      </TouchableOpacity>
+
       <View style={{ flexDirection: "row", justifyContent: "center", position: "absolute", bottom: 100, alignSelf: "center", marginBottom: 50 }}>
         {["3m", "60s", "15s", "PHOTO", "TEXT"].map((label) => (
           <TouchableOpacity
@@ -173,20 +217,28 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
               else if (label === "60s") setVideoDuration(60);
               else if (label === "15s") setVideoDuration(15);
             }}
-            style={{ margin: 5, padding: 10, backgroundColor: mode === label ? "black" : "transparent", borderRadius: 15 }}
-          >
-            <Text style={{ color: "white" }}>{label}</Text>
+            style={{ margin: 5, padding: 10, backgroundColor: mode === label ? "black" : "gray", borderRadius: 10 }}>
+            <Text style={{ color: "white", fontSize: 14 }}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {mode !== "TEXT" && (
-        <View style={{ position: "absolute", bottom: 20, alignSelf: "center" }}>
-          <TouchableOpacity onPress={handleCameraAction} style={{ padding: 20 }}>
-            <Ionicons name={isRecording ? "stop-circle" : "radio-button-on"} size={100} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
+      <TouchableOpacity
+        onPress={handleCameraAction}
+        style={{
+          position: "absolute",
+          bottom: 20,
+          left: "50%",
+          marginLeft: -30,
+          borderRadius: 50,
+          width: 60,
+          height: 60,
+          backgroundColor: "green",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+        <Ionicons name={isRecording ? "stop-circle" : "camera"} size={40} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
