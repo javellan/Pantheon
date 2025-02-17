@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -29,18 +29,53 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
   const [videoDuration, setVideoDuration] = useState<number>(60);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [text, setText] = useState<string>("");
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean>(false);
+  const [hasMicrophonePermission, setHasMicrophonePermission] = useState<boolean>(false);
 
   const device = isWeb ? null : useCameraDevice("back");
   const { hasPermission: camPermission, requestPermission: requestCamPermission } = isWeb
-    ? { hasPermission: true, requestPermission: async () => {} }
+    ? { hasPermission: hasCameraPermission, requestPermission: () => {} }
     : useCameraPermission();
   const { hasPermission: micPermission, requestPermission: requestMicPermission } = isWeb
-    ? { hasPermission: true, requestPermission: async () => {} }
+    ? { hasPermission: hasMicrophonePermission, requestPermission: () => {} }
     : useMicrophonePermission();
 
+  useEffect(() => {
+    if (isWeb) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          videoRef.current!.srcObject = stream;
+          setHasCameraPermission(true);
+          setHasMicrophonePermission(true);
+        })
+        .catch((error) => {
+          console.warn("Error accessing media devices: ", error);
+        });
+    }
+  }, []);
+
   if (!isWeb) {
-    if (!camPermission) requestCamPermission();
-    if (!micPermission) requestMicPermission();
+    if (!camPermission) {
+      requestCamPermission().then((granted: boolean) => {
+        if (!granted) {
+          console.warn("Camera permission denied.");
+        }
+      });
+    }
+    if (!micPermission) {
+      requestMicPermission().then((granted: boolean) => {
+        if (!granted) {
+          console.warn("Microphone permission denied.");
+        }
+      });
+    }
+  }
+
+  console.log("Camera Ready:", Camera, device, camPermission, micPermission);
+
+  if (!device) {
+    console.warn("No camera device found.");
   }
 
   const handleCameraAction = async () => {
@@ -111,10 +146,19 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       ) : isWeb ? (
         <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : Camera && device && camPermission && micPermission ? (
-        <Camera ref={camera} style={{ position: "absolute", width: "100%", height: "100%" }} device={device} isActive={true} video={true} audio={true} photo={true} />
+        <Camera
+          ref={camera}
+          style={{ flex: 1 }}
+          device={device}
+          isActive={true}
+          video={true}
+          audio={true}
+          photo={true}
+        />
       ) : (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Ionicons name="alert-circle" size={50} color="red" />
+          <Text style={{ color: "white", marginTop: 10 }}>Camera not available</Text>
         </View>
       )}
 
