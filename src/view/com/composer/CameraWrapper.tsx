@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { View, Platform, TouchableOpacity, TextInput, Text } from "react-native";
+import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const isWeb = Platform.OS === "web";
@@ -14,18 +14,20 @@ if (!isWeb) {
 }
 
 interface CameraWrapperProps {
-  onVideoRecorded: (videoPath: string) => void;
+  onPhotoCaptured?: (photoPath: string) => void;
+  onVideoRecorded?: (videoPath: string) => void;
 }
 
-const CameraWrapper: React.FC<CameraWrapperProps> = ({ onVideoRecorded }) => {
+const CameraWrapper: React.FC<CameraWrapperProps> = ({
+  onPhotoCaptured = () => {},
+  onVideoRecorded = () => {},
+}) => {
   const camera = useRef<any>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const mediaStream = useRef<MediaStream | null>(null);
-  const mediaRecorder = useRef<MediaRecorder | null>(null);
-  const recordedChunks = useRef<Blob[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [mode, setMode] = useState<string>("PHOTO"); // Default mode is PHOTO
-  const [videoDuration, setVideoDuration] = useState<number>(60); // Default to 60s
+  const [mode, setMode] = useState<string>("PHOTO");
+  const [videoDuration, setVideoDuration] = useState<number>(60);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [text, setText] = useState<string>("");
 
   const device = isWeb ? null : useCameraDevice("back");
@@ -41,26 +43,48 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({ onVideoRecorded }) => {
     if (!micPermission) requestMicPermission();
   }
 
-  const startRecording = async () => {
+  const handleCameraAction = async () => {
     if (mode === "TEXT") return;
+
     if (isWeb) {
-      recordedChunks.current = [];
-      if (!mediaStream.current) return;
-      mediaRecorder.current = new MediaRecorder(mediaStream.current, { mimeType: "video/webm" });
-      mediaRecorder.current.ondataavailable = (event: BlobEvent) => {
-        if (event.data.size > 0) recordedChunks.current.push(event.data);
-      };
-      mediaRecorder.current.onstop = saveRecording;
-      mediaRecorder.current.start();
-      setIsRecording(true);
-      setTimeout(stopRecording, videoDuration * 1000);
+      if (mode === "PHOTO") {
+        const canvas = document.createElement("canvas");
+        const videoElement = videoRef.current;
+        if (videoElement) {
+          canvas.width = videoElement.videoWidth;
+          canvas.height = videoElement.videoHeight;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            const photoUrl = canvas.toDataURL("image/png");
+            setCapturedPhoto(photoUrl);
+            onPhotoCaptured(photoUrl);
+          }
+        }
+        return;
+      }
     } else {
       if (!camera.current) return;
+
+      if (mode === "PHOTO") {
+        try {
+          const photo = await camera.current.takePhoto();
+          const photoUri = `file://${photo.path}`;
+          console.log("Captured photo URI:", photoUri);
+          setCapturedPhoto(photoUri);
+          onPhotoCaptured(photoUri);
+        } catch (error) {
+          console.error("Error capturing photo:", error);
+        }
+        return;
+      }
+
       if (isRecording) {
         setIsRecording(false);
         await camera.current.stopRecording();
         return;
       }
+
       setIsRecording(true);
       camera.current.startRecording({
         maxDuration: videoDuration,
@@ -70,19 +94,6 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({ onVideoRecorded }) => {
         onRecordingError: (error: Error) => console.error(error),
       });
     }
-  };
-
-  const stopRecording = () => {
-    if (isWeb && mediaRecorder.current) {
-      mediaRecorder.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const saveRecording = () => {
-    const blob = new Blob(recordedChunks.current, { type: "video/webm" });
-    const url = URL.createObjectURL(blob);
-    onVideoRecorded(url);
   };
 
   return (
@@ -95,31 +106,25 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({ onVideoRecorded }) => {
           value={text}
           onChangeText={setText}
         />
+      ) : capturedPhoto ? (
+        <Image source={{ uri: capturedPhoto }} style={{ width: "100%", height: "100%" }} />
       ) : isWeb ? (
         <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : Camera && device && camPermission && micPermission ? (
-        <Camera ref={camera} style={{ position: "absolute", width: "100%", height: "100%" }} device={device} isActive={true} video={true} audio={true} />
+        <Camera ref={camera} style={{ position: "absolute", width: "100%", height: "100%" }} device={device} isActive={true} video={true} audio={true} photo={true} />
       ) : (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Ionicons name="alert-circle" size={50} color="red" />
         </View>
       )}
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          position: "absolute",
-          bottom: 100,
-          alignSelf: "center",
-          marginBottom: 50
-        }}
-      >
+      <View style={{ flexDirection: "row", justifyContent: "center", position: "absolute", bottom: 100, alignSelf: "center", marginBottom: 50 }}>
         {["3m", "60s", "15s", "PHOTO", "TEXT"].map((label) => (
           <TouchableOpacity
             key={label}
             onPress={() => {
               setMode(label);
+              setCapturedPhoto(null);
               if (label === "3m") setVideoDuration(600);
               else if (label === "60s") setVideoDuration(60);
               else if (label === "15s") setVideoDuration(15);
@@ -132,14 +137,8 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({ onVideoRecorded }) => {
       </View>
 
       {mode !== "TEXT" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            alignSelf: "center",
-          }}
-        >
-          <TouchableOpacity onPress={startRecording} style={{ padding: 20 }}>
+        <View style={{ position: "absolute", bottom: 20, alignSelf: "center" }}>
+          <TouchableOpacity onPress={handleCameraAction} style={{ padding: 20 }}>
             <Ionicons name={isRecording ? "stop-circle" : "radio-button-on"} size={100} color="white" />
           </TouchableOpacity>
         </View>

@@ -625,7 +625,7 @@ const [videoUri, setVideoUri] = useState<string | null>(null);
 
 return (
   <View style={{ flex: 1 }}>
-      {!videoUri ? (
+    {!videoUri ? (
       <CameraWrapper onVideoRecorded={setVideoUri} />
     ) : (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
