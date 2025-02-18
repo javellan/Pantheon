@@ -144,9 +144,10 @@ import {NO_VIDEO, NoVideoState, processVideo, VideoState} from './state/video'
 import {getVideoMetadata} from './videos/pickVideo'
 import {clearThumbnailCache} from './videos/VideoTranscodeBackdrop'
 //import { CameraView, CameraType, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
-import {Audio, Video} from 'expo-av'
+import {Audio, ResizeMode, Video} from 'expo-av'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import CameraWrapper from './CameraWrapper';
+import { CompressedVideo } from '#/lib/media/video/types'
 
 type CancelRef = {
   onPressCancel: () => void
@@ -621,21 +622,27 @@ export const ComposePost = ({
   const isWebFooterSticky = !isNative && thread.posts.length > 1
 
 //------------------------------------------------------------------------------------------------------------------------------
-const [videoUri, setVideoUri] = useState<string | null>(null);
+const [compressedVideo, setCompressedVideo] = useState<CompressedVideo | null>(null);
+const [videoAsset, setVideoAsset] = useState<ImagePickerAsset | null>(null);
 
 return (
-  <View style={{ flex: 1 }}>
-    {!videoUri ? (
-      <CameraWrapper onVideoRecorded={setVideoUri} />
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black'}}>
+    {!compressedVideo ? (
+      <CameraWrapper
+        onVideoRecorded={({ videoAsset, compressedVideo }) => {
+          setVideoAsset(videoAsset); // Set videoAsset
+          setCompressedVideo(compressedVideo); // Set compressedVideo
+        }}
+      />
+    ) : videoAsset ? ( // Check if videoAsset is not null
+      <VideoPreview
+        asset={videoAsset}  // Pass the videoAsset here
+        video={compressedVideo}
+        clear={() => setCompressedVideo(null)}
+        isActivePost={true}  // Or based on your state
+      />
     ) : (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        {Platform.OS === "web" ? (
-          <video src={videoUri} controls style={{ width: "100%", height: 400 }} />
-        ) : (
-          <Video source={{ uri: videoUri }} style={{ width: "100%", height: 400 }} useNativeControls resizeMode="contain" />
-        )}
-        <Button title="Retake" onPress={() => setVideoUri(null)} />
-      </View>
+      <Text>No video selected</Text> // Optionally show a fallback message
     )}
   </View>
 );
