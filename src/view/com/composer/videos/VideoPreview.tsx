@@ -25,13 +25,14 @@ export function VideoPreview({
   const t = useTheme()
   const playerRef = React.useRef<BlueskyVideoView>(null)
   const autoplayDisabled = useAutoplayDisabled()
-  let aspectRatio = asset.width / asset.height
+  /* let aspectRatio = asset.width / asset.height
 
   if (isNaN(aspectRatio)) {
-    aspectRatio = 16 / 9
+    aspectRatio = 9 / 16
   }
 
-  aspectRatio = clamp(aspectRatio, 1 / 1, 3 / 1)
+  aspectRatio = clamp(aspectRatio, 1 / 1, 3 / 1) */
+  const aspectRatio = 9 / 16  // Fixed 9:16 aspect ratio for portrait mode
 
   return (
     <View
@@ -39,10 +40,11 @@ export function VideoPreview({
         a.w_full,
         a.rounded_sm,
         {aspectRatio},
+        {marginTop: 20, marginBottom: 20},
         a.overflow_hidden,
         a.border,
         t.atoms.border_contrast_low,
-        {backgroundColor: 'black'},
+        {backgroundColor: 'black', alignSelf: 'center'},
       ]}>
       <View style={[a.absolute, a.inset_0]}>
         <VideoTranscodeBackdrop uri={asset.uri} />

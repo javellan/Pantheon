@@ -1,12 +1,12 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useComposerControls } from "#/state/shell";
+import { compressVideo } from '../../../lib/media/video/compress';  // Adjust the import path as necessary
+import { ImagePickerAsset } from "expo-image-picker";
 
-// Determines if web or if iOS/Android to determine appropriate tools
 const isWeb = Platform.OS === "web";
 
-// Lazy import react-native-vision-camera to prevent web build issues
 let Camera: any, useCameraDevice: any, useCameraPermission: any, useMicrophonePermission: any;
 if (!isWeb) {
   const visionCamera = require("react-native-vision-camera");
@@ -18,7 +18,7 @@ if (!isWeb) {
 
 interface CameraWrapperProps {
   onPhotoCaptured?: (photoPath: string) => void;
-  onVideoRecorded?: (videoPath: string) => void;
+  onVideoRecorded?: (video: { videoAsset: ImagePickerAsset, compressedVideo: any }) => void; // Updated to include videoAsset
 }
 
 const CameraWrapper: React.FC<CameraWrapperProps> = ({
@@ -34,12 +34,10 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
   const [text, setText] = useState<string>("");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean>(false);
   const [hasMicrophonePermission, setHasMicrophonePermission] = useState<boolean>(false);
-  const [cameraClosed, setCameraClosed] = useState<boolean>(false);  // Added state
-  const {closeComposer} = useComposerControls()
+  const { closeComposer } = useComposerControls();
 
   const device = isWeb ? null : useCameraDevice("back");
 
-  // Get cam/mic permissions
   const { hasPermission: camPermission, requestPermission: requestCamPermission } = isWeb
     ? { hasPermission: hasCameraPermission, requestPermission: () => {} }
     : useCameraPermission();
@@ -47,29 +45,19 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
     ? { hasPermission: hasMicrophonePermission, requestPermission: () => {} }
     : useMicrophonePermission();
 
+  const onClose = useCallback(() => {
+    closeComposer();
+  }, [closeComposer]);
+
   useEffect(() => {
     if (isWeb) {
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
           const mediaStream = stream as MediaStream;
-
-          if (mediaStream instanceof MediaStream) {
-            videoRef.current!.srcObject = mediaStream;
-            setHasCameraPermission(true);
-            setHasMicrophonePermission(true);
-
-            const tracks = mediaStream.getTracks();
-            tracks.forEach((track) => {
-              if (track.kind === 'video') {
-                console.log('Video track:', track);
-              } else if (track.kind === 'audio') {
-                console.log('Audio track:', track);
-              }
-            });
-          } else {
-            console.warn("The stream is not a valid MediaStream.");
-          }
+          videoRef.current!.srcObject = mediaStream;
+          setHasCameraPermission(true);
+          setHasMicrophonePermission(true);
         })
         .catch((error) => {
           console.warn("Error accessing media devices: ", error);
@@ -94,11 +82,9 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
     }
   }
 
-  console.log("Camera Ready:", Camera, device, camPermission, micPermission);
-
   const handleCameraAction = async () => {
     if (mode === "TEXT") return;
-
+  
     // Take Photo
     if (isWeb) {
       if (mode === "PHOTO") {
@@ -119,7 +105,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       }
     } else {
       if (!camera.current) return;
-
+  
       if (mode === "PHOTO") {
         try {
           const photo = await camera.current.takePhoto();
@@ -131,23 +117,44 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
         }
         return;
       }
-
+  
       if (isRecording) {
         setIsRecording(false);
         await camera.current.stopRecording();
         return;
       }
-
+  
       setIsRecording(true);
       camera.current.startRecording({
         maxDuration: videoDuration,
-        onRecordingFinished: (video: { path: string }) => {
-          onVideoRecorded(video.path);
+        onRecordingFinished: async (video: { path: string }) => {
+          // Reconstruct ImagePickerAsset
+          const videoUri = video.path;
+          const videoAsset: ImagePickerAsset = {
+            uri: videoUri,
+            width: 1920, // Default or dynamically get it
+            height: 1080, // Default or dynamically get it
+            type: "video", // This indicates it is a video
+            fileName: videoUri.split('/').pop() ?? null,
+            fileSize: 0, // You can populate this if you know the file size
+            exif: null, // Optional, add if you want to provide EXIF data
+          };
+  
+          console.log(videoAsset);
+  
+          // Compress the recorded video
+          const compressedVideo = await compressVideo(videoAsset);
+  
+          // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
+          onVideoRecorded({ videoAsset, compressedVideo });
+  
+          console.log(compressedVideo); // Log to check the output
         },
         onRecordingError: (error: Error) => console.error(error),
       });
     }
   };
+  
 
   const closeCameraView = () => {
     if (isWeb) {
@@ -167,13 +174,12 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
         camera.current = null; // Reset camera reference
       }
     }
-    setCameraClosed(true); // Update state to indicate the camera is closed
-    closeComposer()
+    onClose();
   };
 
   return (
     <View style={{ flex: 1 }}>
-      { mode === "TEXT" ? (
+      {mode === "TEXT" ? (
         <TextInput
           style={{ flex: 1, padding: 20, fontSize: 18 }}
           multiline
@@ -182,13 +188,34 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           onChangeText={setText}
         />
       ) : capturedPhoto ? (
-        <Image source={{ uri: capturedPhoto }} style={{ width: "100%", height: "100%" }} />
+        <Image
+          source={{ uri: capturedPhoto }}
+          style={{
+            width: "100%",
+            height: "100%",
+            resizeMode: "cover",
+          }}
+        />
       ) : isWeb ? (
-        <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{
+            width: "auto",
+            height: "100vh",
+            objectFit: "cover",
+            aspectRatio: 9 / 16,
+          }}
+        />
       ) : Camera && device && camPermission && micPermission ? (
         <Camera
           ref={camera}
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            aspectRatio: 9 / 16,
+            resizeMode: "cover",
+          }}
           device={device}
           isActive={true}
           video={true}
@@ -201,11 +228,11 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           <Text style={{ color: "white", marginTop: 10 }}>Camera not available</Text>
         </View>
       )}
-
+  
       <TouchableOpacity onPress={closeCameraView} style={{ position: "absolute", top: 30, left: 20 }}>
-        <Ionicons name="close-circle" size={40} color="white" />
+        <Ionicons name="close-circle" size={40} color="grey" />
       </TouchableOpacity>
-
+  
       <View style={{ flexDirection: "row", justifyContent: "center", position: "absolute", bottom: 100, alignSelf: "center", marginBottom: 50 }}>
         {["3m", "60s", "15s", "PHOTO", "TEXT"].map((label) => (
           <TouchableOpacity
@@ -222,7 +249,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           </TouchableOpacity>
         ))}
       </View>
-
+  
       <TouchableOpacity
         onPress={handleCameraAction}
         style={{
@@ -233,7 +260,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           borderRadius: 50,
           width: 60,
           height: 60,
-          backgroundColor: "green",
+          backgroundColor: isRecording ? "red" : "green",
           justifyContent: "center",
           alignItems: "center",
         }}>
