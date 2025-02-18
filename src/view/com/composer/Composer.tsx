@@ -148,6 +148,7 @@ import {Audio, ResizeMode, Video} from 'expo-av'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import CameraWrapper from './CameraWrapper';
 import { CompressedVideo } from '#/lib/media/video/types'
+import { MaterialIcons } from '@expo/vector-icons'
 
 type CancelRef = {
   onPressCancel: () => void
@@ -622,30 +623,73 @@ export const ComposePost = ({
   const isWebFooterSticky = !isNative && thread.posts.length > 1
 
 //------------------------------------------------------------------------------------------------------------------------------
-const [compressedVideo, setCompressedVideo] = useState<CompressedVideo | null>(null);
-const [videoAsset, setVideoAsset] = useState<ImagePickerAsset | null>(null);
+  const [compressedVideo, setCompressedVideo] = useState<CompressedVideo | null>(null);
+  const [videoAsset, setVideoAsset] = useState<ImagePickerAsset | null>(null);
 
-return (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black'}}>
-    {!compressedVideo ? (
-      <CameraWrapper
-        onVideoRecorded={({ videoAsset, compressedVideo }) => {
-          setVideoAsset(videoAsset); // Set videoAsset
-          setCompressedVideo(compressedVideo); // Set compressedVideo
-        }}
-      />
-    ) : videoAsset ? ( // Check if videoAsset is not null
-      <VideoPreview
-        asset={videoAsset}  // Pass the videoAsset here
-        video={compressedVideo}
-        clear={() => setCompressedVideo(null)}
-        isActivePost={true}  // Or based on your state
-      />
-    ) : (
-      <Text>No video selected</Text> // Optionally show a fallback message
-    )}
-  </View>
-);
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
+      {/* Conditionally render the video preview or camera */}
+      {!compressedVideo ? (
+        <CameraWrapper
+          onVideoRecorded={({ videoAsset, compressedVideo }) => {
+            setVideoAsset(videoAsset) // Set videoAsset
+            setCompressedVideo(compressedVideo) // Set compressedVideo
+          }}
+        />
+      ) : videoAsset ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          {/* Render the VideoPreviewWithButtons inside the container */}
+          <VideoPreview
+            asset={videoAsset}  // Pass videoAsset here
+            video={compressedVideo}
+            clear={() => setCompressedVideo(null)}  // Clear the video preview
+            isActivePost={true} // Set according to your state
+          />
+          
+          {/* Overlay Buttons */}
+          {/* Close Button */}
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 100,
+              left: 20,
+              zIndex: 10, // Ensure button is on top
+            }}
+            onPress={() => setCompressedVideo(null)} // Close/clear video
+          >
+            <MaterialIcons name="close" size={30} color="white" />
+          </TouchableOpacity>
+
+          {/* Check Button */}
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              bottom: 30,
+              right: 20,
+              zIndex: 10, // Ensure button is on top
+            }}
+            onPress={() => {
+              // Add the action for the check button (e.g., save video or post)
+              console.log('Check button pressed');
+            }}
+          >
+            <Text style={{
+              color: 'white', 
+              backgroundColor: 'blue',
+              paddingLeft: 65,
+              paddingRight: 65,
+              paddingTop: 8,
+              paddingBottom: 8,
+              borderRadius: 5,
+            }}>Next</Text>
+            {/* <MaterialIcons name="check-circle" size={30} color="white" /> */}
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <Text>No video selected</Text> // Fallback message when no video is available
+      )}
+    </View>
+  )
 };
 
 //--------------------------------------------------------------------------------------------------------------------------------

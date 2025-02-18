@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useComposerControls } from "#/state/shell";
 import { compressVideo } from '../../../lib/media/video/compress';  // Adjust the import path as necessary
 import { ImagePickerAsset } from "expo-image-picker";
+import { atoms as a, useTheme } from '#/alf';
+
 
 const isWeb = Platform.OS === "web";
 
@@ -37,6 +39,9 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
   const { closeComposer } = useComposerControls();
 
   const device = isWeb ? null : useCameraDevice("back");
+
+  const aspectRatio = 9 / 16;
+  const t = useTheme()
 
   const { hasPermission: camPermission, requestPermission: requestCamPermission } = isWeb
     ? { hasPermission: hasCameraPermission, requestPermission: () => {} }
@@ -178,7 +183,16 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[
+      a.w_full,
+      a.rounded_sm,
+      {aspectRatio},
+      {marginTop: 20, marginBottom: 20},
+      a.overflow_hidden,
+      a.border,
+      t.atoms.border_contrast_low,
+      {backgroundColor: 'black', alignSelf: 'center'},
+    ]}>
       {mode === "TEXT" ? (
         <TextInput
           style={{ flex: 1, padding: 20, fontSize: 18 }}
@@ -205,7 +219,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
             width: "auto",
             height: "100vh",
             objectFit: "cover",
-            aspectRatio: 9 / 16,
+            aspectRatio: aspectRatio,
           }}
         />
       ) : Camera && device && camPermission && micPermission ? (
@@ -213,7 +227,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           ref={camera}
           style={{
             flex: 1,
-            aspectRatio: 9 / 16,
+            aspectRatio: aspectRatio,
             resizeMode: "cover",
           }}
           device={device}
