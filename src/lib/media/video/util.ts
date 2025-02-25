@@ -17,6 +17,7 @@ export const createVideoEndpointUrl = (
 }
 
 export function createVideoAgent() {
+  console.log("In createVideoAgent")
   return new AtpAgent({
     service: VIDEO_SERVICE,
   })

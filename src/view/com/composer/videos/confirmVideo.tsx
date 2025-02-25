@@ -1,14 +1,10 @@
-import {useCallback} from 'react'
-import {Keyboard} from 'react-native'
-import {ImagePickerAsset} from 'expo-image-picker'
+import {useCallback, useState} from 'react'
+import {Keyboard, TouchableOpacity, Text} from 'react-native'
+import {ImagePickerAsset, ImagePickerSuccessResult} from 'expo-image-picker'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
-import {
-  SUPPORTED_MIME_TYPES,
-  SupportedMimeTypes,
-  VIDEO_MAX_DURATION_MS,
-} from '#/lib/constants'
+import {SUPPORTED_MIME_TYPES, SupportedMimeTypes} from '#/lib/constants'
 import {BSKY_SERVICE} from '#/lib/constants'
 import {useVideoLibraryPermission} from '#/lib/hooks/usePermissions'
 import {getHostnameFromUrl} from '#/lib/strings/url-helpers'
@@ -23,13 +19,19 @@ import {VideoClip_Stroke2_Corner0_Rounded as VideoClipIcon} from '#/components/i
 import * as Prompt from '#/components/Prompt'
 import {pickVideo} from './pickVideo'
 
+
+const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
+
+
 type Props = {
   onSelectVideo: (video: ImagePickerAsset) => void
   disabled?: boolean
   setError: (error: string) => void
+  videoAsset: ImagePickerAsset | null
+  result: ImagePickerSuccessResult | null
 }
 
-export function SelectVideoBtn({onSelectVideo, disabled, setError}: Props) {
+export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset}: Props) {
   const {_} = useLingui()
   const t = useTheme()
   const {requestVideoAccessIfNeeded} = useVideoLibraryPermission()
@@ -50,15 +52,20 @@ export function SelectVideoBtn({onSelectVideo, disabled, setError}: Props) {
       Keyboard.dismiss()
       control.open()
     } else {
-      const response = await pickVideo()
-      if (response.assets && response.assets.length > 0) {
-        const asset = response.assets[0]
+        if (!videoAsset) {
+            console.log("No video asset selected");
+            setError("No video selected. Please record or pick a video.");
+            return;
+          }
+    
+      if (videoAsset) {
+        const asset = videoAsset
         console.log("This is their asset: ", asset)
         try {
           if (isWeb) {
             // asset.duration is null for gifs (see the TODO in pickVideo.web.ts)
-            if (asset.duration && asset.duration > VIDEO_MAX_DURATION_MS) {
-              throw Error(_(msg`Videos must be less than 3 minutes long`))
+            if (asset.duration && asset.duration > VIDEO_MAX_DURATION) {
+              throw Error(_(msg`Videos must be less than 60 seconds long`))
             }
             // compression step on native converts to mp4, so no need to check there
             if (
@@ -72,8 +79,8 @@ export function SelectVideoBtn({onSelectVideo, disabled, setError}: Props) {
             if (typeof asset.duration !== 'number') {
               throw Error('Asset is not a video')
             }
-            if (asset.duration > VIDEO_MAX_DURATION_MS) {
-              throw Error(_(msg`Videos must be less than 3 minutes long`))
+            if (asset.duration > VIDEO_MAX_DURATION) {
+              throw Error(_(msg`Videos must be less than 60 seconds long`))
             }
           }
           onSelectVideo(asset)
@@ -101,16 +108,15 @@ export function SelectVideoBtn({onSelectVideo, disabled, setError}: Props) {
         testID="openGifBtn"
         onPress={onPressSelectVideo}
         label={_(msg`Select video`)}
-        accessibilityHint={_(msg`Opens video picker`)}
+        accessibilityHint={_(msg`Confirms video`)}
         style={a.p_sm}
         variant="ghost"
         shape="round"
         color="primary"
         disabled={disabled}>
-        <VideoClipIcon
-          size="lg"
-          style={disabled && t.atoms.text_contrast_low}
-        />
+        <Text>
+          Next
+        </Text>
       </Button>
       <VerifyEmailPrompt control={control} />
     </>

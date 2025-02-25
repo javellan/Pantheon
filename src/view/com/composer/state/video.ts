@@ -267,11 +267,13 @@ export async function processVideo(
 ) {
   let video: CompressedVideo | undefined
   try {
+    console.log("1")
     video = await compressVideo(asset, {
       onProgress: num => {
         dispatch({type: 'update_progress', progress: trunc2dp(num), signal})
       },
       signal,
+      
     })
   } catch (e) {
     const message = getCompressErrorMessage(e, _)
@@ -292,6 +294,7 @@ export async function processVideo(
 
   let uploadResponse: AppBskyVideoDefs.JobStatus | undefined
   try {
+    console.log("2")
     uploadResponse = await uploadVideo({
       video,
       agent,
@@ -331,22 +334,29 @@ export async function processVideo(
     let status: JobStatus | undefined
     let blob: BlobRef | undefined
     try {
+      console.log("3")
       const response = await videoAgent.app.bsky.video.getJobStatus({jobId})
       status = response.data.jobStatus
+      console.log(status)
       pollFailures = 0
 
       if (status.state === 'JOB_STATE_COMPLETED') {
+        console.log('4')
         blob = status.blob
         if (!blob) {
+          console.log('5')
           throw new Error('Job completed, but did not return a blob')
         }
       } else if (status.state === 'JOB_STATE_FAILED') {
+        console.log('6')
         throw new Error(status.error ?? 'Job failed to process')
       }
     } catch (e) {
       if (!status) {
+        console.log('7')
         pollFailures++
         if (pollFailures < 50) {
+          console.log('8')
           await new Promise(resolve => setTimeout(resolve, 5000))
           continue // Continue async loop
         }
