@@ -40,7 +40,6 @@ export function VideoPreview({
         a.w_full,
         a.rounded_sm,
         {aspectRatio},
-        {marginTop: 20, marginBottom: 20},
         a.overflow_hidden,
         a.border,
         t.atoms.border_contrast_low,

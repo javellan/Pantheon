@@ -3,8 +3,11 @@ import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-
 import { Ionicons } from "@expo/vector-icons";
 import { useComposerControls } from "#/state/shell";
 import { compressVideo } from '../../../lib/media/video/compress';  // Adjust the import path as necessary
-import { ImagePickerAsset } from "expo-image-picker";
+import { ImagePickerAsset, ImagePickerResult, ImagePickerSuccessResult } from "expo-image-picker";
 import { atoms as a, useTheme } from '#/alf';
+import { CompressedVideo } from "#/lib/media/video/types";
+import { getVideoMetaData } from "react-native-compressor";
+import RNFetchBlob from "rn-fetch-blob";
 
 
 const isWeb = Platform.OS === "web";
@@ -20,7 +23,7 @@ if (!isWeb) {
 
 interface CameraWrapperProps {
   onPhotoCaptured?: (photoPath: string) => void;
-  onVideoRecorded?: (video: { videoAsset: ImagePickerAsset, compressedVideo: any }) => void; // Updated to include videoAsset
+  onVideoRecorded?: (video: { videoAsset: ImagePickerAsset, recordedVideo: any, result: ImagePickerSuccessResult }) => void; // Updated to include videoAsset
 }
 
 const CameraWrapper: React.FC<CameraWrapperProps> = ({
@@ -132,33 +135,82 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       setIsRecording(true);
       camera.current.startRecording({
         maxDuration: videoDuration,
-        onRecordingFinished: async (video: { path: string }) => {
-          // Reconstruct ImagePickerAsset
+        fileType: "mp4",
+        legacy: true,
+        onRecordingFinished: async (video: { path: string; duration: number; height: number; width: number }) => {
+          console.log(video);
           const videoUri = video.path;
-          const videoAsset: ImagePickerAsset = {
-            uri: videoUri,
-            width: 1920, // Default or dynamically get it
-            height: 1080, // Default or dynamically get it
-            type: "video", // This indicates it is a video
-            fileName: videoUri.split('/').pop() ?? null,
-            fileSize: 0, // You can populate this if you know the file size
-            exif: null, // Optional, add if you want to provide EXIF data
-          };
+          const videoDuration = video.duration * 1000; // Display in milliseconds
+          const videoHeight = video.height;
+          const videoWidth = video.width;
   
-          console.log(videoAsset);
+          const targetDir = "/data/user/0/xyz.blueskyweb.app/cache/ImagePicker/";
+          const fileName = videoUri.split('/').pop();
+          const newPath = `${targetDir}${fileName}`;
   
-          // Compress the recorded video
-          const compressedVideo = await compressVideo(videoAsset);
+          try {
+            // Check if directory exists before creating it
+            const isDirExists = await RNFetchBlob.fs.exists(targetDir);
+            
+            if (!isDirExists) {
+              await RNFetchBlob.fs.mkdir(targetDir);
+            }
   
-          // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
-          onVideoRecorded({ videoAsset, compressedVideo });
+            // Move the file to the new directory
+            await RNFetchBlob.fs.mv(videoUri, newPath);
+            console.log("File moved to:", newPath);
   
-          console.log(compressedVideo); // Log to check the output
+            const stats = await RNFetchBlob.fs.stat(newPath);
+            console.log("Stats: ", stats);
+            const videoSize = stats.size;
+  
+            let assets: ImagePickerAsset[] = []
+
+            const videoAsset: ImagePickerAsset = {
+              assetId: null,
+              base64: null,
+              duration: videoDuration,
+              exif: null,
+              fileName: fileName ?? null,
+              fileSize: videoSize,
+              height: videoHeight,
+              mimeType: "video/mp4",
+              type: "video",
+              uri: `file://${newPath}`,
+              //uri: newPath,
+              width: videoWidth,
+            };
+
+            assets.push(videoAsset);
+
+            const result: ImagePickerSuccessResult = {
+              canceled: false,
+              assets: assets
+            }
+  
+            console.log(videoAsset);
+  
+            // Compress the recorded video
+            const recordedVideo = {
+              uri: `file://${newPath}`,
+              mimeType: 'video/mp4',
+              size: videoSize,
+            };
+  
+            // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
+            onVideoRecorded({ videoAsset, recordedVideo, result });
+  
+            console.log(recordedVideo); // Log to check the output
+          } catch (err) {
+            console.log("Error handling file operations: ", err);
+          }
         },
         onRecordingError: (error: Error) => console.error(error),
       });
     }
   };
+  
+  
   
 
   const closeCameraView = () => {
@@ -187,11 +239,10 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       a.w_full,
       a.rounded_sm,
       {aspectRatio},
-      {marginTop: 20, marginBottom: 20},
       a.overflow_hidden,
       a.border,
       t.atoms.border_contrast_low,
-      {backgroundColor: 'black', alignSelf: 'center'},
+      {backgroundColor: 'light grey', alignSelf: 'center'},
     ]}>
       {mode === "TEXT" ? (
         <TextInput
