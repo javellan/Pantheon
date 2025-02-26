@@ -821,17 +821,20 @@ let ComposerPost = React.memo(function ComposerPost({
   const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
   const media = post.embed.media
 
+
   return (
     <View style={[styles.post, !isActive && styles.inactivePost]}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {/* Conditionally render the video preview or camera */}
         {!recordedVideo ? (
           <CameraWrapper
-            onVideoRecorded={({ videoAsset, recordedVideo }) => {
+            onVideoRecorded={({ videoAsset, recordedVideo, result }) => {
               setVideoAsset(videoAsset) // Set videoAsset
               console.log("Video Asset: ", videoAsset)
               //setCompressedVideo(compressedVideo) // Set compressedVideo
               setRecordedVideo(recordedVideo)
+              setResult(result)
+              console.log("RESULT IN COMPOSER: ", result)
             }}
           />
         ) : videoAsset ? (

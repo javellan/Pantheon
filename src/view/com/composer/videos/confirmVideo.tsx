@@ -1,23 +1,19 @@
-import {useCallback, useState} from 'react'
-import {Keyboard, TouchableOpacity, Text} from 'react-native'
+import {useCallback} from 'react'
+import {Keyboard, Text} from 'react-native'
 import {ImagePickerAsset, ImagePickerSuccessResult} from 'expo-image-picker'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
 import {SUPPORTED_MIME_TYPES, SupportedMimeTypes} from '#/lib/constants'
 import {BSKY_SERVICE} from '#/lib/constants'
-import {useVideoLibraryPermission} from '#/lib/hooks/usePermissions'
 import {getHostnameFromUrl} from '#/lib/strings/url-helpers'
 import {isWeb} from '#/platform/detection'
-import {isNative} from '#/platform/detection'
 import {useSession} from '#/state/session'
 import {atoms as a, useTheme} from '#/alf'
 import {Button} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {VerifyEmailDialog} from '#/components/dialogs/VerifyEmailDialog'
-import {VideoClip_Stroke2_Corner0_Rounded as VideoClipIcon} from '#/components/icons/VideoClip'
 import * as Prompt from '#/components/Prompt'
-import {pickVideo} from './pickVideo'
 
 
 const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
@@ -31,18 +27,13 @@ type Props = {
   result: ImagePickerSuccessResult | null
 }
 
-export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset}: Props) {
+export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset, result}: Props) {
   const {_} = useLingui()
   const t = useTheme()
-  const {requestVideoAccessIfNeeded} = useVideoLibraryPermission()
   const control = Prompt.usePromptControl()
   const {currentAccount} = useSession()
 
   const onPressSelectVideo = useCallback(async () => {
-    if (isNative && !(await requestVideoAccessIfNeeded())) {
-      return
-    }
-
     if (
       currentAccount &&
       !currentAccount.emailConfirmed &&
@@ -52,14 +43,14 @@ export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset}:
       Keyboard.dismiss()
       control.open()
     } else {
-        if (!videoAsset) {
+        if (!result?.assets) {
             console.log("No video asset selected");
             setError("No video selected. Please record or pick a video.");
             return;
           }
     
-      if (videoAsset) {
-        const asset = videoAsset
+      if (result?.assets && result.assets.length > 0) {
+        const asset = result.assets[0]
         console.log("This is their asset: ", asset)
         try {
           if (isWeb) {
@@ -94,7 +85,6 @@ export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset}:
       }
     }
   }, [
-    requestVideoAccessIfNeeded,
     currentAccount,
     control,
     setError,
