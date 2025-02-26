@@ -8,6 +8,7 @@ import { atoms as a, useTheme } from '#/alf';
 import { CompressedVideo } from "#/lib/media/video/types";
 import { getVideoMetaData } from "react-native-compressor";
 import RNFetchBlob from "rn-fetch-blob";
+import uuid from "react-native-uuid";
 
 
 const isWeb = Platform.OS === "web";
@@ -23,7 +24,7 @@ if (!isWeb) {
 
 interface CameraWrapperProps {
   onPhotoCaptured?: (photoPath: string) => void;
-  onVideoRecorded?: (video: { videoAsset: ImagePickerAsset, recordedVideo: any, result: ImagePickerSuccessResult }) => void; // Updated to include videoAsset
+  onVideoRecorded?: (video: { videoAsset: any, recordedVideo: any, result: any }) => void; // Updated to include videoAsset
 }
 
 const CameraWrapper: React.FC<CameraWrapperProps> = ({
@@ -145,62 +146,74 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           const videoWidth = video.width;
   
           const targetDir = "/data/user/0/xyz.blueskyweb.app/cache/ImagePicker/";
-          const fileName = videoUri.split('/').pop();
-          const newPath = `${targetDir}${fileName}`;
+          const originalFileName = videoUri.split('/').pop();
+          const newFileName = `${uuid.v4()}.mp4`
+          const newPath = `${targetDir}${newFileName}`;
   
           try {
             // Check if directory exists before creating it
             const isDirExists = await RNFetchBlob.fs.exists(targetDir);
-            
-            if (!isDirExists) {
-              await RNFetchBlob.fs.mkdir(targetDir);
+
+            const match = originalFileName?.match(/^mrousavy(\d+)\.mp4$/);
+            const randomNumber = match ? match[1] : null;
+            const fileExtension = originalFileName?.split(".").pop();
+
+            if(randomNumber) {
+
+              const last10Digits = randomNumber.slice(-10)
+              const fileName = `${last10Digits}.${fileExtension}`
+              
+              if (!isDirExists) {
+                await RNFetchBlob.fs.mkdir(targetDir);
+              }
+    
+              // Move the file to the new directory
+              await RNFetchBlob.fs.mv(videoUri, newPath);
+              console.log("File moved to:", newPath);
+    
+              const stats = await RNFetchBlob.fs.stat(newPath);
+              console.log("Stats: ", stats);
+              const videoSize = stats.size;
+    
+              let assets = []
+
+              const videoAsset = {
+                assetId: null,
+                base64: null,
+                duration: videoDuration,
+                exif: null,
+                fileName: fileName ?? null,
+                fileSize: videoSize,
+                height: videoHeight,
+                mimeType: "video/mp4",
+                rotation: 0,
+                type: "video",
+                uri: `file://${newPath}`,
+                //uri: newPath,
+                width: videoWidth,
+              };
+
+              assets.push(videoAsset);
+
+              const result = {
+                canceled: false,
+                assets: assets
+              }
+    
+              console.log("RESULT: ", result);
+    
+              // Compress the recorded video
+              const recordedVideo = {
+                uri: `file://${newPath}`,
+                mimeType: 'video/mp4',
+                size: videoSize,
+              };
+    
+              // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
+              onVideoRecorded({ videoAsset, recordedVideo, result });
+    
+              console.log(recordedVideo); // Log to check the output
             }
-  
-            // Move the file to the new directory
-            await RNFetchBlob.fs.mv(videoUri, newPath);
-            console.log("File moved to:", newPath);
-  
-            const stats = await RNFetchBlob.fs.stat(newPath);
-            console.log("Stats: ", stats);
-            const videoSize = stats.size;
-  
-            let assets: ImagePickerAsset[] = []
-
-            const videoAsset: ImagePickerAsset = {
-              assetId: null,
-              base64: null,
-              duration: videoDuration,
-              exif: null,
-              fileName: fileName ?? null,
-              fileSize: videoSize,
-              height: videoHeight,
-              mimeType: "video/mp4",
-              type: "video",
-              uri: `file://${newPath}`,
-              //uri: newPath,
-              width: videoWidth,
-            };
-
-            assets.push(videoAsset);
-
-            const result: ImagePickerSuccessResult = {
-              canceled: false,
-              assets: assets
-            }
-  
-            console.log(videoAsset);
-  
-            // Compress the recorded video
-            const recordedVideo = {
-              uri: `file://${newPath}`,
-              mimeType: 'video/mp4',
-              size: videoSize,
-            };
-  
-            // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
-            onVideoRecorded({ videoAsset, recordedVideo, result });
-  
-            console.log(recordedVideo); // Log to check the output
           } catch (err) {
             console.log("Error handling file operations: ", err);
           }

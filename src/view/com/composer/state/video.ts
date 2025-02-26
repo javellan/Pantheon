@@ -1,6 +1,7 @@
 import {ImagePickerAsset} from 'expo-image-picker'
 import {AppBskyVideoDefs, BlobRef, BskyAgent} from '@atproto/api'
 import {JobStatus} from '@atproto/api/dist/client/types/app/bsky/video/defs'
+import {CallOptions} from '@atproto/api/src/client/types/app/bsky/video/getJobStatus.ts'
 import {I18n} from '@lingui/core'
 import {msg} from '@lingui/macro'
 
@@ -333,11 +334,16 @@ export async function processVideo(
     const videoAgent = createVideoAgent()
     let status: JobStatus | undefined
     let blob: BlobRef | undefined
+    let options: CallOptions | undefined
     try {
       console.log("3")
       const response = await videoAgent.app.bsky.video.getJobStatus({jobId})
       status = response.data.jobStatus
-      console.log(status)
+      console.log("RESPONSE HEADERS: ", response.headers)
+      console.log("RESPONSE DATA: ", response.data)
+      console.log("RESPONSE STATUS: ", status)
+      console.log("BLOB: ", blob)
+      console.log("CALL OPTIONS: ", options)
       pollFailures = 0
 
       if (status.state === 'JOB_STATE_COMPLETED') {
