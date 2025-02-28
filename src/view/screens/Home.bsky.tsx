@@ -1,6 +1,5 @@
 import React from 'react'
 import {ActivityIndicator, StyleSheet} from 'react-native'
-import {AppBskyFeedDefs} from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
 
 import {PROD_DEFAULT_FEED} from '#/lib/constants'
@@ -31,7 +30,6 @@ import {FollowingEmptyState} from '#/view/com/posts/FollowingEmptyState'
 import {FollowingEndOfFeed} from '#/view/com/posts/FollowingEndOfFeed'
 import {NoFeedsPinned} from '#/screens/Home/NoFeedsPinned'
 import * as Layout from '#/components/Layout'
-import {ClearlightFeed} from '../com/video/ClearlightFeed'
 
 type Props = NativeStackScreenProps<HomeTabNavigatorParams, 'Home' | 'Start'>
 export function HomeScreen(props: Props) {
@@ -72,14 +70,8 @@ export function HomeScreen(props: Props) {
   ])
 
   if (preferences && pinnedFeedInfos && !isPinnedFeedsLoading) {
-    // TODO: For later when we merge feeds
-    // const clearlightFeeds = pinnedFeedInfos.filter(
-    //   pfi =>
-    //     pfi.creatorDid === 'did:plc:qnz6zuzbborkfoh6kwsjwdxx' ||
-    //     VIDEO_FEED_URIS.includes(pfi.uri),
-    // )
     return (
-      <Layout.Screen testID="HomeScreen" noInsetTop>
+      <Layout.Screen testID="HomeScreen">
         <HomeScreenReady
           {...props}
           preferences={preferences}
@@ -89,10 +81,8 @@ export function HomeScreen(props: Props) {
     )
   } else {
     return (
-      <Layout.Screen>
-        <Layout.Center style={styles.loading}>
-          <ActivityIndicator size="large" />
-        </Layout.Center>
+      <Layout.Screen style={styles.loading}>
+        <ActivityIndicator size="large" />
       </Layout.Screen>
     )
   }
@@ -238,17 +228,6 @@ function HomeScreenReady({
       {pinnedFeedInfos.length ? (
         pinnedFeedInfos.map((feedInfo, index) => {
           const feed = feedInfo.feedDescriptor
-          if (feedInfo.contentMode === AppBskyFeedDefs.CONTENTMODEVIDEO) {
-            return (
-              <ClearlightFeed
-                key={feed}
-                feed={feed}
-                feedParams={homeFeedParams}
-                isPageFocused={maybeSelectedFeed === feed}
-                isPageAdjacent={Math.abs(selectedIndex - index) === 1}
-              />
-            )
-          }
           if (feed === 'following') {
             return (
               <FeedPage

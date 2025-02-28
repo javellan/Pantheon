@@ -198,17 +198,21 @@ module.exports = function (config) {
         channel: UPDATES_CHANNEL,
       },
       plugins: [
-        ['expo-av',
+        [
+          'expo-av',
           {
-            "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-          }
-        ]
-        ['expo-camera',
+            microphonePermission:
+              'Allow $(PRODUCT_NAME) to access your microphone.',
+          },
+        ][
+          ('expo-camera',
           {
-            "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-            "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-            "recordAudioAndroid": true
-          }],
+            cameraPermission: 'Allow $(PRODUCT_NAME) to access your camera',
+            microphonePermission:
+              'Allow $(PRODUCT_NAME) to access your microphone',
+            recordAudioAndroid: true,
+          })
+        ],
         'expo-video',
         'expo-localization',
         USE_SENTRY && [
@@ -232,6 +236,7 @@ module.exports = function (config) {
               targetSdkVersion: 35,
               buildToolsVersion: '35.0.0',
               newArchEnabled: false,
+              kotlinVersion: '1.9.24',
             },
           },
         ],
@@ -304,83 +309,85 @@ module.exports = function (config) {
             },
           },
         ],
-        [
-          '@mozzius/expo-dynamic-app-icon',
-          {
-            /**
-             * Default set
-             */
-            default_light: {
-              ios: './assets/app-icons/ios_icon_default_light.png',
-              android: './assets/app-icons/android_icon_default_light.png',
-              prerendered: true,
-            },
-            default_dark: {
-              ios: './assets/app-icons/ios_icon_default_dark.png',
-              android: './assets/app-icons/android_icon_default_dark.png',
-              prerendered: true,
-            },
+        // [
+        //   '@mozzius/expo-dynamic-app-icon',
+        //   {
+        //     /**
+        //      * Default set
+        //      */
+        //     default_light: {
+        //       ios: './assets/app-icons/ios_icon_default_light.png',
+        //       android: './assets/app-icons/android_icon_default_light.png',
+        //       prerendered: true,
+        //     },
+        //     default_dark: {
+        //       ios: './assets/app-icons/ios_icon_default_dark.png',
+        //       android: './assets/app-icons/android_icon_default_dark.png',
+        //       prerendered: true,
+        //     },
 
-            /**
-             * Bluesky+ core set
-             */
-            core_aurora: {
-              ios: './assets/app-icons/ios_icon_core_aurora.png',
-              android: './assets/app-icons/android_icon_core_aurora.png',
-              prerendered: true,
-            },
-            core_bonfire: {
-              ios: './assets/app-icons/ios_icon_core_bonfire.png',
-              android: './assets/app-icons/android_icon_core_bonfire.png',
-              prerendered: true,
-            },
-            core_sunrise: {
-              ios: './assets/app-icons/ios_icon_core_sunrise.png',
-              android: './assets/app-icons/android_icon_core_sunrise.png',
-              prerendered: true,
-            },
-            core_sunset: {
-              ios: './assets/app-icons/ios_icon_core_sunset.png',
-              android: './assets/app-icons/android_icon_core_sunset.png',
-              prerendered: true,
-            },
-            core_midnight: {
-              ios: './assets/app-icons/ios_icon_core_midnight.png',
-              android: './assets/app-icons/android_icon_core_midnight.png',
-              prerendered: true,
-            },
-            core_flat_blue: {
-              ios: './assets/app-icons/ios_icon_core_flat_blue.png',
-              android: './assets/app-icons/android_icon_core_flat_blue.png',
-              prerendered: true,
-            },
-            core_flat_white: {
-              ios: './assets/app-icons/ios_icon_core_flat_white.png',
-              android: './assets/app-icons/android_icon_core_flat_white.png',
-              prerendered: true,
-            },
-            core_flat_black: {
-              ios: './assets/app-icons/ios_icon_core_flat_black.png',
-              android: './assets/app-icons/android_icon_core_flat_black.png',
-              prerendered: true,
-            },
-            core_classic: {
-              ios: './assets/app-icons/ios_icon_core_classic.png',
-              android: './assets/app-icons/android_icon_core_classic.png',
-              prerendered: true,
-            },
-          },
-        ],
+        //     /**
+        //      * Bluesky+ core set
+        //      */
+        //     core_aurora: {
+        //       ios: './assets/app-icons/ios_icon_core_aurora.png',
+        //       android: './assets/app-icons/android_icon_core_aurora.png',
+        //       prerendered: true,
+        //     },
+        //     core_bonfire: {
+        //       ios: './assets/app-icons/ios_icon_core_bonfire.png',
+        //       android: './assets/app-icons/android_icon_core_bonfire.png',
+        //       prerendered: true,
+        //     },
+        //     core_sunrise: {
+        //       ios: './assets/app-icons/ios_icon_core_sunrise.png',
+        //       android: './assets/app-icons/android_icon_core_sunrise.png',
+        //       prerendered: true,
+        //     },
+        //     core_sunset: {
+        //       ios: './assets/app-icons/ios_icon_core_sunset.png',
+        //       android: './assets/app-icons/android_icon_core_sunset.png',
+        //       prerendered: true,
+        //     },
+        //     core_midnight: {
+        //       ios: './assets/app-icons/ios_icon_core_midnight.png',
+        //       android: './assets/app-icons/android_icon_core_midnight.png',
+        //       prerendered: true,
+        //     },
+        //     core_flat_blue: {
+        //       ios: './assets/app-icons/ios_icon_core_flat_blue.png',
+        //       android: './assets/app-icons/android_icon_core_flat_blue.png',
+        //       prerendered: true,
+        //     },
+        //     core_flat_white: {
+        //       ios: './assets/app-icons/ios_icon_core_flat_white.png',
+        //       android: './assets/app-icons/android_icon_core_flat_white.png',
+        //       prerendered: true,
+        //     },
+        //     core_flat_black: {
+        //       ios: './assets/app-icons/ios_icon_core_flat_black.png',
+        //       android: './assets/app-icons/android_icon_core_flat_black.png',
+        //       prerendered: true,
+        //     },
+        //     core_classic: {
+        //       ios: './assets/app-icons/ios_icon_core_classic.png',
+        //       android: './assets/app-icons/android_icon_core_classic.png',
+        //       prerendered: true,
+        //     },
+        //   },
+        // ],
         ['expo-screen-orientation', {initialOrientation: 'PORTRAIT_UP'}],
         [
           'react-native-vision-camera',
           {
             enableLocation: false,
-            "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
+            cameraPermissionText:
+              '$(PRODUCT_NAME) needs access to your Camera.',
 
             // optionally, if you want to record audio:
-            "enableMicrophonePermission": true,
-            "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
+            enableMicrophonePermission: true,
+            microphonePermissionText:
+              '$(PRODUCT_NAME) needs access to your Microphone.',
           },
         ],
       ].filter(Boolean),
