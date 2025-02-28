@@ -14,7 +14,7 @@ import {useMinimalShellFooterTransform} from '#/lib/hooks/useMinimalShellTransfo
 import {useNavigationTabState} from '#/lib/hooks/useNavigationTabState'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {clamp} from '#/lib/numbers'
-import {getTabState, TabState} from '#/lib/routes/helpers'
+import {getTabState, isStateAtTabRoot, TabState} from '#/lib/routes/helpers'
 import {useGate} from '#/lib/statsig/statsig'
 import {emitSoftReset} from '#/state/events'
 import {useHomeBadge} from '#/state/home-badge'
@@ -124,6 +124,8 @@ export function BottomBar({navigation}: BottomTabBarProps) {
     accountSwitchControl.open()
   }, [accountSwitchControl, playHaptic])
 
+  const useTransparentBar = isAtHome && isStateAtTabRoot(navigation.getState())
+
   return (
     <>
       <SwitchAccountDialog control={accountSwitchControl} />
@@ -131,7 +133,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
       <Animated.View
         style={[
           styles.bottomBar,
-          pal.view,
+          useTransparentBar ? undefined : pal.view,
           pal.border,
           {paddingBottom: clamp(safeAreaInsets.bottom, 15, 60)},
           footerMinimalShellTransform,

@@ -2,7 +2,7 @@ import React, {createContext, ReactNode, useContext} from 'react'
 import {TextStyle, ViewStyle} from 'react-native'
 
 import {ThemeName} from '#/alf/types'
-import {darkTheme, defaultTheme, dimTheme} from './themes'
+import {defaultTheme, dimTheme} from './themes'
 
 export type ColorScheme = 'light' | 'dark'
 
@@ -89,16 +89,17 @@ export const ThemeContext = createContext<Theme>(defaultTheme)
 export const useTheme = () => useContext(ThemeContext)
 
 function getTheme(theme: ThemeName) {
-  switch (theme) {
-    case 'light':
-      return defaultTheme
-    case 'dim':
-      return dimTheme
-    case 'dark':
-      return darkTheme
-    default:
-      return defaultTheme
-  }
+  // switch (theme) {
+  //   case 'light':
+  //     return defaultTheme
+  //   case 'dim':
+  //     return dimTheme
+  //   case 'dark':
+  //     return darkTheme
+  //   default:
+  //     return defaultTheme
+  // }
+  return theme ? dimTheme : dimTheme
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({

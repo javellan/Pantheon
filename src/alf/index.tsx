@@ -136,9 +136,15 @@ export function useAlf() {
   return React.useContext(Context)
 }
 
+// export function useTheme(theme?: ThemeName) {
+//   const alf = useAlf()
+//   return React.useMemo(() => {
+//     return theme ? alf.themes[theme] : alf.theme
+//   }, [theme, alf])
+// }
 export function useTheme(theme?: ThemeName) {
   const alf = useAlf()
   return React.useMemo(() => {
-    return theme ? alf.themes[theme] : alf.theme
-  }, [theme, alf])
+    return theme ? alf.themes.dim : alf.themes.dim
+  }, [alf, theme])
 }

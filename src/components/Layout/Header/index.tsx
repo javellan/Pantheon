@@ -134,7 +134,7 @@ export function BackButton({onPress, style, ...props}: Partial<ButtonProps>) {
   )
 }
 
-export function MenuButton() {
+export function MenuButton({transparent}: {transparent?: boolean}) {
   const {_} = useLingui()
   const setDrawerOpen = useSetDrawerOpen()
   const {gtMobile} = useBreakpoints()
@@ -154,7 +154,10 @@ export function MenuButton() {
         shape="square"
         onPress={onPress}
         hitSlop={HITSLOP_30}
-        style={[{marginLeft: -BUTTON_VISUAL_ALIGNMENT_OFFSET}]}>
+        style={[
+          {marginLeft: -BUTTON_VISUAL_ALIGNMENT_OFFSET},
+          transparent ? {backgroundColor: 'transparent'} : undefined,
+        ]}>
         <ButtonIcon icon={Menu} size="lg" />
       </Button>
     </Slot>
