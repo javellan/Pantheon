@@ -1,12 +1,9 @@
-import React, {useCallback, useEffect, useRef} from 'react'
-import {AppState} from 'react-native'
 import {
   AppBskyActorDefs,
   AppBskyFeedDefs,
   AppBskyFeedPost,
   AtUri,
   BskyAgent,
-  moderatePost,
   ModerationDecision,
 } from '@atproto/api'
 import {
@@ -15,9 +12,12 @@ import {
   QueryKey,
   useInfiniteQuery,
 } from '@tanstack/react-query'
+import React, {useCallback, useEffect, useRef} from 'react'
+import {AppState} from 'react-native'
 
 import {AuthorFeedAPI} from '#/lib/api/feed/author'
 import {CustomFeedAPI} from '#/lib/api/feed/custom'
+import {MergeFlowApi} from '#/lib/api/feed/flow'
 import {FollowingFeedAPI} from '#/lib/api/feed/following'
 import {HomeFeedAPI} from '#/lib/api/feed/home'
 import {LikesFeedAPI} from '#/lib/api/feed/likes'
@@ -26,8 +26,8 @@ import {MergeFeedAPI} from '#/lib/api/feed/merge'
 import {FeedAPI, ReasonFeedSource} from '#/lib/api/feed/types'
 import {aggregateUserInterests} from '#/lib/api/feed/utils'
 import {FeedTuner, FeedTunerFn} from '#/lib/api/feed-manip'
-import {DISCOVER_FEED_URI} from '#/lib/constants'
-import {BSKY_FEED_OWNER_DIDS} from '#/lib/constants'
+import {BSKY_FEED_OWNER_DIDS, DISCOVER_FEED_URI} from '#/lib/constants'
+import {moderatePost_wrapped as moderatePost} from '#/lib/moderatePost_wrapped'
 import {logger} from '#/logger'
 import {STALE} from '#/state/queries'
 import {DEFAULT_LOGGED_OUT_PREFERENCES} from '#/state/queries/preferences/const'
@@ -173,7 +173,7 @@ export function usePostFeedQuery(
     staleTime: STALE.INFINITY,
     queryKey: RQKEY(feedDesc, params),
     async queryFn({pageParam}: {pageParam: RQPageParam}) {
-      logger.debug('usePostFeedQuery', {feedDesc, cursor: pageParam?.cursor})
+      // logger.debug('usePostFeedQuery', {feedDesc, cursor: pageParam?.cursor})
       const {api, cursor} = pageParam
         ? pageParam
         : {
@@ -452,6 +452,17 @@ function createApi({
   agent: BskyAgent
   enableFollowingToDiscoverFallback: boolean
 }) {
+  if (
+    feedDesc ===
+    'feedgen|at://did:plc:tao-flow-fyp-did/app.tao.feed.generator/for-you'
+  ) {
+    return new MergeFlowApi({
+      agent,
+      feedParams,
+      feedTuners,
+      userInterests,
+    })
+  }
   if (feedDesc === 'following') {
     if (feedParams.mergeFeedEnabled) {
       return new MergeFeedAPI({

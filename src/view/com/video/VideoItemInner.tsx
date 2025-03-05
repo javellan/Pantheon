@@ -1,12 +1,11 @@
-import {useState} from 'react'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {AppBskyEmbedVideo} from '@atproto/api'
 import {useEventListener} from 'expo'
 import {VideoPlayer, VideoView} from 'expo-video'
-import {AppBskyEmbedVideo} from '@atproto/api'
+import {useState} from 'react'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
-import {isAndroid} from '#/platform/detection'
 import {atoms as a} from '#/alf'
-import {isTallAspectRatio} from './utils'
+import {isAndroid} from '#/platform/detection'
 
 export function VideoItemInner({
   player,
@@ -39,7 +38,7 @@ export function VideoItemInner({
       ]}
       player={player}
       nativeControls={false}
-      contentFit={isTallAspectRatio(embed.aspectRatio) ? 'cover' : 'contain'}
+      contentFit="contain"
       accessibilityIgnoresInvertColors
     />
   )
