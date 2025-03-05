@@ -1,16 +1,18 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
-import {Gesture, GestureDetector} from 'react-native-gesture-handler'
-import {runOnJS} from 'react-native-reanimated'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import {VideoPlayer} from 'expo-video'
 import {
   AppBskyEmbedVideo,
   AppBskyFeedDefs,
   ModerationDecision,
 } from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
+import {VideoPlayer} from 'expo-video'
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
+import {Gesture, GestureDetector} from 'react-native-gesture-handler'
+import {runOnJS} from 'react-native-reanimated'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
+import {atoms as a, useTheme} from '#/alf'
+import {ListFooter} from '#/components/Lists'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {ScrollProvider} from '#/lib/ScrollContext'
 import {cleanError} from '#/lib/strings/errors'
@@ -19,13 +21,12 @@ import {FeedFeedbackProvider, useFeedFeedback} from '#/state/feed-feedback'
 import {
   FeedDescriptor,
   FeedParams,
+  FeedPostSlice,
   FeedPostSliceItem,
   usePostFeedQuery,
 } from '#/state/queries/post-feed'
 import {useSession} from '#/state/session'
 import {List} from '#/view/com/util/List'
-import {atoms as a, useTheme} from '#/alf'
-import {ListFooter} from '#/components/Lists'
 import {EndMessage} from './EndMessage'
 import {
   createThreeVideoPlayers,
@@ -51,6 +52,7 @@ export function ClearlightFeed({
   const enabled = isPageFocused || (isNative && isPageAdjacent)
   const opts = useMemo(() => ({enabled}), [enabled])
   const feedFeedback = useFeedFeedback(feed, hasSession)
+
   const {
     data,
     isFetching,
@@ -71,6 +73,7 @@ export function ClearlightFeed({
           post: AppBskyFeedDefs.PostView
           video: AppBskyEmbedVideo.View
           feedContext: string | undefined
+          reason: FeedPostSlice['reason']
         }[] = []
         for (const slice of page.slices) {
           const feedPost = slice.items.find(
@@ -83,6 +86,7 @@ export function ClearlightFeed({
               post: feedPost.post,
               video: feedPost.post.embed,
               feedContext: slice.feedContext,
+              reason: slice.reason,
             })
           }
         }
@@ -115,7 +119,7 @@ export function ClearlightFeed({
   const [isScrolling, setIsScrolling] = useState(false)
   const renderItem: ListRenderItem<VideoItem> = useCallback(
     ({item, index}) => {
-      const {post, video} = item
+      const {post, video, reason} = item
       const player = players?.[index % 3]
       const currentSource = currentSources[index % 3]
 
@@ -124,6 +128,7 @@ export function ClearlightFeed({
           player={player}
           post={post}
           embed={video}
+          reason={reason}
           active={
             isPageFocused &&
             index === currentIndex &&
@@ -323,10 +328,10 @@ export function ClearlightFeed({
             maxToRenderPerBatch={3}
             windowSize={6}
             pagingEnabled={true}
+            disableIntervalMomentum
             style={[t.atoms.bg]}
             onRefresh={() => doRefresh()}
             refreshing={isPageFocused && isRefetching}
-            onPointerMove={() => console.log('pointermove')}
             ListFooterComponent={
               <ListFooter
                 hasNextPage={hasNextPage}

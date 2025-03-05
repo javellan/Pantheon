@@ -1,8 +1,9 @@
-import React from 'react'
-import {ActivityIndicator, StyleSheet} from 'react-native'
 import {AppBskyFeedDefs} from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
+import React from 'react'
+import {ActivityIndicator, StyleSheet} from 'react-native'
 
+import * as Layout from '#/components/Layout'
 import {PROD_DEFAULT_FEED} from '#/lib/constants'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {useOTAUpdates} from '#/lib/hooks/useOTAUpdates'
@@ -14,6 +15,7 @@ import {
 } from '#/lib/routes/types'
 import {logEvent} from '#/lib/statsig/statsig'
 import {isWeb} from '#/platform/detection'
+import {NoFeedsPinned} from '#/screens/Home/NoFeedsPinned'
 import {emitSoftReset} from '#/state/events'
 import {SavedFeedSourceInfo, usePinnedFeedsInfos} from '#/state/queries/feed'
 import {FeedDescriptor, FeedParams} from '#/state/queries/post-feed'
@@ -28,9 +30,6 @@ import {HomeHeader} from '#/view/com/home/HomeHeader'
 import {Pager, PagerRef, RenderTabBarFnProps} from '#/view/com/pager/Pager'
 import {CustomFeedEmptyState} from '#/view/com/posts/CustomFeedEmptyState'
 import {FollowingEmptyState} from '#/view/com/posts/FollowingEmptyState'
-import {FollowingEndOfFeed} from '#/view/com/posts/FollowingEndOfFeed'
-import {NoFeedsPinned} from '#/screens/Home/NoFeedsPinned'
-import * as Layout from '#/components/Layout'
 import {ClearlightFeed} from '../com/video/ClearlightFeed'
 
 type Props = NativeStackScreenProps<HomeTabNavigatorParams, 'Home' | 'Start'>
@@ -72,18 +71,42 @@ export function HomeScreen(props: Props) {
   ])
 
   if (preferences && pinnedFeedInfos && !isPinnedFeedsLoading) {
-    // TODO: For later when we merge feeds
-    // const clearlightFeeds = pinnedFeedInfos.filter(
-    //   pfi =>
-    //     pfi.creatorDid === 'did:plc:qnz6zuzbborkfoh6kwsjwdxx' ||
-    //     VIDEO_FEED_URIS.includes(pfi.uri),
-    // )
+    const taoFlows: SavedFeedSourceInfo[] = [
+      // For You Page
+      {
+        avatar: 'https://place-hold.it/128x128',
+        cid: 'tao-flow-fyp',
+        contentMode: 'app.bsky.feed.defs#contentModeVideo',
+        creatorDid: 'did:plc:tao-flow-fyp-did',
+        creatorHandle: 'tao.social',
+        description: {} as any,
+        displayName: 'For You',
+        feedDescriptor:
+          'feedgen|at://did:plc:tao-flow-fyp-did/app.tao.feed.generator/for-you',
+        likeCount: 0,
+        likeUri: undefined,
+        route: {
+          href: '/profile/did:plc:tao-flow-fyp-did/feed/for-you',
+          name: 'ProfileFeed',
+          params: {},
+        },
+        savedFeed: {
+          id: 'taoflowfyp',
+          pinned: true,
+          type: 'feed',
+          value: 'at://did:plc:tao-flow-fyp-did/app.tao.feed.generator/for-you',
+        },
+        type: 'feed',
+        uri: 'at://did:plc:tao-flow-fyp-did/app.tao.feed.generator/for-you',
+      },
+    ]
+
     return (
       <Layout.Screen testID="HomeScreen" noInsetTop>
         <HomeScreenReady
           {...props}
           preferences={preferences}
-          pinnedFeedInfos={pinnedFeedInfos}
+          pinnedFeedInfos={[...taoFlows, ...pinnedFeedInfos]}
         />
       </Layout.Screen>
     )
@@ -236,7 +259,10 @@ function HomeScreenReady({
       {pinnedFeedInfos.length ? (
         pinnedFeedInfos.map((feedInfo, index) => {
           const feed = feedInfo.feedDescriptor
-          if (feedInfo.contentMode === AppBskyFeedDefs.CONTENTMODEVIDEO) {
+          if (
+            feedInfo.contentMode === AppBskyFeedDefs.CONTENTMODEVIDEO ||
+            feed === 'following'
+          ) {
             return (
               <ClearlightFeed
                 key={feed}
@@ -244,21 +270,6 @@ function HomeScreenReady({
                 feedParams={homeFeedParams}
                 isPageFocused={maybeSelectedFeed === feed}
                 isPageAdjacent={Math.abs(selectedIndex - index) === 1}
-              />
-            )
-          }
-          if (feed === 'following') {
-            return (
-              <FeedPage
-                key={feed}
-                testID="followingFeedPage"
-                isPageFocused={maybeSelectedFeed === feed}
-                isPageAdjacent={Math.abs(selectedIndex - index) === 1}
-                feed={feed}
-                feedParams={homeFeedParams}
-                renderEmptyState={renderFollowingEmptyState}
-                renderEndOfFeed={FollowingEndOfFeed}
-                feedInfo={feedInfo}
               />
             )
           }

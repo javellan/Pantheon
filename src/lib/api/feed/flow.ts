@@ -1,52 +1,110 @@
 import {AppBskyFeedDefs, AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api'
-import shuffle from 'lodash.shuffle'
 
 import {bundleAsync} from '#/lib/async/bundle'
 import {timeout} from '#/lib/async/timeout'
 import {feedUriToHref} from '#/lib/strings/url-helpers'
 import {getContentLanguages} from '#/state/preferences/languages'
 import {FeedParams} from '#/state/queries/post-feed'
+import shuffle from 'lodash.shuffle'
 import {FeedTuner, FeedTunerFn} from '../feed-manip'
 import {FeedAPI, FeedAPIResponse, ReasonFeedSource} from './types'
 import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
 
 const REQUEST_WAIT_MS = 500 // 500ms
-const POST_AGE_CUTOFF = 60e3 * 60 * 24 // 24hours
+const POST_AGE_CUTOFF = 60e3 * 60 * 120 // 120 hours
 
-export class MergeFeedAPI implements FeedAPI {
+const TRENDING_FEED_URI =
+  'at://did:plc:qnz6zuzbborkfoh6kwsjwdxx/app.bsky.feed.generator/cls-videonsfw3'
+const TRENDING_NONPOLITIC_FEED_URI =
+  'at://did:plc:qnz6zuzbborkfoh6kwsjwdxx/app.bsky.feed.generator/cls-trendingnp'
+
+function getFeedUriForPref(pref: string): string[] {
+  return (
+    {
+      news: ['cls-newsjournal'],
+      journalism: ['cls-newsjournal'],
+      nature: ['cls-traveladvv2', 'cls-climatenatu'],
+      art: ['cls-artphotov2'],
+      comics: ['cls-artphotocom'],
+      writers: ['cls-bookswriter'],
+      culture: ['cls-traveladvv2', 'cls-fashionbeau', 'cls-artphotov2'],
+      sports: ['cls-sports'],
+      pets: ['cls-petsanimals'],
+      animals: ['cls-petsanimals'],
+      books: ['cls-bookswriter'],
+      education: ['cls-education'],
+      climate: ['cls-climatenatu'],
+      science: ['clsv-sciencetec'],
+      politics: ['cls-newspolitic'],
+      fitness: ['cls-fithealthv2'],
+      tech: ['clsv-sciencetec'],
+      dev: ['clsv-sciencetec'],
+      comedy: ['cls-comedy'],
+      gaming: ['cls-gaming'],
+      food: ['cls-fooddrinkv2'],
+      cooking: ['cls-fooddrinkv2'],
+    }[pref] ?? []
+  ).map(
+    uri =>
+      `at://did:plc:qnz6zuzbborkfoh6kwsjwdxx/app.bsky.feed.generator/${uri}`,
+  )
+}
+
+export class MergeFlowApi implements FeedAPI {
   userInterests?: string
   agent: BskyAgent
   params: FeedParams
   feedTuners: FeedTunerFn[]
-  following: MergeFeedSource_Following
-  customFeeds: MergeFeedSource_Custom[] = []
+  following: MergeFlowSource_Following
+  customFeeds: MergeFlowSource_Custom[] = []
+  trendingFeed: MergeFlowSource_Custom
   feedCursor = 0
   itemCursor = 0
   sampleCursor = 0
+  sampleBatch: string[] = []
 
   constructor({
     agent,
     feedParams,
     feedTuners,
     userInterests,
+    killDoomscroll,
   }: {
     agent: BskyAgent
     feedParams: FeedParams
     feedTuners: FeedTunerFn[]
     userInterests?: string
+    killDoomscroll?: boolean
   }) {
     this.agent = agent
     this.params = feedParams
     this.feedTuners = feedTuners
+    this.customFeeds = (this.userInterests ?? '')
+      .split(',')
+      .flatMap(pref => getFeedUriForPref(pref))
+      .reduce((acc, cur) => {
+        if (!acc.includes(cur)) {
+          acc.push(cur)
+        }
+        return acc
+      }, [] as string[])
+      .map(feedUri => new MergeFlowSource_Custom({agent, feedUri, feedTuners}))
     this.userInterests = userInterests
-    this.following = new MergeFeedSource_Following({
+    this.following = new MergeFlowSource_Following({
       agent: this.agent,
       feedTuners: this.feedTuners,
+    })
+    this.trendingFeed = new MergeFlowSource_Custom({
+      agent,
+      feedTuners,
+      feedUri: killDoomscroll
+        ? TRENDING_NONPOLITIC_FEED_URI
+        : TRENDING_FEED_URI,
     })
   }
 
   reset() {
-    this.following = new MergeFeedSource_Following({
+    this.following = new MergeFlowSource_Following({
       agent: this.agent,
       feedTuners: this.feedTuners,
     })
@@ -54,21 +112,23 @@ export class MergeFeedAPI implements FeedAPI {
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    if (this.params.mergeFeedSources) {
-      this.customFeeds = shuffle(
-        this.params.mergeFeedSources.map(
-          feedUri =>
-            new MergeFeedSource_Custom({
-              agent: this.agent,
-              feedUri,
-              feedTuners: this.feedTuners,
-              userInterests: this.userInterests,
-            }),
-        ),
+    this.customFeeds = (this.userInterests ?? '')
+      .split(',')
+      .flatMap(pref => getFeedUriForPref(pref))
+      .reduce((acc, cur) => {
+        if (!acc.includes(cur)) {
+          acc.push(cur)
+        }
+        return acc
+      }, [] as string[])
+      .map(
+        feedUri =>
+          new MergeFlowSource_Custom({
+            agent: this.agent,
+            feedUri,
+            feedTuners: this.feedTuners,
+          }),
       )
-    } else {
-      this.customFeeds = []
-    }
   }
 
   async peekLatest(): Promise<AppBskyFeedDefs.FeedViewPost> {
@@ -89,32 +149,19 @@ export class MergeFeedAPI implements FeedAPI {
       this.reset()
     }
 
+    // Load prefs-based, trending and following feeds
     const promises = []
-
-    // always keep following topped up
-    if (this.following.numReady < limit) {
-      await this.following.fetchNext(60)
-    }
-
-    // pick the next feeds to sample from
-    const feeds = this.customFeeds.slice(this.feedCursor, this.feedCursor + 3)
-    this.feedCursor += 3
-    if (this.feedCursor > this.customFeeds.length) {
-      this.feedCursor = 0
-    }
-
-    // top up the feeds
-    const outOfFollows =
-      !this.following.hasMore && this.following.numReady < limit
-    if (this.params.mergeFeedEnabled || outOfFollows) {
-      for (const feed of feeds) {
-        if (feed.numReady < 5) {
-          promises.push(feed.fetchNext(10))
-        }
+    for (const feed of this.customFeeds) {
+      if (feed.numReady < 5) {
+        promises.push(feed.fetchNext(10))
       }
     }
-
-    // wait for requests (all capped at a fixed timeout)
+    if (this.trendingFeed.numReady < limit) {
+      promises.push(this.trendingFeed.fetchNext(50))
+    }
+    if (this.following.numReady < limit) {
+      promises.push(this.following.fetchNext(60))
+    }
     await Promise.all(promises)
 
     // assemble a response by sampling from feeds with content
@@ -135,37 +182,45 @@ export class MergeFeedAPI implements FeedAPI {
   }
 
   sampleItem() {
-    const i = this.itemCursor++
-    const candidateFeeds = this.customFeeds.filter(f => f.numReady > 0)
-    const canSample = candidateFeeds.length > 0
-    const hasFollows = this.following.hasMore
-    const hasFollowsReady = this.following.numReady > 0
-
-    // this condition establishes the frequency that custom feeds are woven into follows
-    const shouldSample =
-      this.params.mergeFeedEnabled &&
-      i >= 15 &&
-      candidateFeeds.length >= 2 &&
-      (i % 4 === 0 || i % 5 === 0)
-
-    if (!canSample && !hasFollows) {
-      // no data available
+    const availableRightNow =
+      this.following.numReady +
+      this.trendingFeed.numReady +
+      this.customFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
+    if (availableRightNow < 1) {
       return []
     }
-    if (shouldSample || !hasFollows) {
-      // time to sample, or the user isnt following anybody
-      return candidateFeeds[this.sampleCursor++ % candidateFeeds.length].take(1)
+    while (true) {
+      if (this.sampleBatch.length === 0) {
+        this.sampleBatch = shuffle('pppppffftt'.split(''))
+      }
+      const nextSampleType = this.sampleBatch.shift() as string
+      switch (nextSampleType) {
+        case 'p':
+          for (const cf of shuffle(this.customFeeds)) {
+            if (cf.numReady > 0) {
+              return cf.take(1)
+            }
+          }
+          continue
+        case 'f':
+          if (this.following.numReady > 0) {
+            return this.following.take(1)
+          } else {
+            continue
+          }
+        case 't':
+        default:
+          if (this.trendingFeed.numReady > 0) {
+            return this.trendingFeed.take(1)
+          } else {
+            continue
+          }
+      }
     }
-    if (!hasFollowsReady) {
-      // stop here so more follows can be fetched
-      return []
-    }
-    // provide follow
-    return this.following.take(1)
   }
 }
 
-class MergeFeedSource {
+class MergeFlowSource {
   agent: BskyAgent
   feedTuners: FeedTunerFn[]
   sourceInfo: ReasonFeedSource | undefined
@@ -222,7 +277,7 @@ class MergeFeedSource {
   }
 }
 
-class MergeFeedSource_Following extends MergeFeedSource {
+class MergeFlowSource_Following extends MergeFlowSource {
   tuner = new FeedTuner(this.feedTuners)
 
   async fetchNext(n: number) {
@@ -243,7 +298,7 @@ class MergeFeedSource_Following extends MergeFeedSource {
   }
 }
 
-class MergeFeedSource_Custom extends MergeFeedSource {
+class MergeFlowSource_Custom extends MergeFlowSource {
   agent: BskyAgent
   minDate: Date
   feedUri: string
