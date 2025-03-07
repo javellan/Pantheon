@@ -268,7 +268,6 @@ export async function processVideo(
 ) {
   let video: CompressedVideo | undefined
   try {
-    console.log("1")
     video = await compressVideo(asset, {
       onProgress: num => {
         dispatch({type: 'update_progress', progress: trunc2dp(num), signal})
@@ -295,7 +294,6 @@ export async function processVideo(
 
   let uploadResponse: AppBskyVideoDefs.JobStatus | undefined
   try {
-    console.log("2")
     uploadResponse = await uploadVideo({
       video,
       agent,
@@ -334,36 +332,26 @@ export async function processVideo(
     const videoAgent = createVideoAgent()
     let status: JobStatus | undefined
     let blob: BlobRef | undefined
-    let options: CallOptions | undefined
     try {
-      console.log("3")
       const response = await videoAgent.app.bsky.video.getJobStatus({jobId})
       status = response.data.jobStatus
       console.log("RESPONSE HEADERS: ", response.headers)
       console.log("RESPONSE DATA: ", response.data)
-      console.log("RESPONSE STATUS: ", status)
-      console.log("BLOB: ", blob)
-      console.log("CALL OPTIONS: ", options)
       pollFailures = 0
 
       if (status.state === 'JOB_STATE_COMPLETED') {
-        console.log('4')
         blob = status.blob
         if (!blob) {
-          console.log('5')
           throw new Error('Job completed, but did not return a blob')
         }
       } else if (status.state === 'JOB_STATE_FAILED') {
-        console.log('6')
         throw new Error(status.error ?? 'Job failed to process')
       }
     } catch (e) {
       if (!status) {
-        console.log('7')
         pollFailures++
         if (pollFailures < 50) {
-          console.log('8')
-          await new Promise(resolve => setTimeout(resolve, 5000))
+          await new Promise(resolve => setTimeout(resolve, 50000))
           continue // Continue async loop
         }
       }
@@ -395,7 +383,7 @@ export async function processVideo(
       status.state !== 'JOB_STATE_COMPLETED' &&
       status.state !== 'JOB_STATE_FAILED'
     ) {
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await new Promise(resolve => setTimeout(resolve, 15000))
       continue // Continue async loop
     }
 

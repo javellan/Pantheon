@@ -221,7 +221,6 @@ export const ComposePost = ({
     (postId: string, asset: ImagePickerAsset) => {
       
       const abortController = new AbortController()
-      console.log(asset)
       composerDispatch({
         type: 'update_post',
         postId: postId,
@@ -821,7 +820,6 @@ let ComposerPost = React.memo(function ComposerPost({
   const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
   const media = post.embed.media
 
-
   return (
     <View style={[styles.post, !isActive && styles.inactivePost]}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -830,11 +828,9 @@ let ComposerPost = React.memo(function ComposerPost({
           <CameraWrapper
             onVideoRecorded={({ videoAsset, recordedVideo, result }) => {
               setVideoAsset(videoAsset) // Set videoAsset
-              console.log("Video Asset: ", videoAsset)
               //setCompressedVideo(compressedVideo) // Set compressedVideo
               setRecordedVideo(recordedVideo)
               setResult(result)
-              console.log("RESULT IN COMPOSER: ", result)
             }}
           />
         ) : videoAsset ? (
