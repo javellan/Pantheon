@@ -1,19 +1,21 @@
 import {useCallback} from 'react'
-import {Keyboard, Text} from 'react-native'
+import {Keyboard, Platform, Text} from 'react-native'
 import {ImagePickerAsset, ImagePickerSuccessResult} from 'expo-image-picker'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
 import {SUPPORTED_MIME_TYPES, SupportedMimeTypes} from '#/lib/constants'
 import {BSKY_SERVICE} from '#/lib/constants'
+import {useVideoLibraryPermission} from '#/lib/hooks/usePermissions'
 import {getHostnameFromUrl} from '#/lib/strings/url-helpers'
-import {isWeb} from '#/platform/detection'
+import {isNative, isWeb} from '#/platform/detection'
 import {useSession} from '#/state/session'
 import {atoms as a, useTheme} from '#/alf'
 import {Button} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {VerifyEmailDialog} from '#/components/dialogs/VerifyEmailDialog'
 import * as Prompt from '#/components/Prompt'
+import { CameraRoll } from '@react-native-camera-roll/camera-roll'
 
 
 const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
@@ -30,10 +32,15 @@ type Props = {
 export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset, result}: Props) {
   const {_} = useLingui()
   const t = useTheme()
+  const {requestVideoAccessIfNeeded} = useVideoLibraryPermission()
   const control = Prompt.usePromptControl()
   const {currentAccount} = useSession()
 
   const onPressSelectVideo = useCallback(async () => {
+    if (isNative && !(await requestVideoAccessIfNeeded())) {
+          return
+        }
+
     if (
       currentAccount &&
       !currentAccount.emailConfirmed &&
@@ -51,7 +58,7 @@ export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset, 
     
       if (result?.assets && result.assets.length > 0) {
         const asset = result.assets[0]
-        console.log("This is their asset: ", asset)
+        console.log("Asset in confirmVideo: ", asset)
         try {
           if (isWeb) {
             // asset.duration is null for gifs (see the TODO in pickVideo.web.ts)
@@ -74,7 +81,20 @@ export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset, 
               throw Error(_(msg`Videos must be less than 60 seconds long`))
             }
           }
-          onSelectVideo(asset)
+
+          // Save video to camera roll and update URI
+          const savedAsset = await CameraRoll.saveAsset(asset.uri, { type: 'video' });
+          console.log("Video saved to camera roll:", savedAsset);
+          
+          // Extract the correct URI from the savedAsset
+          //const savedUri = savedAsset?.node?.image?.uri ?? asset.uri;
+          const savedId = savedAsset?.node?.id ? `${savedAsset.node.id}.mp4`: null;
+
+          const updatedAsset = {...asset, fileName: savedId};
+          console.log("Updated ImagePickerAsset: ", updatedAsset)
+          
+          // Call onSelectVideo with the updated video URI
+          onSelectVideo(updatedAsset);
         } catch (err) {
           if (err instanceof Error) {
             setError(err.message)

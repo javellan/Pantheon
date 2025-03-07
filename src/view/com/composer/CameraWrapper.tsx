@@ -2,11 +2,8 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Platform, TouchableOpacity, TextInput, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useComposerControls } from "#/state/shell";
-import { compressVideo } from '../../../lib/media/video/compress';  // Adjust the import path as necessary
 import { ImagePickerAsset, ImagePickerResult, ImagePickerSuccessResult } from "expo-image-picker";
 import { atoms as a, useTheme } from '#/alf';
-import { CompressedVideo } from "#/lib/media/video/types";
-import { getVideoMetaData } from "react-native-compressor";
 import RNFetchBlob from "rn-fetch-blob";
 import uuid from "react-native-uuid";
 
@@ -139,7 +136,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
         fileType: "mp4",
         legacy: true,
         onRecordingFinished: async (video: { path: string; duration: number; height: number; width: number }) => {
-          console.log(video);
+          console.log("Captured Video Object: ", video);
           const videoUri = video.path;
           const videoDuration = video.duration * 1000; // Display in milliseconds
           const videoHeight = video.height;
@@ -172,7 +169,6 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
               console.log("File moved to:", newPath);
     
               const stats = await RNFetchBlob.fs.stat(newPath);
-              console.log("Stats: ", stats);
               const videoSize = stats.size;
     
               let assets = []
@@ -200,7 +196,6 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
                 assets: assets
               }
     
-              console.log("RESULT: ", result);
     
               // Compress the recorded video
               const recordedVideo = {
@@ -208,11 +203,10 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
                 mimeType: 'video/mp4',
                 size: videoSize,
               };
+              
     
               // Pass both `videoAsset` and `compressedVideo` to onVideoRecorded
               onVideoRecorded({ videoAsset, recordedVideo, result });
-    
-              console.log(recordedVideo); // Log to check the output
             }
           } catch (err) {
             console.log("Error handling file operations: ", err);
@@ -246,6 +240,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
     }
     onClose();
   };
+  
 
   return (
     <View style={[
@@ -308,7 +303,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
       )}
   
       <TouchableOpacity onPress={closeCameraView} style={{ position: "absolute", top: 30, left: 20 }}>
-        <Ionicons name="close-circle" size={40} color="grey" />
+        <Ionicons name="close-circle" size={40} color="transparent" />
       </TouchableOpacity>
   
       <View style={{ flexDirection: "row", justifyContent: "center", position: "absolute", bottom: 100, alignSelf: "center", marginBottom: 50 }}>

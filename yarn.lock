@@ -5625,6 +5625,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-camera-roll/camera-roll@npm:^7.9.0":
+  version: 7.10.0
+  resolution: "@react-native-camera-roll/camera-roll@npm:7.10.0"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 10c0/5433b19a3d9ecf8d5672f72b9d0ee74330793e426d20b00140cdf8a0fe2fb0bdeb1ed5634d83abeb1bb565234abfd906fb0cc74fe7294f4c85d6a474ae6a69b7
+  languageName: node
+  linkType: hard
+
 "@react-native-menu/menu@npm:^1.1.7":
   version: 1.2.2
   resolution: "@react-native-menu/menu@npm:1.2.2"
@@ -9310,6 +9319,7 @@ __metadata:
     "@radix-ui/react-focus-guards": "npm:^1.1.1"
     "@radix-ui/react-focus-scope": "npm:^1.1.2"
     "@react-native-async-storage/async-storage": "npm:1.23.1"
+    "@react-native-camera-roll/camera-roll": "npm:^7.9.0"
     "@react-native-menu/menu": "npm:^1.1.7"
     "@react-native-picker/picker": "npm:2.10.2"
     "@react-native/eslint-config": "npm:^0.76.2"
