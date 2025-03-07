@@ -294,10 +294,7 @@ export function TabBar({
   )
 
   return (
-    <View
-      testID={testID}
-      style={[t.atoms.bg, a.flex_row]}
-      accessibilityRole="tablist">
+    <View testID={testID} style={[a.flex_row]} accessibilityRole="tablist">
       <BlockDrawerGesture>
         <ScrollView
           testID={`${testID}-selector`}
@@ -351,7 +348,6 @@ export function TabBar({
           </Animated.View>
         </ScrollView>
       </BlockDrawerGesture>
-      <View style={[t.atoms.border_contrast_low, styles.outerBottomBorder]} />
     </View>
   )
 }
