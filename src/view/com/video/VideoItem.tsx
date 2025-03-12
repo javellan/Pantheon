@@ -1,19 +1,20 @@
-import {memo, useEffect} from 'react'
-import {View} from 'react-native'
-import {NativeGesture} from 'react-native-gesture-handler'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import {VideoPlayer} from 'expo-video'
 import {
   AppBskyEmbedVideo,
   AppBskyFeedDefs,
   ModerationDecision,
 } from '@atproto/api'
 import {Trans} from '@lingui/macro'
+import {VideoPlayer} from 'expo-video'
+import {memo, useEffect} from 'react'
+import {View} from 'react-native'
+import {NativeGesture} from 'react-native-gesture-handler'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-import {POST_TOMBSTONE, usePostShadow} from '#/state/cache/post-shadow'
-import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {atoms as a, ios} from '#/alf'
 import {Text} from '#/components/Typography'
+import {POST_TOMBSTONE, usePostShadow} from '#/state/cache/post-shadow'
+import {useFeedFeedbackContext} from '#/state/feed-feedback'
+import {FeedPostSlice} from '#/state/queries/post-feed'
 import {Overlay} from './Overlay'
 import {VideoItemInner} from './VideoItemInner'
 import {VideoItemPlaceholder} from './VideoItemPlaceholder'
@@ -23,12 +24,14 @@ type VideoItem = {
   post: AppBskyFeedDefs.PostView
   video: AppBskyEmbedVideo.View
   feedContext: string | undefined
+  reason: FeedPostSlice['reason']
 }
 
 let VideoItem = ({
   player,
   post,
   embed,
+  reason,
   active,
   adjacent,
   scrollGesture,
@@ -39,6 +42,7 @@ let VideoItem = ({
   player?: VideoPlayer
   post: AppBskyFeedDefs.PostView
   embed: AppBskyEmbedVideo.View
+  reason: FeedPostSlice['reason']
   active: boolean
   adjacent: boolean
   scrollGesture: NativeGesture
@@ -99,6 +103,7 @@ let VideoItem = ({
               player={player}
               post={postShadow}
               embed={embed}
+              reason={reason}
               active={active}
               scrollGesture={scrollGesture}
               isScrolling={isScrolling}

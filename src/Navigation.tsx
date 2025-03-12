@@ -1,5 +1,3 @@
-import * as React from 'react'
-import {JSX} from 'react/jsx-runtime'
 import {i18n, MessageDescriptor} from '@lingui/core'
 import {msg} from '@lingui/macro'
 import {
@@ -14,7 +12,10 @@ import {
   NavigationContainer,
   StackActions,
 } from '@react-navigation/native'
+import * as React from 'react'
+import {JSX} from 'react/jsx-runtime'
 
+import {useTheme} from '#/alf'
 import {timeout} from '#/lib/async/timeout'
 import {useColorSchemeStyle} from '#/lib/hooks/useColorSchemeStyle'
 import {useWebScrollRestoration} from '#/lib/hooks/useWebScrollRestoration'
@@ -27,12 +28,38 @@ import {
   MessagesTabNavigatorParams,
   MyProfileTabNavigatorParams,
   NotificationsTabNavigatorParams,
+  RouteParams,
   SearchTabNavigatorParams,
+  State,
 } from '#/lib/routes/types'
-import {RouteParams, State} from '#/lib/routes/types'
 import {attachRouteToLogEvents, logEvent} from '#/lib/statsig/statsig'
 import {bskyTitle} from '#/lib/strings/headings'
 import {isNative, isWeb} from '#/platform/detection'
+import {router} from '#/routes'
+import {SharedPreferencesTesterScreen} from '#/screens/E2E/SharedPreferencesTesterScreen'
+import HashtagScreen from '#/screens/Hashtag'
+import {MessagesScreen} from '#/screens/Messages/ChatList'
+import {MessagesConversationScreen} from '#/screens/Messages/Conversation'
+import {MessagesSettingsScreen} from '#/screens/Messages/Settings'
+import {ModerationScreen} from '#/screens/Moderation'
+import {Screen as ModerationInteractionSettings} from '#/screens/ModerationInteractionSettings'
+import {PostLikedByScreen} from '#/screens/Post/PostLikedBy'
+import {PostQuotesScreen} from '#/screens/Post/PostQuotes'
+import {PostRepostedByScreen} from '#/screens/Post/PostRepostedBy'
+import {ProfileKnownFollowersScreen} from '#/screens/Profile/KnownFollowers'
+import {ProfileFeedScreen} from '#/screens/Profile/ProfileFeed'
+import {ProfileFollowersScreen} from '#/screens/Profile/ProfileFollowers'
+import {ProfileFollowsScreen} from '#/screens/Profile/ProfileFollows'
+import {ProfileLabelerLikedByScreen} from '#/screens/Profile/ProfileLabelerLikedBy'
+import {AppearanceSettingsScreen} from '#/screens/Settings/AppearanceSettings'
+import {AppIconSettingsScreen} from '#/screens/Settings/AppIconSettings'
+import {NotificationSettingsScreen} from '#/screens/Settings/NotificationSettings'
+import {
+  StarterPackScreen,
+  StarterPackScreenShort,
+} from '#/screens/StarterPack/StarterPackScreen'
+import {Wizard} from '#/screens/StarterPack/Wizard'
+import {VideoFeed} from '#/screens/VideoFeed'
 import {useModalControls} from '#/state/modals'
 import {useUnreadNotifications} from '#/state/queries/notifications/unread'
 import {useSession} from '#/state/session'
@@ -64,32 +91,6 @@ import {SupportScreen} from '#/view/screens/Support'
 import {TermsOfServiceScreen} from '#/view/screens/TermsOfService'
 import {BottomBar} from '#/view/shell/bottom-bar/BottomBar'
 import {createNativeStackNavigatorWithAuth} from '#/view/shell/createNativeStackNavigatorWithAuth'
-import {SharedPreferencesTesterScreen} from '#/screens/E2E/SharedPreferencesTesterScreen'
-import HashtagScreen from '#/screens/Hashtag'
-import {MessagesScreen} from '#/screens/Messages/ChatList'
-import {MessagesConversationScreen} from '#/screens/Messages/Conversation'
-import {MessagesSettingsScreen} from '#/screens/Messages/Settings'
-import {ModerationScreen} from '#/screens/Moderation'
-import {Screen as ModerationInteractionSettings} from '#/screens/ModerationInteractionSettings'
-import {PostLikedByScreen} from '#/screens/Post/PostLikedBy'
-import {PostQuotesScreen} from '#/screens/Post/PostQuotes'
-import {PostRepostedByScreen} from '#/screens/Post/PostRepostedBy'
-import {ProfileKnownFollowersScreen} from '#/screens/Profile/KnownFollowers'
-import {ProfileFeedScreen} from '#/screens/Profile/ProfileFeed'
-import {ProfileFollowersScreen} from '#/screens/Profile/ProfileFollowers'
-import {ProfileFollowsScreen} from '#/screens/Profile/ProfileFollows'
-import {ProfileLabelerLikedByScreen} from '#/screens/Profile/ProfileLabelerLikedBy'
-import {AppearanceSettingsScreen} from '#/screens/Settings/AppearanceSettings'
-import {AppIconSettingsScreen} from '#/screens/Settings/AppIconSettings'
-import {NotificationSettingsScreen} from '#/screens/Settings/NotificationSettings'
-import {
-  StarterPackScreen,
-  StarterPackScreenShort,
-} from '#/screens/StarterPack/StarterPackScreen'
-import {Wizard} from '#/screens/StarterPack/Wizard'
-import {VideoFeed} from '#/screens/VideoFeed'
-import {useTheme} from '#/alf'
-import {router} from '#/routes'
 import {Referrer} from '../modules/expo-bluesky-swiss-army'
 import {ProfileSearchScreen} from './screens/Profile/ProfileSearch'
 import {AboutSettingsScreen} from './screens/Settings/AboutSettings'

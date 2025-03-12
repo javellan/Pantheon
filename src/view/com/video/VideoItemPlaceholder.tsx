@@ -1,9 +1,8 @@
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import {Image, ImageStyle} from 'expo-image'
 import {AppBskyEmbedVideo} from '@atproto/api'
+import {Image, ImageStyle} from 'expo-image'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
 import {atoms as a} from '#/alf'
-import {isTallAspectRatio} from './utils'
 
 export function VideoItemPlaceholder({
   embed,
@@ -16,12 +15,6 @@ export function VideoItemPlaceholder({
 }) {
   const {bottom} = useSafeAreaInsets()
   const src = embed.thumbnail
-  let contentFit = isTallAspectRatio(embed.aspectRatio)
-    ? ('cover' as const)
-    : ('contain' as const)
-  if (blur) {
-    contentFit = 'cover' as const
-  }
   return src ? (
     <Image
       accessibilityIgnoresInvertColors
@@ -38,7 +31,7 @@ export function VideoItemPlaceholder({
             },
         style,
       ]}
-      contentFit={contentFit}
+      contentFit={blur ? 'cover' : 'contain'}
       blurRadius={blur ? 100 : 0}
     />
   ) : null

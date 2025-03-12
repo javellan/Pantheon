@@ -1,3 +1,19 @@
+import {Repost_Stroke2_Corner2_Rounded as RepostIcon} from '#/components/icons/Repost'
+import {clamp} from '#/lib/numbers'
+import {NavigationProp} from '#/lib/routes/types'
+import {sanitizeDisplayName} from '#/lib/strings/display-names'
+import {Shadow} from '#/state/cache/post-shadow'
+import {useShellLayout} from '#/state/shell/shell-layout'
+import {
+  AppBskyEmbedVideo,
+  AppBskyFeedDefs,
+  AppBskyFeedPost,
+  AtUri,
+  ModerationDecision,
+  RichText as RichTextAPI,
+} from '@atproto/api'
+import {useNavigation} from '@react-navigation/native'
+import {VideoPlayer} from 'expo-video'
 import {useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native'
 import {NativeGesture, Pressable} from 'react-native-gesture-handler'
@@ -10,26 +26,14 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context'
-import {VideoPlayer} from 'expo-video'
-import {
-  AppBskyEmbedVideo,
-  AppBskyFeedDefs,
-  AppBskyFeedPost,
-  AtUri,
-  ModerationDecision,
-  RichText as RichTextAPI,
-} from '@atproto/api'
-import {useNavigation} from '@react-navigation/native'
-
-import {clamp} from '#/lib/numbers'
-import {NavigationProp} from '#/lib/routes/types'
-import {sanitizeDisplayName} from '#/lib/strings/display-names'
-import {Shadow} from '#/state/cache/post-shadow'
-import {useShellLayout} from '#/state/shell/shell-layout'
 // import {useComposerControls} from '#/state/shell'
 import {atoms as a} from '#/alf'
 import * as Hider from '#/components/moderation/Hider'
 import {Text} from '#/components/Typography'
+import {useHaptics} from '#/lib/haptics'
+import {sanitizeHandle} from '#/lib/strings/handles'
+import {FeedPostSlice} from '#/state/queries/post-feed'
+import {useLingui} from '@lingui/react'
 import {PostCtrls} from './components/PostCtrls'
 import {Scrubber} from './components/Scrubber'
 import {ExpandableRichTextView} from './ExpandableRichTextView'
@@ -40,6 +44,7 @@ export function Overlay({
   player,
   post,
   embed,
+  reason,
   active,
   scrollGesture,
   isScrolling,
@@ -49,6 +54,7 @@ export function Overlay({
   player?: VideoPlayer
   post: Shadow<AppBskyFeedDefs.PostView>
   embed: AppBskyEmbedVideo.View
+  reason: FeedPostSlice['reason']
   active: boolean
   scrollGesture: NativeGesture
   isScrolling: boolean
@@ -56,6 +62,7 @@ export function Overlay({
   feedContext: string | undefined
 }) {
   // const {openComposer} = useComposerControls()
+  const {_} = useLingui()
   const navigation = useNavigation<NavigationProp>()
   const seekingAnimationSV = useSharedValue(0)
   const insets = useSafeAreaInsets()
@@ -64,6 +71,7 @@ export function Overlay({
   const overlayTop = useMemo(() => {
     return headerHeight.get() + insets.top
   }, [headerHeight, insets])
+  const playHaptic = useHaptics()
 
   const rkey = new AtUri(post.uri).rkey
   const record = AppBskyFeedPost.isRecord(post.record) ? post.record : undefined
@@ -98,7 +106,6 @@ export function Overlay({
   //   })
   // }, [openComposer, post, record])
 
-  // TODO: for some reason this causes a lot of warnings
   const ooval = useSharedValue(1)
   const overlayOpacity = useAnimatedStyle(() => {
     'worklet'
@@ -111,6 +118,7 @@ export function Overlay({
   const longPressRef = useRef<boolean>(false)
   const speedUpPlayer = useCallback(() => {
     if (player) {
+      playHaptic('Light')
       player.preservesPitch = true
       player.playbackRate = 2
       longPressRef.current = true
@@ -122,6 +130,14 @@ export function Overlay({
       longPressRef.current = false
     }
   }, [player])
+
+  const isRepost = AppBskyFeedDefs.isReasonRepost(reason)
+  const repostBy = isRepost
+    ? sanitizeDisplayName(
+        reason.by.displayName || sanitizeHandle(reason.by.handle),
+        moderation.ui('displayName'),
+      )
+    : undefined
 
   return (
     <Hider.Outer modui={mergedModui}>
@@ -193,6 +209,26 @@ export function Overlay({
               overlayOpacity,
             ]}>
             <View style={[a.flex_1, a.px_md]}>
+              {isRepost && (
+                <View
+                  style={[
+                    a.py_xs,
+                    a.px_sm,
+                    a.mb_sm,
+                    a.rounded_sm,
+                    a.flex_row,
+                    a.align_center,
+                    {
+                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                      alignSelf: 'flex-start',
+                    },
+                  ]}>
+                  <RepostIcon style={[a.mr_sm]} width={13} height={13} />
+                  <Text style={[a.text_sm]} emoji numberOfLines={1}>
+                    {repostBy}
+                  </Text>
+                </View>
+              )}
               <Text style={[a.text_md, a.font_heavy]} emoji numberOfLines={1}>
                 {sanitizeDisplayName(
                   post.author.displayName || post.author.handle,

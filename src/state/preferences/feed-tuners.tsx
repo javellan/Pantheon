@@ -12,6 +12,12 @@ export function useFeedTuners(feedDesc: FeedDescriptor) {
   const {currentAccount} = useSession()
 
   return useMemo(() => {
+    if (
+      feedDesc ===
+      'feedgen|at://did:plc:tao-flow-fyp-did/app.tao.feed.generator/for-you'
+    ) {
+      return [FeedTuner.videosOnly()]
+    }
     if (feedDesc.startsWith('author')) {
       if (feedDesc.endsWith('|posts_with_replies')) {
         // TODO: Do this on the server instead.
@@ -40,6 +46,8 @@ export function useFeedTuners(feedDesc: FeedDescriptor) {
         feedTuners.push(FeedTuner.removeQuotePosts)
       }
       feedTuners.push(FeedTuner.dedupThreads)
+
+      feedTuners.push(FeedTuner.videosOnly())
 
       return feedTuners
     }

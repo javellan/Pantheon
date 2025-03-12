@@ -2,6 +2,7 @@ import {
   AppBskyActorDefs,
   AppBskyEmbedRecord,
   AppBskyEmbedRecordWithMedia,
+  AppBskyEmbedVideo,
   AppBskyFeedDefs,
   AppBskyFeedPost,
 } from '@atproto/api'
@@ -394,6 +395,20 @@ export class FeedTuner {
         }
       }
       return slices
+    }
+  }
+
+  static videosOnly() {
+    return (
+      tuner: FeedTuner,
+      slices: FeedViewPostsSlice[],
+      _dryRun: boolean,
+    ): FeedViewPostsSlice[] => {
+      return slices.filter(s => {
+        const {items, feedPostUri} = s
+        const fp = items.find(i => i.post.uri === feedPostUri)
+        return fp && AppBskyEmbedVideo.isView(fp.post.embed)
+      })
     }
   }
 
