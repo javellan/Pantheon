@@ -13,7 +13,9 @@ import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
 import {cleanError} from '#/lib/strings/errors'
 import {s} from '#/lib/styles'
 import {isNative, isWeb} from '#/platform/detection'
+import {useActorAutocompleteQuery} from '#/state/queries/actor-autocomplete'
 import {
+  actorSearchActivator,
   SavedFeedItem,
   useGetPopularFeedsQuery,
   useSavedFeeds,
@@ -43,6 +45,7 @@ import {SettingsGear2_Stroke2_Corner0_Rounded as Gear} from '#/components/icons/
 import * as Layout from '#/components/Layout'
 import {Link} from '#/components/Link'
 import * as ListCard from '#/components/ListCard'
+import {AutocompleteResults} from './Search/Search'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'Feeds'>
 
@@ -78,6 +81,14 @@ type FlatlistSlice =
       key: string
     }
   | {
+      type: 'actorSearchResults'
+      key: string
+    }
+  | {
+      type: 'actorSearchInstructions'
+      key: string
+    }
+  | {
       type: 'popularFeedsLoading'
       key: string
     }
@@ -106,12 +117,14 @@ export function FeedsScreen(_props: Props) {
   const {isMobile} = useWebMediaQueries()
   const [query, setQuery] = React.useState('')
   const [isPTR, setIsPTR] = React.useState(false)
+  const [actorSearchText, setActorSearchText] = React.useState<string>('')
   const {
     data: savedFeeds,
     isPlaceholderData: isSavedFeedsPlaceholder,
     error: savedFeedsError,
     refetch: refetchSavedFeeds,
   } = useSavedFeeds()
+
   const {
     data: popularFeeds,
     isFetching: isPopularFeedsFetching,
@@ -121,8 +134,19 @@ export function FeedsScreen(_props: Props) {
     isFetchingNextPage: isPopularFeedsFetchingNextPage,
     hasNextPage: hasNextPopularFeedsPage,
   } = useGetPopularFeedsQuery()
+
   const {_} = useLingui()
   const setMinimalShellMode = useSetMinimalShellMode()
+
+  const autocompleteResult = useActorAutocompleteQuery(
+    actorSearchText.slice(1),
+    false,
+    10,
+  )
+
+  const {data: autocompleteData, isFetching: isActorAutocompleteFetching} =
+    autocompleteResult
+
   const {
     data: searchResults,
     mutate: search,
@@ -141,25 +165,40 @@ export function FeedsScreen(_props: Props) {
     () => debounce(q => search(q), 500), // debounce for 500ms
     [search],
   )
+
   const onPressCompose = React.useCallback(() => {
     openComposer({})
   }, [openComposer])
+
   const onChangeQuery = React.useCallback(
     (text: string) => {
       setQuery(text)
-      if (text.length > 1) {
-        debouncedSearch(text)
+      if (text.length > 0) {
+        if (text.startsWith(actorSearchActivator)) {
+          setActorSearchText(text)
+        } else {
+          setActorSearchText('')
+          if (text.length > 1) {
+            debouncedSearch(text)
+          } else {
+            refetchPopularFeeds()
+            resetSearch()
+          }
+        }
       } else {
+        setActorSearchText('')
         refetchPopularFeeds()
         resetSearch()
       }
     },
     [setQuery, refetchPopularFeeds, debouncedSearch, resetSearch],
   )
+
   const onPressCancelSearch = React.useCallback(() => {
     setQuery('')
     refetchPopularFeeds()
     resetSearch()
+    setActorSearchText('')
   }, [refetchPopularFeeds, setQuery, resetSearch])
   const onSubmitQuery = React.useCallback(() => {
     debouncedSearch(query)
@@ -300,7 +339,21 @@ export function FeedsScreen(_props: Props) {
           ),
         })
       } else {
-        if (isUserSearching) {
+        if (
+          (!autocompleteData || autocompleteData.length === 0) &&
+          actorSearchText.length > 0 &&
+          actorSearchText.startsWith(actorSearchActivator)
+        ) {
+          slices.push({
+            key: 'actorSearchInstructions',
+            type: 'actorSearchInstructions',
+          })
+        } else if (autocompleteData && autocompleteData.length > 0) {
+          slices.push({
+            key: 'actorSearchResults',
+            type: 'actorSearchResults',
+          })
+        } else if (isUserSearching) {
           if (isSearchPending || !searchResults) {
             slices.push({
               key: 'popularFeedsLoading',
@@ -373,6 +426,8 @@ export function FeedsScreen(_props: Props) {
     isSearchPending,
     searchError,
     isUserSearching,
+    autocompleteData,
+    actorSearchText,
   ])
 
   const searchBarIndex = items.findIndex(
@@ -404,8 +459,11 @@ export function FeedsScreen(_props: Props) {
     [searchBarIndex, isMobile],
   )
 
+  const ActorSearchResults = React.memo(AutocompleteResults)
+
   const renderItem = React.useCallback(
     ({item}: {item: FlatlistSlice}) => {
+      console.log(item.type)
       if (item.type === 'error') {
         return <ErrorMessage message={item.error} />
       } else if (item.type === 'popularFeedsLoadingMore') {
@@ -440,6 +498,7 @@ export function FeedsScreen(_props: Props) {
               <SearchInput
                 placeholder={_(msg`Search feeds`)}
                 value={query}
+                selectTextOnFocus={false}
                 onChangeText={onChangeQuery}
                 onClearText={onPressCancelSearch}
                 onSubmitEditing={onSubmitQuery}
@@ -448,6 +507,32 @@ export function FeedsScreen(_props: Props) {
               />
             </View>
           </>
+        )
+      } else if (item.type === 'actorSearchInstructions') {
+        return (
+          <Text
+            type="lg"
+            style={[pal.textLight, {paddingHorizontal: 16, paddingTop: 10}]}>
+            <Trans>Search for users</Trans>
+          </Text>
+        )
+      } else if (item.type === 'actorSearchResults') {
+        return (
+          <ActorSearchResults
+            isAutocompleteFetching={isActorAutocompleteFetching}
+            autocompleteData={autocompleteData}
+            searchText={actorSearchText.slice(1)}
+            showSearchLinkCard={false}
+            linkToProfile={false}
+            onProfileClick={profile => {
+              const newQuery = actorSearchActivator + profile.handle
+              setActorSearchText('')
+              setQuery(newQuery)
+              debouncedSearch(newQuery)
+            }}
+            onResultPress={() => {}}
+            onSubmit={() => {}}
+          />
         )
       } else if (item.type === 'popularFeedsLoading') {
         return <FeedFeedLoadingPlaceholder />
@@ -467,7 +552,11 @@ export function FeedsScreen(_props: Props) {
               paddingBottom: '150%',
             }}>
             <Text type="lg" style={pal.textLight}>
-              <Trans>No results found for "{query}"</Trans>
+              {query.startsWith(actorSearchActivator) ? (
+                <Trans>{query} has no feeds.</Trans>
+              ) : (
+                <Trans>No results found for "{query}"</Trans>
+              )}
             </Text>
           </View>
         )
@@ -495,6 +584,11 @@ export function FeedsScreen(_props: Props) {
       onPressCancelSearch,
       onSubmitQuery,
       onChangeSearchFocus,
+      isActorAutocompleteFetching,
+      autocompleteData,
+      actorSearchText,
+      ActorSearchResults,
+      debouncedSearch,
     ],
   )
 

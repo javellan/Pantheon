@@ -316,16 +316,23 @@ export function useGetPopularFeedsQuery(options?: GetPopularFeedsOptions) {
   return query
 }
 
+export const actorSearchActivator = '@'
+
 export function useSearchPopularFeedsMutation() {
   const agent = useAgent()
   const moderationOpts = useModerationOpts()
 
   return useMutation({
     mutationFn: async (query: string) => {
-      const res = await agent.app.bsky.unspecced.getPopularFeedGenerators({
-        limit: 10,
-        query: query,
-      })
+      const res = query.startsWith(actorSearchActivator)
+        ? await agent.app.bsky.feed.getActorFeeds({
+            limit: 10,
+            actor: query.slice(1),
+          })
+        : await agent.app.bsky.unspecced.getPopularFeedGenerators({
+            limit: 10,
+            query: query,
+          })
 
       if (moderationOpts) {
         return res.data.feeds.filter(feed => {
