@@ -463,7 +463,6 @@ export function FeedsScreen(_props: Props) {
 
   const renderItem = React.useCallback(
     ({item}: {item: FlatlistSlice}) => {
-      console.log(item.type)
       if (item.type === 'error') {
         return <ErrorMessage message={item.error} />
       } else if (item.type === 'popularFeedsLoadingMore') {
