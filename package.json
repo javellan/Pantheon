@@ -273,8 +273,8 @@
     "@expo/image-utils": "0.6.3",
     "@react-native/babel-preset": "0.76.1",
     "@react-native/normalize-colors": "0.76.1",
-    "@types/react": "^18",
-    "@radix-ui/react-focus-scope": "1.1.0"
+    "@radix-ui/react-focus-scope": "1.1.0",
+    "@types/react": "^18"
   },
   "jest": {
     "preset": "jest-expo/ios",

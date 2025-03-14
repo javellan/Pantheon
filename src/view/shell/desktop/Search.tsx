@@ -86,10 +86,12 @@ let SearchProfileCard = ({
   profile,
   moderation,
   onPress: onPressInner,
+  linkToProfile = true,
 }: {
   profile: AppBskyActorDefs.ProfileViewBasic
   moderation: ModerationDecision
   onPress: () => void
+  linkToProfile?: boolean
 }): React.ReactNode => {
   const pal = usePalette('default')
   const queryClient = useQueryClient()
@@ -102,7 +104,7 @@ let SearchProfileCard = ({
   return (
     <Link
       testID={`searchAutoCompleteResult-${profile.handle}`}
-      href={makeProfileLink(profile)}
+      href={linkToProfile ? makeProfileLink(profile) : undefined}
       title={profile.handle}
       asAnchor
       anchorNoUnderline
