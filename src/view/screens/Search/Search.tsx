@@ -956,10 +956,12 @@ export function SearchScreenShell({
   )
 }
 
-let AutocompleteResults = ({
+export let AutocompleteResults = ({
   isAutocompleteFetching,
   autocompleteData,
   searchText,
+  showSearchLinkCard = true,
+  linkToProfile = true,
   onSubmit,
   onResultPress,
   onProfileClick,
@@ -967,6 +969,8 @@ let AutocompleteResults = ({
   isAutocompleteFetching: boolean
   autocompleteData: AppBskyActorDefs.ProfileViewBasic[] | undefined
   searchText: string
+  showSearchLinkCard?: boolean
+  linkToProfile?: boolean
   onSubmit: () => void
   onResultPress: () => void
   onProfileClick: (profile: AppBskyActorDefs.ProfileViewBasic) => void
@@ -982,20 +986,23 @@ let AutocompleteResults = ({
         <Layout.Content
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag">
-          <SearchLinkCard
-            label={_(msg`Search for "${searchText}"`)}
-            onPress={isNative ? onSubmit : undefined}
-            to={
-              isNative
-                ? undefined
-                : `/search?q=${encodeURIComponent(searchText)}`
-            }
-            style={{borderBottomWidth: 1}}
-          />
+          {showSearchLinkCard && (
+            <SearchLinkCard
+              label={_(msg`Search for "${searchText}"`)}
+              onPress={isNative ? onSubmit : undefined}
+              to={
+                isNative
+                  ? undefined
+                  : `/search?q=${encodeURIComponent(searchText)}`
+              }
+              style={{borderBottomWidth: 1}}
+            />
+          )}
           {autocompleteData?.map(item => (
             <SearchProfileCard
               key={item.did}
               profile={item}
+              linkToProfile={linkToProfile}
               moderation={moderateProfile(item, moderationOpts)}
               onPress={() => {
                 onProfileClick(item)
@@ -1009,6 +1016,7 @@ let AutocompleteResults = ({
     </>
   )
 }
+
 AutocompleteResults = React.memo(AutocompleteResults)
 
 function SearchHistory({
