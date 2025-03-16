@@ -1,13 +1,8 @@
-import { FC, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/macro";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { usePalette } from "#/lib/hooks/usePalette";
-import { useWebMediaQueries } from "#/lib/hooks/useWebMediaQueries";
 import { CommonNavigatorParams } from "#/lib/routes/types";
-import { useSession } from "#/state/session";
-import { useComposerControls } from "#/state/shell/composer";
 import { List } from "#/view/com/util/List";
 import * as Layout from '#/components/Layout'
 import { Text } from "#/components/Typography";
