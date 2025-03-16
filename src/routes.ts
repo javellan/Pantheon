@@ -4,8 +4,6 @@ export const router = new Router({
   Home: '/',
   Search: '/search',
   Feeds: '/feeds',
-  Notifications: '/notifications',
-  NotificationSettings: '/notifications/settings',
   Settings: '/settings',
   Lists: '/lists',
   // moderation
@@ -60,6 +58,8 @@ export const router = new Router({
   Messages: '/messages',
   MessagesSettings: '/messages/settings',
   MessagesInbox: '/messages/inbox',
+  Notifications: '/messages/notifications',
+  NotificationSettings: '/messages/notifications/settings',
   MessagesConversation: '/messages/:conversation',
   // starter packs
   Start: '/start/:name/:rkey',

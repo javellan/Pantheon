@@ -41,6 +41,7 @@ import {SharedPreferencesTesterScreen} from '#/screens/E2E/SharedPreferencesTest
 import HashtagScreen from '#/screens/Hashtag'
 import {MessagesScreen} from '#/screens/Messages/ChatList'
 import {MessagesConversationScreen} from '#/screens/Messages/Conversation'
+import {MessagesInboxScreen} from '#/screens/Messages/Inbox'
 import {MessagesSettingsScreen} from '#/screens/Messages/Settings'
 import {ModerationScreen} from '#/screens/Moderation'
 import {Screen as ModerationInteractionSettings} from '#/screens/ModerationInteractionSettings'
@@ -92,7 +93,6 @@ import {SupportScreen} from '#/view/screens/Support'
 import {TermsOfServiceScreen} from '#/view/screens/TermsOfService'
 import {BottomBar} from '#/view/shell/bottom-bar/BottomBar'
 import {createNativeStackNavigatorWithAuth} from '#/view/shell/createNativeStackNavigatorWithAuth'
-import {MessagesInboxScreen} from '#/screens/Messages/Inbox'
 import {Referrer} from '../modules/expo-bluesky-swiss-army'
 import {ProfileSearchScreen} from './screens/Profile/ProfileSearch'
 import {AboutSettingsScreen} from './screens/Settings/AboutSettings'
@@ -419,6 +419,11 @@ function commonScreens(Stack: typeof HomeTab, unreadCountLabel?: string) {
         options={{title: title(msg`Chat request inbox`), requireAuth: true}}
       />
       <Stack.Screen
+        name="Notifications"
+        getComponent={() => NotificationsScreen}
+        options={{title: title(msg`Notifications`), requireAuth: true}}
+      />
+      <Stack.Screen
         name="NotificationSettings"
         getComponent={() => NotificationSettingsScreen}
         options={{title: title(msg`Notification settings`), requireAuth: true}}
@@ -481,10 +486,6 @@ function TabsNavigator() {
       <Tab.Screen name="HomeTab" getComponent={() => HomeTabNavigator} />
       <Tab.Screen name="SearchTab" getComponent={() => SearchTabNavigator} />
       <Tab.Screen
-        name="NotificationsTab"
-        getComponent={() => NotificationsTabNavigator}
-      />
-      <Tab.Screen
         name="MyProfileTab"
         getComponent={() => MyProfileTabNavigator}
       />
@@ -529,27 +530,6 @@ function SearchTabNavigator() {
       <SearchTab.Screen name="Search" getComponent={() => SearchScreen} />
       {commonScreens(SearchTab as typeof HomeTab)}
     </SearchTab.Navigator>
-  )
-}
-
-function NotificationsTabNavigator() {
-  const t = useTheme()
-  return (
-    <NotificationsTab.Navigator
-      screenOptions={{
-        animationDuration: 285,
-        gestureEnabled: true,
-        fullScreenGestureEnabled: true,
-        headerShown: false,
-        contentStyle: t.atoms.bg,
-      }}>
-      <NotificationsTab.Screen
-        name="Notifications"
-        getComponent={() => NotificationsScreen}
-        options={{requireAuth: true}}
-      />
-      {commonScreens(NotificationsTab as typeof HomeTab)}
-    </NotificationsTab.Navigator>
   )
 }
 
@@ -631,11 +611,6 @@ const FlatNavigator = () => {
         name="Search"
         getComponent={() => SearchScreen}
         options={{title: title(msg`Search`)}}
-      />
-      <Flat.Screen
-        name="Notifications"
-        getComponent={() => NotificationsScreen}
-        options={{title: title(msg`Notifications`), requireAuth: true}}
       />
       <Flat.Screen
         name="Messages"

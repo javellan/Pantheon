@@ -1,17 +1,17 @@
+import {LinearGradient} from 'expo-linear-gradient'
 import {ComponentProps} from 'react'
 import {StyleSheet, TouchableWithoutFeedback} from 'react-native'
 import Animated from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import {LinearGradient} from 'expo-linear-gradient'
 
+import {ios} from '#/alf'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useHaptics} from '#/lib/haptics'
 import {useMinimalShellFabTransform} from '#/lib/hooks/useMinimalShellTransform'
 import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
-import {clamp} from '#/lib/numbers'
 import {gradients} from '#/lib/styles'
 import {isWeb} from '#/platform/detection'
-import {ios} from '#/alf'
+import {useShellLayout} from '#/state/shell/shell-layout'
 
 export interface FABProps
   extends ComponentProps<typeof TouchableWithoutFeedback> {
@@ -24,12 +24,13 @@ export function FABInner({testID, icon, onPress, ...props}: FABProps) {
   const {isMobile, isTablet} = useWebMediaQueries()
   const playHaptic = useHaptics()
   const fabMinimalShellTransform = useMinimalShellFabTransform()
+  const {footerHeight} = useShellLayout()
 
   const size = isTablet ? styles.sizeLarge : styles.sizeRegular
 
   const tabletSpacing = isTablet
     ? {right: 50, bottom: 50}
-    : {right: 24, bottom: clamp(insets.bottom, 15, 60) + 15}
+    : {right: 24, bottom: footerHeight.get() - 30}
 
   return (
     <Animated.View
