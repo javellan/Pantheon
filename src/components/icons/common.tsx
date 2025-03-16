@@ -1,6 +1,12 @@
 import {StyleSheet, TextProps} from 'react-native'
 import type {PathProps, SvgProps} from 'react-native-svg'
-import {Defs, LinearGradient, Stop} from 'react-native-svg'
+import {
+  Defs,
+  FeDropShadow,
+  Filter,
+  LinearGradient,
+  Stop,
+} from 'react-native-svg'
 import {nanoid} from 'nanoid/non-secure'
 
 import {tokens, useTheme} from '#/alf'
@@ -10,6 +16,7 @@ export type Props = {
   style?: TextProps['style']
   size?: keyof typeof sizes
   gradient?: keyof typeof tokens.gradients
+  shadow?: string
 } & Omit<SvgProps, 'style' | 'size'>
 
 export const sizes = {
@@ -23,11 +30,12 @@ export const sizes = {
 
 export function useCommonSVGProps(props: Props) {
   const t = useTheme()
-  const {fill, size, gradient, ...rest} = props
+  const {fill, size, gradient, shadow, ...rest} = props
   const style = StyleSheet.flatten(rest.style)
   const _size = Number(size ? sizes[size] : rest.width || sizes.md)
   let _fill = fill || style?.color || t.palette.primary_500
   let gradientDef = null
+  let shadowDef = null
 
   if (gradient && tokens.gradients[gradient]) {
     const id = gradient + '_' + nanoid()
@@ -50,11 +58,28 @@ export function useCommonSVGProps(props: Props) {
     )
   }
 
+  if (shadow) {
+    shadowDef = (
+      <Defs>
+        <Filter id="DropShadow">
+          <FeDropShadow
+            dx={1}
+            dy={1}
+            stdDeviation={1}
+            floodColor={shadow}
+            floodOpacity={0.5}
+          />
+        </Filter>
+      </Defs>
+    )
+  }
+
   return {
     fill: _fill,
     size: _size,
     style,
     gradient: gradientDef,
+    shadow: shadowDef,
     ...rest,
   }
 }

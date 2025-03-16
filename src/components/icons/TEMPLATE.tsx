@@ -30,7 +30,8 @@ export const IconTemplate_Stroke2_Corner0_Rounded = React.forwardRef(
 
 export function createSinglePathSVG({path}: {path: string}) {
   return React.forwardRef<Svg, Props>(function LogoImpl(props, ref) {
-    const {fill, size, style, gradient, ...rest} = useCommonSVGProps(props)
+    const {fill, size, style, gradient, shadow, ...rest} =
+      useCommonSVGProps(props)
 
     return (
       <Svg
@@ -42,7 +43,46 @@ export function createSinglePathSVG({path}: {path: string}) {
         height={size}
         style={[style]}>
         {gradient}
-        <Path fill={fill} fillRule="evenodd" clipRule="evenodd" d={path} />
+        {shadow}
+        <Path
+          fill={fill}
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d={path}
+          filter={shadow ? 'url(#DropShadow)' : undefined}
+        />
+      </Svg>
+    )
+  })
+}
+
+export function createSinglePathStrokeSVG({path}: {path: string}) {
+  return React.forwardRef<Svg, Props>(function LogoImpl(props, ref) {
+    const {fill, size, style, gradient, shadow, ...rest} =
+      useCommonSVGProps(props)
+
+    return (
+      <Svg
+        fill="none"
+        {...rest}
+        ref={ref}
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        style={[style]}>
+        {gradient}
+        {shadow}
+        <Path
+          fill="none"
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d={path}
+          stroke={fill}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter={shadow ? 'url(#DropShadow)' : undefined}
+        />
       </Svg>
     )
   })
@@ -50,7 +90,8 @@ export function createSinglePathSVG({path}: {path: string}) {
 
 export function createMultiPathSVG({paths}: {paths: string[]}) {
   return React.forwardRef<Svg, Props>(function LogoImpl(props, ref) {
-    const {fill, size, style, gradient, ...rest} = useCommonSVGProps(props)
+    const {fill, size, style, gradient, shadow, ...rest} =
+      useCommonSVGProps(props)
 
     return (
       <Svg
@@ -62,6 +103,7 @@ export function createMultiPathSVG({paths}: {paths: string[]}) {
         height={size}
         style={[style]}>
         {gradient}
+        {shadow}
         {paths.map((path, i) => (
           <Path
             key={i}
@@ -69,6 +111,7 @@ export function createMultiPathSVG({paths}: {paths: string[]}) {
             fillRule="evenodd"
             clipRule="evenodd"
             d={path}
+            filter={shadow ? 'url(#DropShadow)' : undefined}
           />
         ))}
       </Svg>

@@ -1,24 +1,12 @@
-import {msg, plural, Trans} from '@lingui/macro'
-import {useLingui} from '@lingui/react'
-import {BottomTabBarProps} from '@react-navigation/bottom-tabs'
-import {StackActions} from '@react-navigation/native'
 import React, {ComponentProps} from 'react'
 import {GestureResponderEvent, View} from 'react-native'
 import Animated from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {msg, plural, Trans} from '@lingui/macro'
+import {useLingui} from '@lingui/react'
+import {BottomTabBarProps} from '@react-navigation/bottom-tabs'
+import {StackActions} from '@react-navigation/native'
 
-import {atoms as a} from '#/alf'
-import {Button, ButtonText} from '#/components/Button'
-import {useDialogControl} from '#/components/Dialog'
-import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
-import {HomeOpen_Stoke2_Corner0_Rounded as Home} from '#/components/icons/HomeOpen'
-import {CreateIcon} from '#/components/tao-icons/Create'
-import {HomeSolidIcon} from '#/components/tao-icons/HomeSolid'
-import {MessageIcon} from '#/components/tao-icons/Message'
-import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
-import {SearchIcon} from '#/components/tao-icons/Search'
-import {SearchSolidIcon} from '#/components/tao-icons/SearchSolid'
-import {Text} from '#/components/Typography'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useHaptics} from '#/lib/haptics'
 import {useDedupe} from '#/lib/hooks/useDedupe'
@@ -41,6 +29,18 @@ import {useCloseAllActiveElements} from '#/state/util'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {Logo} from '#/view/icons/Logo'
 import {Logotype} from '#/view/icons/Logotype'
+import {atoms as a} from '#/alf'
+import {Button, ButtonText} from '#/components/Button'
+import {useDialogControl} from '#/components/Dialog'
+import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
+import {CreateIcon} from '#/components/tao-icons/Create'
+import {HomeIcon} from '#/components/tao-icons/Home'
+import {HomeSolidIcon} from '#/components/tao-icons/HomeSolid'
+import {MessageIcon} from '#/components/tao-icons/Message'
+import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
+import {SearchIcon} from '#/components/tao-icons/Search'
+import {SearchSolidIcon} from '#/components/tao-icons/SearchSolid'
+import {Text} from '#/components/Typography'
 import {styles} from './BottomBarStyles'
 
 type TabOptions =
@@ -58,17 +58,17 @@ export function BottomBar({navigation}: BottomTabBarProps) {
   const {openComposer} = useComposerControls()
   const safeAreaInsets = useSafeAreaInsets()
   const {footerHeight} = useShellLayout()
-  const {isAtHome, isAtSearch, isAtNotifications, isAtMyProfile, isAtMessages} =
+  const {isAtHome, isAtSearch, isAtMyProfile, isAtMessages} =
     useNavigationTabState()
   const numUnreadNotifications = useUnreadNotifications()
   const numUnreadMessages = useUnreadMessageCount()
-  if (!isNaN(parseInt(numUnreadNotifications))) {
-    const notif = parseInt(numUnreadNotifications)
+  if (!isNaN(parseInt(numUnreadNotifications, 10))) {
+    const notif = parseInt(numUnreadNotifications, 10)
     if (notif > 0) {
       numUnreadMessages.count += notif
       numUnreadMessages.hasNew = true
       numUnreadMessages.numUnread = `${
-        parseInt(numUnreadMessages.numUnread ?? '0') + notif
+        parseInt(numUnreadMessages.numUnread ?? '0', 10) + notif
       }`
     }
   }
@@ -151,11 +151,13 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                 isAtHome ? (
                   <HomeSolidIcon
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.homeIcon]}
                   />
                 ) : (
-                  <Home
+                  <HomeIcon
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.homeIcon]}
                   />
                 )
@@ -172,12 +174,14 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                 isAtSearch ? (
                   <SearchSolidIcon
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.searchIcon]}
                   />
                 ) : (
                   <SearchIcon
                     testID="bottomBarSearchBtn"
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.searchIcon]}
                   />
                 )
@@ -193,6 +197,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                 <CreateIcon
                   testID="bottomBarCreateBtn"
                   width={iconWidth * (4 / 3)}
+                  shadow={pal.textInverted.color?.toString()}
                   style={[styles.ctrlIcon, pal.text, styles.createIcon]}
                 />
               }
@@ -208,11 +213,13 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                 isAtMessages ? (
                   <MessageSolidIcon
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
                   />
                 ) : (
                   <MessageIcon
                     width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
                   />
                 )
@@ -278,6 +285,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                         styles.profileIcon,
                         styles.onProfile,
                         {borderColor: pal.text.color, borderWidth: 3},
+                        a.shadow_sm,
                       ]}>
                       <UserAvatar
                         avatar={profile?.avatar}
@@ -294,6 +302,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                         pal.text,
                         styles.profileIcon,
                         {borderColor: 'transparent', borderWidth: 3},
+                        a.shadow_sm,
                       ]}>
                       <UserAvatar
                         avatar={profile?.avatar}
@@ -394,6 +403,7 @@ function Btn({
   accessibilityHint,
   accessibilityLabel,
 }: BtnProps) {
+  const pal = usePalette('default')
   return (
     <PressableScale
       testID={testID}
@@ -406,7 +416,19 @@ function Btn({
       targetScale={0.8}>
       {icon}
       {label && (
-        <Text style={[a.text_center, a.pt_xs]}>
+        <Text
+          style={[
+            a.text_center,
+            a.pt_xs,
+            {
+              textShadowColor: pal.colors.textInverted,
+              textShadowOffset: {
+                width: 1,
+                height: 1,
+              },
+              textShadowRadius: 1,
+            },
+          ]}>
           <Trans>{label}</Trans>
         </Text>
       )}

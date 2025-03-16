@@ -1,5 +1,3 @@
-import {useEventListener} from 'expo'
-import {VideoPlayer} from 'expo-video'
 import {useCallback, useMemo, useState} from 'react'
 import {View} from 'react-native'
 import {
@@ -17,15 +15,14 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {useEventListener} from 'expo'
+import {VideoPlayer} from 'expo-video'
 
-import {atoms as a} from '#/alf'
-import {Text} from '#/components/Typography'
 import {useShellLayout} from '#/state/shell/shell-layout'
 import {formatTime} from '#/view/com/util/post-embeds/VideoEmbedInner/web-controls/utils'
+import {atoms as a} from '#/alf'
+import {Text} from '#/components/Typography'
 
 // magic number that is roughly the min height of the write reply button
 // we inset the video by this amount
@@ -48,7 +45,6 @@ export function Scrubber({
 }) {
   const {footerHeight} = useShellLayout()
   const {width: screenWidth} = useSafeAreaFrame()
-  const insets = useSafeAreaInsets()
   const currentTimeSV = useSharedValue(0)
   const durationSV = useSharedValue(0)
   const [currentSeekTime, setCurrentSeekTime] = useState(0)
