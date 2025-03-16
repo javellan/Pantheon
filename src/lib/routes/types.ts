@@ -48,6 +48,7 @@ export type CommonNavigatorParams = {
   PreferencesExternalEmbeds: undefined
   AccessibilitySettings: undefined
   AppearanceSettings: undefined
+  AlgorithmTweaks: undefined
   AccountSettings: undefined
   PrivacyAndSecuritySettings: undefined
   ContentAndMediaSettings: undefined

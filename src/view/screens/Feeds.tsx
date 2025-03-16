@@ -54,6 +54,10 @@ type FlatlistSlice =
       error: string
     }
   | {
+      type: 'feedsHeaderLinks'
+      key: string
+  }
+  | {
       type: 'savedFeedsHeader'
       key: string
     }
@@ -164,6 +168,14 @@ export function FeedsScreen(_props: Props) {
     [search],
   )
 
+  const onPressCompose = React.useCallback(() => {
+    openComposer({
+      setError: function (error: string): void {
+        console.error(error)
+      }
+    })
+  }, [openComposer])
+
   const onChangeQuery = React.useCallback(
     (text: string) => {
       setQuery(text)
@@ -238,6 +250,9 @@ export function FeedsScreen(_props: Props) {
 
     if (hasSession) {
       slices.push({
+        key: 'feedsHeaderLinks',
+        type: 'feedsHeaderLinks',
+      },{
         key: 'savedFeedsHeader',
         type: 'savedFeedsHeader',
       })
@@ -465,6 +480,8 @@ export function FeedsScreen(_props: Props) {
             <ActivityIndicator size="large" />
           </View>
         )
+      } else if (item.type === 'feedsHeaderLinks') {
+        return <FeedsHeaderLinks />
       } else if (item.type === 'savedFeedsHeader') {
         return <FeedsSavedHeader />
       } else if (item.type === 'savedFeedNoResults') {
@@ -748,7 +765,6 @@ function SavedFeedPlaceholder() {
 
 function FeedsSavedHeader() {
   const t = useTheme()
-
   return (
     <View
       style={
@@ -779,6 +795,61 @@ function FeedsSavedHeader() {
         </Text>
       </View>
     </View>
+  )
+}
+
+function FeedsHeaderLinks() {
+  const feedHeaderLinks = [
+    {
+      label: "Tweak My Algorithm",
+      description: 'Customize your FYP content',
+      to: '/settings/algorithm',
+    },
+  ]
+  return(
+    <List
+      data={feedHeaderLinks} 
+      renderItem={({item}) => <HeaderLinkItem item={item} />}
+      keyExtractor={(item) => item.to} />
+  )
+}
+
+function HeaderLinkItem({ item }: { item: { label: string; description: string; to: string } }) {
+  const t = useTheme()
+  return (
+    <Link to={item.to} style={[a.flex_1, a.gap_xs]} label={item.label}>
+      <View
+        style={
+          isWeb
+            ? [
+                a.flex_row,
+                a.px_md,
+                a.py_lg,
+                a.gap_md,
+                a.border_b,
+                t.atoms.border_contrast_low,
+                a.align_center
+              ]
+            : [
+                {flexDirection: 'row-reverse'},
+                a.p_lg,
+                a.gap_md,
+                a.border_b,
+                t.atoms.border_contrast_low,
+                a.align_center
+              ]
+        }>
+        <ChevronRight size="lg" fill={t.atoms.text_contrast_low.color} />
+        <View style={[a.flex_1, a.gap_xs]}>
+          <Text style={[a.flex_1, a.text_2xl, a.font_heavy, t.atoms.text]}>
+            <Trans>{item.label}</Trans>
+          </Text>
+          <Text style={[t.atoms.text_contrast_high]}>
+            <Trans>{item.description}</Trans>
+          </Text>
+        </View>
+      </View>
+    </Link>
   )
 }
 
