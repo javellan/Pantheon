@@ -1,53 +1,129 @@
-import { Dimensions, StyleSheet, View } from "react-native";
-import { Trans } from "@lingui/macro";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import {useEffect, useState} from 'react'
+import React from 'react'
+import {StyleSheet, View} from 'react-native'
+import {Trans} from '@lingui/macro'
+import {Slider} from '@miblanchard/react-native-slider'
+import {NativeStackScreenProps} from '@react-navigation/native-stack'
+import debounce from 'lodash.debounce'
 
-import { CommonNavigatorParams } from "#/lib/routes/types";
-import { List } from "#/view/com/util/List";
+import {usePalette} from '#/lib/hooks/usePalette'
+import {InfoCircleIcon} from '#/lib/icons'
+import {CommonNavigatorParams} from '#/lib/routes/types'
+import {useAgent} from '#/state/session'
+import {List} from '#/view/com/util/List'
+import {atoms as a, useTheme} from '#/alf'
+import {Button, ButtonText} from '#/components/Button'
 import * as Layout from '#/components/Layout'
-import { Text } from "#/components/Typography";
-import { Topic, Topics } from "../Feeds/Topics";
+import {Text} from '#/components/Typography'
+import {Topic, Topics} from '../Feeds/Topics'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
-
-const { width } = Dimensions.get('window');
 
 type InterestValues = {
   [key: string]: number
 }
 
 export function AlgorithmTweaksScreen({}: Props) {
-  // const [interestValues, setInterestValues] = useState(
-  //   Topics.reduce((acc, topic) => ({
-  //     ...acc,
-  //     [topic.id]: topic.value
-  //   }), {} as InterestValues)
-  // );
+  const agent = useAgent()
+  const pal = usePalette('default')
+  const [prefs, setPrefs] = useState<InterestValues>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const t = useTheme()
 
-  const handleInterestChange = (id:string, value:number) => {
-    // Update the local state for immediate UI feedback
-    // setInterestValues(prev => ({
-    //   ...prev,
-    //   [id]: value
-    // }));
-    
-    // // TODO: Implement actual functionality here
-    // console.log(`Interest in ${id} changed to ${value}`);
-  };
+  useEffect(() => {
+    const fetchPrefs = async () => {
+      try {
+        const prefs = await agent.getPreferences()
+        console.debug('Fetched user preferences', prefs)
+        setPrefs(prefs.interests)
+      } catch (e) {
+        console.error('Failed to fetch user preferences', e)
+      }
+    }
+    fetchPrefs()
+  }, [agent])
+
+  const debouncedInterestStateChange = React.useMemo(
+    () =>
+      debounce((id, value) => {
+        setIsDirty(true)
+        setPrefs(prev => ({
+          ...prev,
+          [id]: value,
+        }))
+      }, 300), // debounce for 300ms
+    [],
+  )
+
+  const handleInterestChange = (id: string, value: number) => {
+    debouncedInterestStateChange(id, value)
+  }
 
   const styles = StyleSheet.create({
-    slider: {
-      paddingVertical: 10,
-      width: '95%',
+    topicRenderer: {
+      paddingBottom: 30,
+    },
+    topicTitle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    topicTitleInfoIcon: {
+      width: 68,
+      paddingLeft: 8,
+    },
+    sliderThumb: {
+      width: 20,
+      height: 60,
+      backgroundColor: '#fff',
+      boxShadow: 'rgba(0, 0, 0, 1) 0px 4px 4px',
+    },
+    sliderTrack: {
+      height: 54,
+      backgroundColor: '#f2f2f2',
+      borderRadius: 10,
+    },
+    sliderContainer: {
+      paddingVertical: 30,
+    },
+    sliderTrackMark: {
+      width: 2,
+      height: 15,
+      backgroundColor: '#aaa',
+      borderRadius: 5,
     },
   })
 
-  function TopicRenderer({ item }: { item: Topic }) {
-    return (  
-      <View>
-        <Text style={{ paddingLeft: 18, fontSize: 18, fontWeight: 'bold' }}>{item .name}</Text>
+  function TopicRenderer({item}: {item: Topic}) {
+    return (
+      <View style={styles.topicRenderer}>
+        <View style={styles.topicTitle}>
+          <Text style={[a.font_heavy, a.text_lg]}>{item.name}</Text>
+          <View style={styles.topicTitleInfoIcon}>
+            <InfoCircleIcon size={20} style={pal.textLight} strokeWidth={1.5} />
+          </View>
+        </View>
+        <Slider
+          thumbTouchSize={{width: 20, height: 20}}
+          thumbStyle={styles.sliderThumb}
+          trackStyle={styles.sliderTrack}
+          containerStyle={styles.sliderContainer}
+          minimumTrackStyle={{backgroundColor: '#f2f2f2'}}
+          minimumValue={-10}
+          maximumValue={10}
+          trackMarks={[-5, 0, 5]}
+          renderTrackMarkComponent={({}) => (
+            <View style={styles.sliderTrackMark} />
+          )}
+          value={prefs[item.id] || 0}
+          onValueChange={value => handleInterestChange(item.id, value[0])}
+        />
       </View>
     )
+  }
+
+  function handleSave() {
+    agent.setInterestsPref(prefs)
+    setIsDirty(false)
   }
 
   return (
@@ -57,14 +133,41 @@ export function AlgorithmTweaksScreen({}: Props) {
           <Layout.Header.BackButton />
           <Layout.Header.Content>
             <Layout.Header.TitleText>
-              <Trans>Tweak My Algorithm</Trans>
+              <Trans>Back</Trans>
             </Layout.Header.TitleText>
           </Layout.Header.Content>
+          <Layout.Header.Slot>
+            <Button
+              label={'Save'}
+              disabled={!isDirty}
+              onPress={() => handleSave()}>
+              <ButtonText>
+                <Trans>Save</Trans>
+              </ButtonText>
+            </Button>
+          </Layout.Header.Slot>
         </Layout.Header.Outer>
       </Layout.Center>
-      <List data={Topics}
-            renderItem={TopicRenderer}
-            keyExtractor={(item) => item.id} />
+      <View style={{paddingHorizontal: 20}}>
+        <Text style={[a.font_heavy, a.text_4xl]}>
+          <Trans>Manage Topics</Trans>
+        </Text>
+        <Text
+          style={[
+            a.text_md,
+            {paddingBottom: 20, color: t.palette.contrast_600},
+          ]}>
+          <Trans>
+            Customize your feed to see more or less of the content you like.
+          </Trans>
+        </Text>
+        <List
+          data={Topics}
+          renderItem={TopicRenderer}
+          keyExtractor={item => item.id}
+          style={{marginBottom: 250}}
+        />
+      </View>
     </Layout.Screen>
   )
-};
+}
