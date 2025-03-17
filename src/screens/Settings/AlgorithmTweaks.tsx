@@ -26,7 +26,7 @@ type InterestValues = {
 export function AlgorithmTweaksScreen({}: Props) {
   const agent = useAgent()
   const pal = usePalette('default')
-  const [prefs, setPrefs] = useState<InterestValues>({})
+  const [interests, setInterests] = useState<InterestValues>({})
   const [isDirty, setIsDirty] = useState(false)
   const t = useTheme()
 
@@ -34,8 +34,7 @@ export function AlgorithmTweaksScreen({}: Props) {
     const fetchPrefs = async () => {
       try {
         const prefs = await agent.getPreferences()
-        console.debug('Fetched user preferences', prefs)
-        setPrefs(prefs.interests)
+        setInterests(prefs.interests)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
       }
@@ -47,7 +46,7 @@ export function AlgorithmTweaksScreen({}: Props) {
     () =>
       debounce((id, value) => {
         setIsDirty(true)
-        setPrefs(prev => ({
+        setInterests(prev => ({
           ...prev,
           [id]: value,
         }))
@@ -114,7 +113,7 @@ export function AlgorithmTweaksScreen({}: Props) {
           renderTrackMarkComponent={({}) => (
             <View style={styles.sliderTrackMark} />
           )}
-          value={prefs[item.id] || 0}
+          value={interests[item.id] || 0}
           onValueChange={value => handleInterestChange(item.id, value[0])}
         />
       </View>
@@ -122,7 +121,7 @@ export function AlgorithmTweaksScreen({}: Props) {
   }
 
   function handleSave() {
-    agent.setInterestsPref(prefs)
+    agent.setInterestsPref(interests)
     setIsDirty(false)
   }
 
