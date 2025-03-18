@@ -1,0 +1,33 @@
+import React from 'react'
+import Svg, {Path} from 'react-native-svg'
+
+import {Props, useCommonSVGProps} from '../icons/common'
+
+export const CreateIcon = React.forwardRef<Svg, Props>(function LogoImpl(
+  props,
+  ref,
+) {
+  const {fill, size, style, gradient, shadow, ...rest} =
+    useCommonSVGProps(props)
+
+  return (
+    <Svg
+      fill="none"
+      {...rest}
+      ref={ref}
+      viewBox="0 0 50 38"
+      width={size * (4 / 3) + 2}
+      height={size + 2}
+      style={[style]}>
+      {gradient}
+      {shadow}
+      <Path
+        fill={fill}
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M6.71411 1.08902C2.82919 1.53744 0 4.8663 0 8.77702V27.223C0 31.1337 2.82919 34.4626 6.71411 34.911C11.287 35.4388 17.6435 36 24 36C30.3565 36 36.713 35.4388 41.2859 34.911C45.1708 34.4626 48 31.1337 48 27.223V8.77702C48 4.8663 45.1708 1.53744 41.2859 1.08902C36.713 0.561179 30.3565 0 24 0C17.6435 0 11.287 0.561179 6.71411 1.08902ZM24.5 11C24.5 10.1716 23.8284 9.5 23 9.5C22.1716 9.5 21.5 10.1716 21.5 11V16.5H16C15.1716 16.5 14.5 17.1716 14.5 18C14.5 18.8284 15.1716 19.5 16 19.5H21.5V25C21.5 25.8284 22.1716 26.5 23 26.5C23.8284 26.5 24.5 25.8284 24.5 25V19.5H30C30.8284 19.5 31.5 18.8284 31.5 18C31.5 17.1716 30.8284 16.5 30 16.5H24.5V11Z"
+        filter={shadow ? 'url(#DropShadow)' : undefined}
+      />
+    </Svg>
+  )
+})

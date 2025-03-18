@@ -1,5 +1,4 @@
 import {Repost_Stroke2_Corner2_Rounded as RepostIcon} from '#/components/icons/Repost'
-import {clamp} from '#/lib/numbers'
 import {NavigationProp} from '#/lib/routes/types'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {Shadow} from '#/state/cache/post-shadow'
@@ -67,7 +66,7 @@ export function Overlay({
   const seekingAnimationSV = useSharedValue(0)
   const insets = useSafeAreaInsets()
   const {width: screenWidth} = useSafeAreaFrame()
-  const {headerHeight} = useShellLayout()
+  const {headerHeight, footerHeight} = useShellLayout()
   const overlayTop = useMemo(() => {
     return headerHeight.get() + insets.top
   }, [headerHeight, insets])
@@ -76,8 +75,8 @@ export function Overlay({
   const rkey = new AtUri(post.uri).rkey
   const record = AppBskyFeedPost.isRecord(post.record) ? post.record : undefined
   const richText = new RichTextAPI({
-    text: record?.text || '',
-    facets: record?.facets,
+    text: record?.text || ('' as any),
+    facets: record?.facets as any,
   })
 
   const onPressShow = useCallback(() => {
@@ -152,7 +151,7 @@ export function Overlay({
                 player={player}
                 post={post}
                 feedContext={feedContext}
-                record={record!}
+                record={record! as any}
                 richText={richText}
               />
             )}
@@ -199,7 +198,7 @@ export function Overlay({
             style={[
               a.absolute,
               {
-                bottom: clamp(insets.bottom, 15, 60) + 48 + 20,
+                bottom: footerHeight.get() + 20,
                 left: 0,
                 right: 0,
               },

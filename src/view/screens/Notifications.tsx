@@ -1,17 +1,18 @@
-import React from 'react'
-import {View} from 'react-native'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect, useIsFocused} from '@react-navigation/native'
 import {useQueryClient} from '@tanstack/react-query'
+import React from 'react'
+import {View} from 'react-native'
 
+import {atoms as a, web} from '#/alf'
+import {ButtonIcon} from '#/components/Button'
+import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/components/icons/SettingsGear2'
+import * as Layout from '#/components/Layout'
+import {Link} from '#/components/Link'
+import {Loader} from '#/components/Loader'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
-import {ComposeIcon2} from '#/lib/icons'
-import {
-  NativeStackScreenProps,
-  NotificationsTabNavigatorParams,
-} from '#/lib/routes/types'
-import {s} from '#/lib/styles'
+import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
 import {logger} from '#/logger'
 import {isNative} from '#/platform/detection'
 import {emitSoftReset, listenSoftReset} from '#/state/events'
@@ -22,34 +23,22 @@ import {
 } from '#/state/queries/notifications/unread'
 import {truncateAndInvalidate} from '#/state/queries/util'
 import {useSetMinimalShellMode} from '#/state/shell'
-import {useComposerControls} from '#/state/shell/composer'
 import {NotificationFeed} from '#/view/com/notifications/NotificationFeed'
 import {Pager} from '#/view/com/pager/Pager'
 import {TabBar} from '#/view/com/pager/TabBar'
-import {FAB} from '#/view/com/util/fab/FAB'
 import {ListMethods} from '#/view/com/util/List'
 import {LoadLatestBtn} from '#/view/com/util/load-latest/LoadLatestBtn'
 import {MainScrollProvider} from '#/view/com/util/MainScrollProvider'
-import {atoms as a} from '#/alf'
-import {web} from '#/alf'
-import {ButtonIcon} from '#/components/Button'
-import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/components/icons/SettingsGear2'
-import * as Layout from '#/components/Layout'
-import {Link} from '#/components/Link'
-import {Loader} from '#/components/Loader'
 
 // We don't currently persist this across reloads since
 // you gotta visit All to clear the badge anyway.
 // But let's at least persist it during the sesssion.
 let lastActiveTab = 0
 
-type Props = NativeStackScreenProps<
-  NotificationsTabNavigatorParams,
-  'Notifications'
->
+type Props = NativeStackScreenProps<CommonNavigatorParams, 'Notifications'>
+
 export function NotificationsScreen({}: Props) {
   const {_} = useLingui()
-  const {openComposer} = useComposerControls()
   const unreadNotifs = useUnreadNotifications()
   const hasNew = !!unreadNotifs
   const {checkUnread: checkUnreadAll} = useUnreadNotificationsApi()
@@ -122,7 +111,7 @@ export function NotificationsScreen({}: Props) {
   return (
     <Layout.Screen testID="notificationsScreen">
       <Layout.Header.Outer noBottomBorder sticky={false}>
-        <Layout.Header.MenuButton />
+        <Layout.Header.BackButton />
         <Layout.Header.Content>
           <Layout.Header.TitleText>
             <Trans>Notifications</Trans>
@@ -130,7 +119,7 @@ export function NotificationsScreen({}: Props) {
         </Layout.Header.Content>
         <Layout.Header.Slot>
           <Link
-            to="/notifications/settings"
+            to="/messages/notifications/settings"
             label={_(msg`Notification settings`)}
             size="small"
             variant="ghost"
@@ -157,14 +146,6 @@ export function NotificationsScreen({}: Props) {
           <View key={i}>{section.component}</View>
         ))}
       </Pager>
-      <FAB
-        testID="composeFAB"
-        onPress={() => openComposer({})}
-        icon={<ComposeIcon2 strokeWidth={1.5} size={29} style={s.white} />}
-        accessibilityRole="button"
-        accessibilityLabel={_(msg`New post`)}
-        accessibilityHint=""
-      />
     </Layout.Screen>
   )
 }

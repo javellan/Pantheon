@@ -22,10 +22,10 @@ import {useUnreadMessageCount} from '#/state/queries/messages/list-conversations
 import {useUnreadNotifications} from '#/state/queries/notifications/unread'
 import {useProfileQuery} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
+import {useComposerControls} from '#/state/shell'
 import {useLoggedOutViewControls} from '#/state/shell/logged-out'
 import {useShellLayout} from '#/state/shell/shell-layout'
 import {useCloseAllActiveElements} from '#/state/util'
-import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {Logo} from '#/view/icons/Logo'
 import {Logotype} from '#/view/icons/Logotype'
@@ -33,20 +33,14 @@ import {atoms as a} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
-import {
-  Bell_Filled_Corner0_Rounded as BellFilled,
-  Bell_Stroke2_Corner0_Rounded as Bell,
-} from '#/components/icons/Bell'
-import {
-  HomeOpen_Filled_Corner0_Rounded as HomeFilled,
-  HomeOpen_Stoke2_Corner0_Rounded as Home,
-} from '#/components/icons/HomeOpen'
-import {MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled} from '#/components/icons/MagnifyingGlass'
-import {MagnifyingGlass2_Stroke2_Corner0_Rounded as MagnifyingGlass} from '#/components/icons/MagnifyingGlass2'
-import {
-  Message_Stroke2_Corner0_Rounded as Message,
-  Message_Stroke2_Corner0_Rounded_Filled as MessageFilled,
-} from '#/components/icons/Message'
+import {CreateIcon} from '#/components/tao-icons/Create'
+import {HomeIcon} from '#/components/tao-icons/Home'
+import {HomeSolidIcon} from '#/components/tao-icons/HomeSolid'
+import {MessageIcon} from '#/components/tao-icons/Message'
+import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
+import {SearchIcon} from '#/components/tao-icons/Search'
+import {SearchSolidIcon} from '#/components/tao-icons/SearchSolid'
+import {Text} from '#/components/Typography'
 import {styles} from './BottomBarStyles'
 
 type TabOptions =
@@ -61,12 +55,23 @@ export function BottomBar({navigation}: BottomTabBarProps) {
   const {hasSession, currentAccount} = useSession()
   const pal = usePalette('default')
   const {_} = useLingui()
+  const {openComposer} = useComposerControls()
   const safeAreaInsets = useSafeAreaInsets()
   const {footerHeight} = useShellLayout()
-  const {isAtHome, isAtSearch, isAtNotifications, isAtMyProfile, isAtMessages} =
+  const {isAtHome, isAtSearch, isAtMyProfile, isAtMessages} =
     useNavigationTabState()
   const numUnreadNotifications = useUnreadNotifications()
   const numUnreadMessages = useUnreadMessageCount()
+  if (!isNaN(parseInt(numUnreadNotifications, 10))) {
+    const notif = parseInt(numUnreadNotifications, 10)
+    if (notif > 0) {
+      numUnreadMessages.count += notif
+      numUnreadMessages.hasNew = true
+      numUnreadMessages.numUnread = `${
+        parseInt(numUnreadMessages.numUnread ?? '0', 10) + notif
+      }`
+    }
+  }
   const footerMinimalShellTransform = useMinimalShellFooterTransform()
   const {data: profile} = useProfileQuery({did: currentAccount?.did})
   const {requestSwitchToAccount} = useLoggedOutViewControls()
@@ -108,10 +113,6 @@ export function BottomBar({navigation}: BottomTabBarProps) {
     () => onPressTab('Search'),
     [onPressTab],
   )
-  const onPressNotifications = React.useCallback(
-    () => onPressTab('Notifications'),
-    [onPressTab],
-  )
   const onPressProfile = React.useCallback(() => {
     onPressTab('MyProfile')
   }, [onPressTab])
@@ -145,15 +146,18 @@ export function BottomBar({navigation}: BottomTabBarProps) {
           <>
             <Btn
               testID="bottomBarHomeBtn"
+              label="Home"
               icon={
                 isAtHome ? (
-                  <HomeFilled
-                    width={iconWidth + 1}
+                  <HomeSolidIcon
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.homeIcon]}
                   />
                 ) : (
-                  <Home
-                    width={iconWidth + 1}
+                  <HomeIcon
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.homeIcon]}
                   />
                 )
@@ -165,16 +169,19 @@ export function BottomBar({navigation}: BottomTabBarProps) {
               accessibilityHint=""
             />
             <Btn
+              label="Search"
               icon={
                 isAtSearch ? (
-                  <MagnifyingGlassFilled
-                    width={iconWidth + 2}
+                  <SearchSolidIcon
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.searchIcon]}
                   />
                 ) : (
-                  <MagnifyingGlass
+                  <SearchIcon
                     testID="bottomBarSearchBtn"
-                    width={iconWidth + 2}
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.searchIcon]}
                   />
                 )
@@ -185,16 +192,34 @@ export function BottomBar({navigation}: BottomTabBarProps) {
               accessibilityHint=""
             />
             <Btn
+              label=""
+              icon={
+                <CreateIcon
+                  testID="bottomBarCreateBtn"
+                  width={iconWidth * (4 / 3)}
+                  shadow={pal.textInverted.color?.toString()}
+                  style={[styles.ctrlIcon, pal.text, styles.createIcon]}
+                />
+              }
+              onPress={() => openComposer({setError: () => {}})}
+              accessibilityRole="button"
+              accessibilityLabel={_(msg`Create`)}
+              accessibilityHint=""
+            />
+            <Btn
               testID="bottomBarMessagesBtn"
+              label="Inbox"
               icon={
                 isAtMessages ? (
-                  <MessageFilled
-                    width={iconWidth - 1}
+                  <MessageSolidIcon
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
                   />
                 ) : (
-                  <Message
-                    width={iconWidth - 1}
+                  <MessageIcon
+                    width={iconWidth}
+                    shadow={pal.textInverted.color?.toString()}
                     style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
                   />
                 )
@@ -216,7 +241,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                   : ''
               }
             />
-            <Btn
+            {/* <Btn
               testID="bottomBarNotificationsBtn"
               icon={
                 isAtNotifications ? (
@@ -246,9 +271,10 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                       })}` || '',
                     )
               }
-            />
+            /> */}
             <Btn
               testID="bottomBarProfileBtn"
+              label="Profile"
               icon={
                 <View style={styles.ctrlIconSizingWrapper}>
                   {isAtMyProfile ? (
@@ -258,7 +284,8 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                         pal.text,
                         styles.profileIcon,
                         styles.onProfile,
-                        {borderColor: pal.text.color},
+                        {borderColor: pal.text.color, borderWidth: 3},
+                        a.shadow_sm,
                       ]}>
                       <UserAvatar
                         avatar={profile?.avatar}
@@ -270,7 +297,13 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                     </View>
                   ) : (
                     <View
-                      style={[styles.ctrlIcon, pal.text, styles.profileIcon]}>
+                      style={[
+                        styles.ctrlIcon,
+                        pal.text,
+                        styles.profileIcon,
+                        {borderColor: 'transparent', borderWidth: 3},
+                        a.shadow_sm,
+                      ]}>
                       <UserAvatar
                         avatar={profile?.avatar}
                         size={iconWidth - 3}
@@ -351,6 +384,7 @@ interface BtnProps
   > {
   testID?: string
   icon: JSX.Element
+  label: string
   notificationCount?: string
   hasNew?: boolean
   onPress?: (event: GestureResponderEvent) => void
@@ -360,6 +394,7 @@ interface BtnProps
 function Btn({
   testID,
   icon,
+  label,
   hasNew,
   notificationCount,
   onPress,
@@ -368,6 +403,7 @@ function Btn({
   accessibilityHint,
   accessibilityLabel,
 }: BtnProps) {
+  const pal = usePalette('default')
   return (
     <PressableScale
       testID={testID}
@@ -379,6 +415,23 @@ function Btn({
       accessibilityHint={accessibilityHint}
       targetScale={0.8}>
       {icon}
+      {label && (
+        <Text
+          style={[
+            a.text_center,
+            a.pt_xs,
+            {
+              textShadowColor: pal.colors.textInverted,
+              textShadowOffset: {
+                width: 1,
+                height: 1,
+              },
+              textShadowRadius: 1,
+            },
+          ]}>
+          <Trans>{label}</Trans>
+        </Text>
+      )}
       {notificationCount ? (
         <View style={[styles.notificationCount, a.rounded_full]}>
           <Text style={styles.notificationCountLabel}>{notificationCount}</Text>

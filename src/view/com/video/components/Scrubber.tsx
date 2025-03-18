@@ -15,13 +15,11 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useEventListener} from 'expo'
 import {VideoPlayer} from 'expo-video'
 
+import {useShellLayout} from '#/state/shell/shell-layout'
 import {formatTime} from '#/view/com/util/post-embeds/VideoEmbedInner/web-controls/utils'
 import {atoms as a} from '#/alf'
 import {Text} from '#/components/Typography'
@@ -45,8 +43,8 @@ export function Scrubber({
   scrollGesture: NativeGesture
   children?: React.ReactNode
 }) {
+  const {footerHeight} = useShellLayout()
   const {width: screenWidth} = useSafeAreaFrame()
-  const insets = useSafeAreaInsets()
   const currentTimeSV = useSharedValue(0)
   const durationSV = useSharedValue(0)
   const [currentSeekTime, setCurrentSeekTime] = useState(0)
@@ -175,7 +173,7 @@ export function Scrubber({
           {
             left: 0,
             right: 0,
-            bottom: clamp(insets.bottom, 15, 60) + 48,
+            bottom: footerHeight.get(),
           },
           timeStyle,
         ]}
@@ -203,8 +201,7 @@ export function Scrubber({
             a.w_full,
             a.justify_end,
             {
-              paddingBottom: insets.bottom,
-              minHeight: clamp(insets.bottom, 15, 60) + 48,
+              minHeight: footerHeight.get(),
             },
             a.z_10,
             {backgroundColor: 'transparent'},
@@ -227,10 +224,7 @@ export function Scrubber({
             />
           </View>
           <Animated.View
-            style={[
-              {minHeight: clamp(insets.bottom, 15, 60) + 48},
-              childrenStyle,
-            ]}>
+            style={[{minHeight: footerHeight.get()}, childrenStyle]}>
             {children}
           </Animated.View>
         </View>

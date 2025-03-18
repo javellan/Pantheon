@@ -1,20 +1,20 @@
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'
 import {StyleSheet, View} from 'react-native'
 import Animated from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'
 import {useMediaQuery} from 'react-responsive'
 
+import {useLayoutBreakpoints} from '#/alf'
 import {HITSLOP_20} from '#/lib/constants'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useMinimalShellFabTransform} from '#/lib/hooks/useMinimalShellTransform'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
-import {clamp} from '#/lib/numbers'
 import {useGate} from '#/lib/statsig/statsig'
 import {colors} from '#/lib/styles'
 import {isWeb} from '#/platform/detection'
 import {useSession} from '#/state/session'
-import {useLayoutBreakpoints} from '#/alf'
+import {useShellLayout} from '#/state/shell/shell-layout'
 
 export function LoadLatestBtn({
   onPress,
@@ -31,6 +31,7 @@ export function LoadLatestBtn({
   const {centerColumnOffset} = useLayoutBreakpoints()
   const fabMinimalShellTransform = useMinimalShellFabTransform()
   const insets = useSafeAreaInsets()
+  const {footerHeight} = useShellLayout()
 
   // move button inline if it starts overlapping the left nav
   const isTallViewport = useMediaQuery({minHeight: 700})
@@ -46,7 +47,7 @@ export function LoadLatestBtn({
 
   const bottomPosition = isTablet
     ? {bottom: 50}
-    : {bottom: clamp(insets.bottom, 15, 60) + 15}
+    : {bottom: footerHeight.get() - 30} // Note: this is hacky, but really only a problem if we stick with mixed media feeds
 
   return (
     <Animated.View style={[showBottomBar && fabMinimalShellTransform]}>

@@ -1,6 +1,3 @@
-import React, {useCallback, useMemo} from 'react'
-import {StyleSheet} from 'react-native'
-import {SafeAreaView} from 'react-native-safe-area-context'
 import {
   AppBskyActorDefs,
   moderateProfile,
@@ -11,14 +8,23 @@ import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect} from '@react-navigation/native'
 import {useQueryClient} from '@tanstack/react-query'
+import React, {useCallback, useMemo} from 'react'
+import {StyleSheet} from 'react-native'
+import {SafeAreaView} from 'react-native-safe-area-context'
 
+import {atoms as a} from '#/alf'
+import * as Layout from '#/components/Layout'
+import {ScreenHider} from '#/components/moderation/ScreenHider'
+import {ProfileStarterPacks} from '#/components/StarterPack/ProfileStarterPacks'
 import {useSetTitle} from '#/lib/hooks/useSetTitle'
-import {ComposeIcon2} from '#/lib/icons'
 import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
 import {combinedDisplayName} from '#/lib/strings/display-names'
 import {cleanError} from '#/lib/strings/errors'
-import {isInvalidHandle} from '#/lib/strings/handles'
-import {colors, s} from '#/lib/styles'
+import {colors} from '#/lib/styles'
+import {navigate} from '#/Navigation'
+import {ProfileHeader, ProfileHeaderLoading} from '#/screens/Profile/Header'
+import {ProfileFeedSection} from '#/screens/Profile/Sections/Feed'
+import {ProfileLabelsSection} from '#/screens/Profile/Sections/Labels'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
 import {listenSoftReset} from '#/state/events'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
@@ -33,16 +39,7 @@ import {ProfileFeedgens} from '#/view/com/feeds/ProfileFeedgens'
 import {ProfileLists} from '#/view/com/lists/ProfileLists'
 import {PagerWithHeader} from '#/view/com/pager/PagerWithHeader'
 import {ErrorScreen} from '#/view/com/util/error/ErrorScreen'
-import {FAB} from '#/view/com/util/fab/FAB'
 import {ListRef} from '#/view/com/util/List'
-import {ProfileHeader, ProfileHeaderLoading} from '#/screens/Profile/Header'
-import {ProfileFeedSection} from '#/screens/Profile/Sections/Feed'
-import {ProfileLabelsSection} from '#/screens/Profile/Sections/Labels'
-import {atoms as a} from '#/alf'
-import * as Layout from '#/components/Layout'
-import {ScreenHider} from '#/components/moderation/ScreenHider'
-import {ProfileStarterPacks} from '#/components/StarterPack/ProfileStarterPacks'
-import {navigate} from '#/Navigation'
 import {ExpoScrollForwarderView} from '../../../modules/expo-scroll-forwarder'
 
 interface SectionRef {
@@ -314,15 +311,6 @@ function ProfileScreenLoaded({
   // events
   // =
 
-  const onPressCompose = () => {
-    const mention =
-      profile.handle === currentAccount?.handle ||
-      isInvalidHandle(profile.handle)
-        ? undefined
-        : profile.handle
-    openComposer({mention})
-  }
-
   const onPageSelected = (i: number) => {
     setCurrentPage(i)
   }
@@ -498,16 +486,6 @@ function ProfileScreenLoaded({
             )
           : null}
       </PagerWithHeader>
-      {hasSession && (
-        <FAB
-          testID="composeFAB"
-          onPress={onPressCompose}
-          icon={<ComposeIcon2 strokeWidth={1.5} size={29} style={s.white} />}
-          accessibilityRole="button"
-          accessibilityLabel={_(msg`New post`)}
-          accessibilityHint=""
-        />
-      )}
     </ScreenHider>
   )
 }

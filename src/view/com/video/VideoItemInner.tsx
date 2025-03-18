@@ -1,19 +1,12 @@
-import {AppBskyEmbedVideo} from '@atproto/api'
-import {useEventListener} from 'expo'
-import {VideoPlayer, VideoView} from 'expo-video'
 import {useState} from 'react'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {useEventListener} from 'expo'
+import {VideoPlayer, VideoView} from 'expo-video'
 
-import {atoms as a} from '#/alf'
 import {isAndroid} from '#/platform/detection'
+import {atoms as a} from '#/alf'
 
-export function VideoItemInner({
-  player,
-  embed,
-}: {
-  player: VideoPlayer
-  embed: AppBskyEmbedVideo.View
-}) {
+export function VideoItemInner({player}: {player: VideoPlayer}) {
   const {bottom} = useSafeAreaInsets()
   const [isReady, setIsReady] = useState(!isAndroid)
 

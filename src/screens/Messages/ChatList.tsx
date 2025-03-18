@@ -1,26 +1,12 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {View} from 'react-native'
-import {useAnimatedRef} from 'react-native-reanimated'
 import {ChatBskyActorDefs, ChatBskyConvoDefs} from '@atproto/api'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect, useIsFocused} from '@react-navigation/native'
 import {NativeStackScreenProps} from '@react-navigation/native-stack'
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {View} from 'react-native'
+import {useAnimatedRef} from 'react-native-reanimated'
 
-import {useAppState} from '#/lib/hooks/useAppState'
-import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
-import {MessagesTabNavigatorParams} from '#/lib/routes/types'
-import {cleanError} from '#/lib/strings/errors'
-import {logger} from '#/logger'
-import {isNative} from '#/platform/detection'
-import {listenSoftReset} from '#/state/events'
-import {MESSAGE_SCREEN_POLL_INTERVAL} from '#/state/messages/convo/const'
-import {useMessagesEventBus} from '#/state/messages/events'
-import {useLeftConvos} from '#/state/queries/messages/leave-conversation'
-import {useListConvosQuery} from '#/state/queries/messages/list-conversations'
-import {useSession} from '#/state/session'
-import {List, ListRef} from '#/view/com/util/List'
-import {ChatListLoadingPlaceholder} from '#/view/com/util/LoadingPlaceholder'
 import {atoms as a, useBreakpoints, useTheme} from '#/alf'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {DialogControlProps, useDialogControl} from '#/components/Dialog'
@@ -35,12 +21,32 @@ import * as Layout from '#/components/Layout'
 import {Link} from '#/components/Link'
 import {ListFooter} from '#/components/Lists'
 import {Text} from '#/components/Typography'
+import {useAppState} from '#/lib/hooks/useAppState'
+import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
+import {MessagesTabNavigatorParams} from '#/lib/routes/types'
+import {cleanError} from '#/lib/strings/errors'
+import {logger} from '#/logger'
+import {isNative} from '#/platform/detection'
+import {listenSoftReset} from '#/state/events'
+import {MESSAGE_SCREEN_POLL_INTERVAL} from '#/state/messages/convo/const'
+import {useMessagesEventBus} from '#/state/messages/events'
+import {useLeftConvos} from '#/state/queries/messages/leave-conversation'
+import {useListConvosQuery} from '#/state/queries/messages/list-conversations'
+import {useSession} from '#/state/session'
+import {List, ListRef} from '#/view/com/util/List'
+import {ChatListLoadingPlaceholder} from '#/view/com/util/LoadingPlaceholder'
 import {ChatListItem} from './components/ChatListItem'
 import {InboxPreview} from './components/InboxPreview'
+import {NotificationsPreview} from './components/NotificationsPreview'
 
 type ListItem =
   | {
       type: 'INBOX'
+      count: number
+      profiles: ChatBskyActorDefs.ProfileViewBasic[]
+    }
+  | {
+      type: 'NOTIFICATIONS'
       count: number
       profiles: ChatBskyActorDefs.ProfileViewBasic[]
     }
@@ -53,13 +59,23 @@ function renderItem({item}: {item: ListItem}) {
   switch (item.type) {
     case 'INBOX':
       return <InboxPreview count={item.count} profiles={item.profiles} />
+    case 'NOTIFICATIONS':
+      return (
+        <NotificationsPreview count={item.count} profiles={item.profiles} />
+      )
     case 'CONVERSATION':
       return <ChatListItem convo={item.conversation} />
   }
 }
 
 function keyExtractor(item: ListItem) {
-  return item.type === 'INBOX' ? 'INBOX' : item.conversation.id
+  switch (item.type) {
+    case 'INBOX':
+    case 'NOTIFICATIONS':
+      return item.type
+    default:
+      return item.conversation.id
+  }
 }
 
 type Props = NativeStackScreenProps<MessagesTabNavigatorParams, 'Messages'>
@@ -149,6 +165,11 @@ export function MessagesScreen({navigation, route}: Props) {
 
       return [
         {
+          type: 'NOTIFICATIONS',
+          count: 10,
+          profiles: [],
+        },
+        {
           type: 'INBOX',
           count: inboxPreviewConvos.length,
           profiles: inboxPreviewConvos.slice(0, 3),
@@ -206,12 +227,16 @@ export function MessagesScreen({navigation, route}: Props) {
     return listenSoftReset(onSoftReset)
   }, [onSoftReset, isScreenFocused])
 
-  // Will always have 1 item - the inbox button
-  if (conversations.length < 2) {
+  // Will always have 2 items - the notifications and the inbox button
+  if (conversations.length < 3) {
     return (
       <Layout.Screen>
         <Header newChatControl={newChatControl} />
         <Layout.Center>
+          <NotificationsPreview
+            count={inboxPreviewConvos.length}
+            profiles={inboxPreviewConvos}
+          />
           <InboxPreview
             count={inboxPreviewConvos.length}
             profiles={inboxPreviewConvos}

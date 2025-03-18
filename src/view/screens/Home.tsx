@@ -1,9 +1,8 @@
-import {AppBskyFeedDefs} from '@atproto/api'
-import {useFocusEffect} from '@react-navigation/native'
 import React from 'react'
 import {ActivityIndicator, StyleSheet} from 'react-native'
+import {AppBskyFeedDefs} from '@atproto/api'
+import {useFocusEffect} from '@react-navigation/native'
 
-import * as Layout from '#/components/Layout'
 import {PROD_DEFAULT_FEED} from '#/lib/constants'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {useOTAUpdates} from '#/lib/hooks/useOTAUpdates'
@@ -15,7 +14,6 @@ import {
 } from '#/lib/routes/types'
 import {logEvent} from '#/lib/statsig/statsig'
 import {isWeb} from '#/platform/detection'
-import {NoFeedsPinned} from '#/screens/Home/NoFeedsPinned'
 import {emitSoftReset} from '#/state/events'
 import {SavedFeedSourceInfo, usePinnedFeedsInfos} from '#/state/queries/feed'
 import {FeedDescriptor, FeedParams} from '#/state/queries/post-feed'
@@ -29,7 +27,8 @@ import {FeedPage} from '#/view/com/feeds/FeedPage'
 import {HomeHeader} from '#/view/com/home/HomeHeader'
 import {Pager, PagerRef, RenderTabBarFnProps} from '#/view/com/pager/Pager'
 import {CustomFeedEmptyState} from '#/view/com/posts/CustomFeedEmptyState'
-import {FollowingEmptyState} from '#/view/com/posts/FollowingEmptyState'
+import {NoFeedsPinned} from '#/screens/Home/NoFeedsPinned'
+import * as Layout from '#/components/Layout'
 import {ClearlightFeed} from '../com/video/ClearlightFeed'
 
 type Props = NativeStackScreenProps<HomeTabNavigatorParams, 'Home' | 'Start'>
@@ -229,10 +228,6 @@ function HomeScreenReady({
     },
     [onPressSelected, pinnedFeedInfos],
   )
-
-  const renderFollowingEmptyState = React.useCallback(() => {
-    return <FollowingEmptyState />
-  }, [])
 
   const renderCustomFeedEmptyState = React.useCallback(() => {
     return <CustomFeedEmptyState />
