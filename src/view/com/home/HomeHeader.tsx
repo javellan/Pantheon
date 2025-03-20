@@ -1,5 +1,5 @@
-import React from 'react'
 import {useNavigation} from '@react-navigation/native'
+import React from 'react'
 
 import {NavigationProp} from '#/lib/routes/types'
 import {FeedSourceInfo} from '#/state/queries/feed'

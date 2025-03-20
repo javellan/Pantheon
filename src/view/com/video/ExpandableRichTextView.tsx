@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {LayoutAnimation, Pressable, ScrollView} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {RichText as RichTextAPI} from '@atproto/api'
@@ -9,13 +9,16 @@ import {HITSLOP_20} from '#/lib/constants'
 import {useA11y} from '#/state/a11y'
 import {atoms as a} from '#/alf'
 import {RichText} from '#/components/RichText'
+import {Text} from '#/components/Typography'
 
 export function ExpandableRichTextView({
   value,
   authorHandle,
+  onChangeExpand,
 }: {
   value: RichTextAPI
   authorHandle?: string
+  onChangeExpand?: (isExpanded: boolean) => void
 }) {
   const {height: screenHeight} = useSafeAreaFrame()
   const [expanded, setExpanded] = useState(false)
@@ -28,6 +31,12 @@ export function ExpandableRichTextView({
   if (expanded && !hasBeenExpanded) {
     setHasBeenExpanded(true)
   }
+
+  useEffect(() => {
+    if (onChangeExpand) {
+      onChangeExpand(expanded)
+    }
+  }, [expanded, onChangeExpand])
 
   return (
     <ScrollView
@@ -52,7 +61,13 @@ export function ExpandableRichTextView({
       ]}>
       <RichText
         value={value}
-        style={[a.text_sm, a.flex_1, a.leading_normal]}
+        style={[
+          a.text_sm,
+          a.flex_1,
+          a.leading_normal,
+          a.text_shadow_dark,
+          {paddingRight: 40},
+        ]}
         authorHandle={authorHandle}
         enableTags
         numberOfLines={
@@ -70,8 +85,9 @@ export function ExpandableRichTextView({
           accessibilityLabel={expanded ? _(msg`Read less`) : _(msg`Read more`)}
           hitSlop={HITSLOP_20}
           onPress={() => setExpanded(prev => !prev)}
-          style={[a.absolute, a.inset_0]}
-        />
+          style={[a.absolute, {bottom: 8, right: 0}]}>
+          <Text style={[a.font_bold]}>{expanded ? 'hide' : 'more'}</Text>
+        </Pressable>
       )}
     </ScrollView>
   )

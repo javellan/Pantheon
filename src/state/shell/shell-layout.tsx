@@ -4,6 +4,7 @@ import {SharedValue, useSharedValue} from 'react-native-reanimated'
 type StateContext = {
   headerHeight: SharedValue<number>
   footerHeight: SharedValue<number>
+  postCtrlsWidth: SharedValue<number>
 }
 
 const stateContext = React.createContext<StateContext>({
@@ -27,18 +28,30 @@ const stateContext = React.createContext<StateContext>({
     },
     set() {},
   },
+  postCtrlsWidth: {
+    value: 0,
+    addListener() {},
+    removeListener() {},
+    modify() {},
+    get() {
+      return 0
+    },
+    set() {},
+  },
 })
 
 export function Provider({children}: React.PropsWithChildren<{}>) {
   const headerHeight = useSharedValue(0)
   const footerHeight = useSharedValue(0)
+  const postCtrlsWidth = useSharedValue(0)
 
   const value = React.useMemo(
     () => ({
       headerHeight,
       footerHeight,
+      postCtrlsWidth,
     }),
-    [headerHeight, footerHeight],
+    [headerHeight, footerHeight, postCtrlsWidth],
   )
 
   return <stateContext.Provider value={value}>{children}</stateContext.Provider>

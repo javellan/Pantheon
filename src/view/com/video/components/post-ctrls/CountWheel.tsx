@@ -88,12 +88,10 @@ function ExitingDown() {
 
 export function CountWheel({
   likeCount,
-  big,
   isLiked,
   hasBeenToggled,
 }: {
   likeCount: number
-  big?: boolean
   isLiked: boolean
   hasBeenToggled: boolean
 }) {
@@ -137,38 +135,40 @@ export function CountWheel({
 
   return (
     <LayoutAnimationConfig skipEntering skipExiting>
-      {likeCount > 0 ? (
-        <View style={[a.justify_center]}>
-          <Animated.View entering={enteringAnimation} key={key}>
+      <View style={[a.justify_center]}>
+        <Animated.View entering={enteringAnimation} key={key}>
+          <Text
+            testID="likeCount"
+            style={[
+              a.text_sm,
+              a.user_select_none,
+              {color: t.palette.white},
+              a.text_shadow_dark_sharp,
+              {paddingHorizontal: 2},
+            ]}>
+            {formattedCount}
+          </Text>
+        </Animated.View>
+        {shouldAnimate && (likeCount > 1 || !isLiked) ? (
+          <Animated.View
+            entering={exitingAnimation}
+            // Add 2 to the key so there are never duplicates
+            key={key + 2}
+            style={[a.absolute, {width: 50, opacity: 0}]}
+            aria-disabled={true}>
             <Text
-              testID="likeCount"
               style={[
-                big ? a.text_md : {fontSize: 15},
+                a.text_sm,
                 a.user_select_none,
                 {color: t.palette.white},
+                a.text_shadow_dark_sharp,
+                {paddingHorizontal: 2},
               ]}>
-              {formattedCount}
+              {formattedPrevCount}
             </Text>
           </Animated.View>
-          {shouldAnimate && (likeCount > 1 || !isLiked) ? (
-            <Animated.View
-              entering={exitingAnimation}
-              // Add 2 to the key so there are never duplicates
-              key={key + 2}
-              style={[a.absolute, {width: 50, opacity: 0}]}
-              aria-disabled={true}>
-              <Text
-                style={[
-                  big ? a.text_md : {fontSize: 15},
-                  a.user_select_none,
-                  {color: t.palette.white},
-                ]}>
-                {formattedPrevCount}
-              </Text>
-            </Animated.View>
-          ) : null}
-        </View>
-      ) : null}
+        ) : null}
+      </View>
     </LayoutAnimationConfig>
   )
 }

@@ -12,10 +12,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated'
 
-import {PressableWithHover} from '#/view/com/util/PressableWithHover'
-import {BlockDrawerGesture} from '#/view/shell/BlockDrawerGesture'
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
+import {PressableWithHover} from '#/view/com/util/PressableWithHover'
+import {BlockDrawerGesture} from '#/view/shell/BlockDrawerGesture'
 
 export interface TabBarProps {
   testID?: string
@@ -294,7 +294,10 @@ export function TabBar({
   )
 
   return (
-    <View testID={testID} style={[a.flex_row]} accessibilityRole="tablist">
+    <View
+      testID={testID}
+      style={[a.flex_row, a.flex_1]}
+      accessibilityRole="tablist">
       <BlockDrawerGesture>
         <ScrollView
           testID={`${testID}-selector`}
@@ -340,11 +343,23 @@ export function TabBar({
                   left: 0,
                   bottom: 0,
                   right: 0,
-                  borderBottomWidth: 2,
-                  borderColor: t.palette.primary_500,
                 },
-              ]}
-            />
+              ]}>
+              <View
+                style={{
+                  width: '100%',
+                  height: 2,
+                  backgroundColor: t.atoms.text.color,
+                  shadowColor: t.atoms.text_inverted.color,
+                  shadowOffset: {
+                    width: 1,
+                    height: 1,
+                  },
+                  shadowRadius: 1,
+                  shadowOpacity: 1,
+                }}
+              />
+            </Animated.View>
           </Animated.View>
         </ScrollView>
       </BlockDrawerGesture>
@@ -372,13 +387,13 @@ function TabBarItem({
   const t = useTheme()
   const style = useAnimatedStyle(() => {
     if (!_WORKLET) {
-      return {opacity: 0.7}
+      return {opacity: 0.6}
     }
     return {
       opacity: interpolate(
         dragProgress.get(),
         [index - 1, index, index + 1],
-        [0.7, 1, 0.7],
+        [0.6, 1, 0.6],
         'clamp',
       ),
     }
@@ -410,7 +425,16 @@ function TabBarItem({
           <Text
             emoji
             testID={testID ? `${testID}-${item}` : undefined}
-            style={[styles.itemText, t.atoms.text, a.text_md, a.font_bold]}
+            style={[
+              styles.itemText,
+              t.atoms.text,
+              a.text_md,
+              a.font_bold,
+              {
+                paddingHorizontal: 2,
+              },
+              a.text_shadow_dark,
+            ]}
             onLayout={handleTextLayout}>
             {item}
           </Text>

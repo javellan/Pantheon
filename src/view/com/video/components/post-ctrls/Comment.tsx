@@ -1,15 +1,15 @@
-import React from 'react'
-import {Pressable, type StyleProp, type ViewStyle} from 'react-native'
 import {AppBskyFeedDefs} from '@atproto/api'
 import {msg, plural} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import React from 'react'
+import {Pressable, type StyleProp, type ViewStyle} from 'react-native'
 
+import {atoms as a, useTheme} from '#/alf'
+import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
 import {POST_CTRL_HITSLOP} from '#/lib/constants'
 import {useHaptics} from '#/lib/haptics'
 import {Shadow} from '#/state/cache/types'
 import {useRequireAuth} from '#/state/session'
-import {atoms as a, useTheme} from '#/alf'
-import {Bubble_Stroke2_Corner2_Rounded as Bubble} from '#/components/icons/Bubble'
 import {formatCount} from '../../../util/numeric/format'
 import {Text} from '../../../util/text/Text'
 
@@ -64,13 +64,19 @@ export function Comment({
       )}
       accessibilityHint=""
       hitSlop={POST_CTRL_HITSLOP}>
-      <Bubble style={[defaultCtrlColor, {pointerEvents: 'none'}]} width={36} />
+      <MessageSolidIcon
+        style={[defaultCtrlColor, {pointerEvents: 'none'}]}
+        width={32}
+        shadow={a.icon_shadow_dark.shadowColor}
+      />
       {typeof post.replyCount !== 'undefined' ? (
         <Text
           style={[
             defaultCtrlColor,
-            big ? a.text_md : {fontSize: 15},
+            a.text_sm,
             a.user_select_none,
+            a.text_shadow_dark_sharp,
+            {paddingHorizontal: 2},
           ]}>
           {formatCount(i18n, post.replyCount)}
         </Text>

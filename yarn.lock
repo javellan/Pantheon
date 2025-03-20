@@ -11964,6 +11964,11 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+lucide-react-native@^0.483.0:
+  version "0.483.0"
+  resolved "https://registry.yarnpkg.com/lucide-react-native/-/lucide-react-native-0.483.0.tgz#6f97d8788cd1e001e5449649108b34aa25e2bd02"
+  integrity sha512-+Hef6gCid++7jC2Wh4OMSF9KJxFc+kz5/C4sUXGSL31E0Jfye+OKZsLGVGju+CfOsdcki+TMNQ7bHvgP85fANg==
+
 make-dir@^2.0.0, make-dir@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-2.1.0.tgz#5f0310e18b8be898cc07009295a30ae41e91e6f5"
