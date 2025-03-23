@@ -3,9 +3,11 @@ import React from 'react'
 import {StyleSheet, View} from 'react-native'
 import {Trans} from '@lingui/macro'
 import {Slider} from '@miblanchard/react-native-slider'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import {NativeStackScreenProps} from '@react-navigation/native-stack'
 import debounce from 'lodash.debounce'
 
+import {Interest, Interests} from '#/lib/api/feed/interests'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {InfoCircleIcon} from '#/lib/icons'
 import {CommonNavigatorParams} from '#/lib/routes/types'
@@ -15,26 +17,41 @@ import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
-import {Topic, Topics} from '../Feeds/Topics'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
 
-type InterestValues = {
-  [key: string]: number
-}
+const [TAO_STORAGE_PREFIX, TAO_STORAGE_KEY_INTERESTS] = [
+  'TAO-STORAGE',
+  'interests',
+]
+const TAO_INTERESTS_STORAGE_KEY = `${TAO_STORAGE_PREFIX}:${TAO_STORAGE_KEY_INTERESTS}`
 
 export function AlgorithmTweaksScreen({}: Props) {
   const agent = useAgent()
   const pal = usePalette('default')
-  const [interests, setInterests] = useState<InterestValues>({})
+  const [interests, setInterests] = useState<Interest[]>([])
   const [isDirty, setIsDirty] = useState(false)
   const t = useTheme()
 
   useEffect(() => {
     const fetchPrefs = async () => {
       try {
-        const prefs = await agent.getPreferences()
-        setInterests(prefs.interests)
+        const rawInterests = await AsyncStorage.getItem(
+          TAO_INTERESTS_STORAGE_KEY,
+        )
+        const parsedInterests = JSON.parse(rawInterests || '[]') as Interest[]
+
+        // Merge master interests list with user's stored interest values to form initial state
+        const mergedInterests = Interests.map(interest => {
+          const userInterest = parsedInterests.find(
+            parsedInterest => parsedInterest.id === interest.id,
+          )
+          return userInterest
+            ? {...interest, value: userInterest.value}
+            : interest
+        })
+
+        setInterests(mergedInterests)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
       }
@@ -46,10 +63,11 @@ export function AlgorithmTweaksScreen({}: Props) {
     () =>
       debounce((id, value) => {
         setIsDirty(true)
-        setInterests(prev => ({
-          ...prev,
-          [id]: value,
-        }))
+        setInterests(prev =>
+          prev.map(interest =>
+            interest.id === id ? {...interest, value} : interest,
+          ),
+        )
       }, 300), // debounce for 300ms
     [],
   )
@@ -92,7 +110,7 @@ export function AlgorithmTweaksScreen({}: Props) {
     },
   })
 
-  function TopicRenderer({item}: {item: Topic}) {
+  function InterestRenderer({item}: {item: Interest}) {
     return (
       <View style={styles.topicRenderer}>
         <View style={styles.topicTitle}>
@@ -113,7 +131,7 @@ export function AlgorithmTweaksScreen({}: Props) {
           renderTrackMarkComponent={({}) => (
             <View style={styles.sliderTrackMark} />
           )}
-          value={interests[item.id] || 0}
+          value={item.value}
           onValueChange={value => handleInterestChange(item.id, value[0])}
         />
       </View>
@@ -121,7 +139,12 @@ export function AlgorithmTweaksScreen({}: Props) {
   }
 
   function handleSave() {
-    agent.setInterestsPref(interests)
+    // Only need to store the key and the tweak the user made to it
+    const strippedInterests = interests.map(({id, value}) => ({id, value}))
+    AsyncStorage.setItem(
+      TAO_INTERESTS_STORAGE_KEY,
+      JSON.stringify(strippedInterests),
+    )
     setIsDirty(false)
   }
 
@@ -161,8 +184,8 @@ export function AlgorithmTweaksScreen({}: Props) {
           </Trans>
         </Text>
         <List
-          data={Topics}
-          renderItem={TopicRenderer}
+          data={interests}
+          renderItem={InterestRenderer}
           keyExtractor={item => item.id}
           style={{marginBottom: 250}}
         />

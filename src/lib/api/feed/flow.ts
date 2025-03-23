@@ -1,12 +1,13 @@
 import {AppBskyFeedDefs, AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api'
+import shuffle from 'lodash.shuffle'
 
 import {bundleAsync} from '#/lib/async/bundle'
 import {timeout} from '#/lib/async/timeout'
 import {feedUriToHref} from '#/lib/strings/url-helpers'
 import {getContentLanguages} from '#/state/preferences/languages'
 import {FeedParams} from '#/state/queries/post-feed'
-import shuffle from 'lodash.shuffle'
 import {FeedTuner, FeedTunerFn} from '../feed-manip'
+import {Interest} from './interests'
 import {FeedAPI, FeedAPIResponse, ReasonFeedSource} from './types'
 import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
 
@@ -18,40 +19,15 @@ const TRENDING_FEED_URI =
 const TRENDING_NONPOLITIC_FEED_URI =
   'at://did:plc:qnz6zuzbborkfoh6kwsjwdxx/app.bsky.feed.generator/cls-trendingnp'
 
-function getFeedUriForPref(pref: string): string[] {
-  return (
-    {
-      news: ['cls-newsjournal'],
-      journalism: ['cls-newsjournal'],
-      nature: ['cls-traveladvv2', 'cls-climatenatu'],
-      art: ['cls-artphotov2'],
-      comics: ['cls-artphotocom'],
-      writers: ['cls-bookswriter'],
-      culture: ['cls-traveladvv2', 'cls-fashionbeau', 'cls-artphotov2'],
-      sports: ['cls-sports'],
-      pets: ['cls-petsanimals'],
-      animals: ['cls-petsanimals'],
-      books: ['cls-bookswriter'],
-      education: ['cls-education'],
-      climate: ['cls-climatenatu'],
-      science: ['clsv-sciencetec'],
-      politics: ['cls-newspolitic'],
-      fitness: ['cls-fithealthv2'],
-      tech: ['clsv-sciencetec'],
-      dev: ['clsv-sciencetec'],
-      comedy: ['cls-comedy'],
-      gaming: ['cls-gaming'],
-      food: ['cls-fooddrinkv2'],
-      cooking: ['cls-fooddrinkv2'],
-    }[pref] ?? []
-  ).map(
+function getFeedUrisForInterest(interest: Interest): string[] {
+  return (interest?.uris ?? []).map(
     uri =>
       `at://did:plc:qnz6zuzbborkfoh6kwsjwdxx/app.bsky.feed.generator/${uri}`,
   )
 }
 
 export class MergeFlowApi implements FeedAPI {
-  userInterests?: string
+  userInterests: Interest[]
   agent: BskyAgent
   params: FeedParams
   feedTuners: FeedTunerFn[]
@@ -67,21 +43,21 @@ export class MergeFlowApi implements FeedAPI {
     agent,
     feedParams,
     feedTuners,
-    userInterests,
+    userInterests = [],
     killDoomscroll,
   }: {
     agent: BskyAgent
     feedParams: FeedParams
     feedTuners: FeedTunerFn[]
-    userInterests?: string
+    userInterests?: Interest[]
     killDoomscroll?: boolean
   }) {
     this.agent = agent
     this.params = feedParams
     this.feedTuners = feedTuners
-    this.customFeeds = (this.userInterests ?? '')
-      .split(',')
-      .flatMap(pref => getFeedUriForPref(pref))
+    this.userInterests = userInterests
+    this.customFeeds = this.userInterests
+      .flatMap(interest => getFeedUrisForInterest(interest))
       .reduce((acc, cur) => {
         if (!acc.includes(cur)) {
           acc.push(cur)
@@ -89,7 +65,6 @@ export class MergeFlowApi implements FeedAPI {
         return acc
       }, [] as string[])
       .map(feedUri => new MergeFlowSource_Custom({agent, feedUri, feedTuners}))
-    this.userInterests = userInterests
     this.following = new MergeFlowSource_Following({
       agent: this.agent,
       feedTuners: this.feedTuners,
@@ -112,9 +87,8 @@ export class MergeFlowApi implements FeedAPI {
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    this.customFeeds = (this.userInterests ?? '')
-      .split(',')
-      .flatMap(pref => getFeedUriForPref(pref))
+    this.customFeeds = this.userInterests
+      .flatMap(interest => getFeedUrisForInterest(interest))
       .reduce((acc, cur) => {
         if (!acc.includes(cur)) {
           acc.push(cur)
@@ -302,18 +276,18 @@ class MergeFlowSource_Custom extends MergeFlowSource {
   agent: BskyAgent
   minDate: Date
   feedUri: string
-  userInterests?: string
+  userInterests: Interest[] = []
 
   constructor({
     agent,
     feedUri,
     feedTuners,
-    userInterests,
+    userInterests = [],
   }: {
     agent: BskyAgent
     feedUri: string
     feedTuners: FeedTunerFn[]
-    userInterests?: string
+    userInterests?: Interest[]
   }) {
     super({
       agent,

@@ -1,3 +1,5 @@
+import React, {useCallback, useEffect, useRef} from 'react'
+import {AppState} from 'react-native'
 import {
   AppBskyActorDefs,
   AppBskyFeedDefs,
@@ -12,20 +14,19 @@ import {
   QueryKey,
   useInfiniteQuery,
 } from '@tanstack/react-query'
-import React, {useCallback, useEffect, useRef} from 'react'
-import {AppState} from 'react-native'
 
-import {FeedTuner, FeedTunerFn} from '#/lib/api/feed-manip'
 import {AuthorFeedAPI} from '#/lib/api/feed/author'
 import {CustomFeedAPI} from '#/lib/api/feed/custom'
 import {MergeFlowApi} from '#/lib/api/feed/flow'
 import {FollowingFeedAPI} from '#/lib/api/feed/following'
 import {HomeFeedAPI} from '#/lib/api/feed/home'
+import {Interest} from '#/lib/api/feed/interests'
 import {LikesFeedAPI} from '#/lib/api/feed/likes'
 import {ListFeedAPI} from '#/lib/api/feed/list'
 import {MergeFeedAPI} from '#/lib/api/feed/merge'
 import {FeedAPI, ReasonFeedSource} from '#/lib/api/feed/types'
 import {aggregateUserInterests} from '#/lib/api/feed/utils'
+import {FeedTuner, FeedTunerFn} from '#/lib/api/feed-manip'
 import {BSKY_FEED_OWNER_DIDS, DISCOVER_FEED_URI} from '#/lib/constants'
 import {moderatePost_wrapped as moderatePost} from '#/lib/moderatePost_wrapped'
 import {logger} from '#/logger'
@@ -441,14 +442,14 @@ function createApi({
   feedDesc,
   feedParams,
   feedTuners,
-  userInterests,
+  userInterests = [],
   agent,
   enableFollowingToDiscoverFallback,
 }: {
   feedDesc: FeedDescriptor
   feedParams: FeedParams
   feedTuners: FeedTunerFn[]
-  userInterests?: string
+  userInterests: Interest[]
   agent: BskyAgent
   enableFollowingToDiscoverFallback: boolean
 }) {
