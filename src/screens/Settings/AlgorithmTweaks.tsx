@@ -3,14 +3,15 @@ import React from 'react'
 import {StyleSheet, View} from 'react-native'
 import {Trans} from '@lingui/macro'
 import {Slider} from '@miblanchard/react-native-slider'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import {NativeStackScreenProps} from '@react-navigation/native-stack'
 import debounce from 'lodash.debounce'
 
-import {Interest, Interests} from '#/lib/api/feed/interests'
+import {Interest} from '#/lib/api/feed/interests'
+import {aggregateUserInterests, INTERESTS} from '#/lib/api/feed/utils'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {InfoCircleIcon} from '#/lib/icons'
 import {CommonNavigatorParams} from '#/lib/routes/types'
+import * as persisted from '#/state/persisted'
 import {useAgent} from '#/state/session'
 import {List} from '#/view/com/util/List'
 import {atoms as a, useTheme} from '#/alf'
@@ -19,13 +20,6 @@ import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
-
-const [TAO_STORAGE_PREFIX, TAO_STORAGE_KEY_INTERESTS] = [
-  'TAO-STORAGE',
-  'interests',
-]
-const TAO_INTERESTS_STORAGE_KEY = `${TAO_STORAGE_PREFIX}:${TAO_STORAGE_KEY_INTERESTS}`
-
 export function AlgorithmTweaksScreen({}: Props) {
   const agent = useAgent()
   const pal = usePalette('default')
@@ -36,22 +30,8 @@ export function AlgorithmTweaksScreen({}: Props) {
   useEffect(() => {
     const fetchPrefs = async () => {
       try {
-        const rawInterests = await AsyncStorage.getItem(
-          TAO_INTERESTS_STORAGE_KEY,
-        )
-        const parsedInterests = JSON.parse(rawInterests || '[]') as Interest[]
-
-        // Merge master interests list with user's stored interest values to form initial state
-        const mergedInterests = Interests.map(interest => {
-          const userInterest = parsedInterests.find(
-            parsedInterest => parsedInterest.id === interest.id,
-          )
-          return userInterest
-            ? {...interest, value: userInterest.value}
-            : interest
-        })
-
-        setInterests(mergedInterests)
+        const aggregated = aggregateUserInterests()
+        setInterests(aggregated)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
       }
@@ -65,10 +45,12 @@ export function AlgorithmTweaksScreen({}: Props) {
         setIsDirty(true)
         setInterests(prev =>
           prev.map(interest =>
-            interest.id === id ? {...interest, value} : interest,
+            interest.id === id
+              ? {...interest, value: Math.trunc(value)}
+              : interest,
           ),
         )
-      }, 300), // debounce for 300ms
+      }, 200),
     [],
   )
 
@@ -125,9 +107,9 @@ export function AlgorithmTweaksScreen({}: Props) {
           trackStyle={styles.sliderTrack}
           containerStyle={styles.sliderContainer}
           minimumTrackStyle={{backgroundColor: '#f2f2f2'}}
-          minimumValue={-10}
+          minimumValue={1}
           maximumValue={10}
-          trackMarks={[-5, 0, 5]}
+          trackMarks={[3, 5, 7]}
           renderTrackMarkComponent={({}) => (
             <View style={styles.sliderTrackMark} />
           )}
@@ -141,10 +123,8 @@ export function AlgorithmTweaksScreen({}: Props) {
   function handleSave() {
     // Only need to store the key and the tweak the user made to it
     const strippedInterests = interests.map(({id, value}) => ({id, value}))
-    AsyncStorage.setItem(
-      TAO_INTERESTS_STORAGE_KEY,
-      JSON.stringify(strippedInterests),
-    )
+    console.log('storing strippedInterests', strippedInterests)
+    persisted.write(INTERESTS, strippedInterests)
     setIsDirty(false)
   }
 

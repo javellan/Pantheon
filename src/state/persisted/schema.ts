@@ -127,6 +127,14 @@ const schema = z.object({
   mutedThreads: z.array(z.string()),
   trendingDisabled: z.boolean().optional(),
   trendingVideoDisabled: z.boolean().optional(),
+  interests: z
+    .array(
+      z.object({
+        id: z.string(),
+        value: z.number(),
+      }),
+    )
+    .optional(),
 })
 export type Schema = z.infer<typeof schema>
 

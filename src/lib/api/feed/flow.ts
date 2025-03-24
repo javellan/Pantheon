@@ -56,15 +56,8 @@ export class MergeFlowApi implements FeedAPI {
     this.params = feedParams
     this.feedTuners = feedTuners
     this.userInterests = userInterests
-    this.customFeeds = this.userInterests
-      .flatMap(interest => getFeedUrisForInterest(interest))
-      .reduce((acc, cur) => {
-        if (!acc.includes(cur)) {
-          acc.push(cur)
-        }
-        return acc
-      }, [] as string[])
-      .map(feedUri => new MergeFlowSource_Custom({agent, feedUri, feedTuners}))
+    this.customFeeds = this._createCustomFeeds()
+
     this.following = new MergeFlowSource_Following({
       agent: this.agent,
       feedTuners: this.feedTuners,
@@ -87,22 +80,38 @@ export class MergeFlowApi implements FeedAPI {
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    this.customFeeds = this.userInterests
-      .flatMap(interest => getFeedUrisForInterest(interest))
-      .reduce((acc, cur) => {
-        if (!acc.includes(cur)) {
-          acc.push(cur)
+    this.customFeeds = this._createCustomFeeds()
+  }
+  _createCustomFeeds() {
+    return this.userInterests
+      .flatMap(interest =>
+        getFeedUrisForInterest(interest).map(uri => ({
+          uri: uri,
+          weight: interest.value,
+        })),
+      )
+      .reduce((acc, {uri, weight}) => {
+        if (!acc.some(item => item.uri == uri)) {
+          acc.push({uri, weight})
         }
         return acc
-      }, [] as string[])
-      .map(
-        feedUri =>
-          new MergeFlowSource_Custom({
-            agent: this.agent,
-            feedUri,
-            feedTuners: this.feedTuners,
-          }),
-      )
+      }, [] as {uri: string; weight: number}[])
+      .flatMap(({uri, weight}) => {
+        const flows = []
+        // Multiple number of flows by the weight of interest in that feed
+        // This will cause the shuffle() downstream to be more likely to pick
+        // feeds from higher weighted interests
+        for (let i = 0; i < weight; i++) {
+          flows.push(
+            new MergeFlowSource_Custom({
+              agent: this.agent,
+              feedUri: uri,
+              feedTuners: this.feedTuners,
+            }),
+          )
+        }
+        return flows
+      })
   }
 
   async peekLatest(): Promise<AppBskyFeedDefs.FeedViewPost> {
