@@ -12,7 +12,7 @@ import {CommonNavigatorParams} from '#/lib/routes/types'
 import * as persisted from '#/state/persisted'
 import {useAgent} from '#/state/session'
 import {List} from '#/view/com/util/List'
-import {atoms as a, useTheme} from '#/alf'
+import {atoms as a} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
@@ -22,7 +22,6 @@ export function AlgorithmTweaksScreen({}: Props) {
   const agent = useAgent()
   const [interests, setInterests] = useState<Interest[]>([])
   const [isDirty, setIsDirty] = useState(false)
-  const t = useTheme()
 
   useEffect(() => {
     const fetchPrefs = async () => {
@@ -90,6 +89,42 @@ export function AlgorithmTweaksScreen({}: Props) {
     sliderContainer: {
       paddingVertical: 0,
     },
+    saveButton: {
+      backgroundColor: '#007BFF',
+      borderRadius: 8,
+      paddingVertical: 4,
+      paddingHorizontal: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      width: 70,
+      position: 'absolute',
+      left: -38,
+      top: -18,
+    },
+    saveButtonText: {
+      color: '#FFF',
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    pageTitle: {
+      fontSize: 26,
+      fontWeight: '600',
+    },
+    pageTitleView: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingRight: 30,
+    },
+    interestsTitle: {
+      paddingTop: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   })
 
   function InterestRenderer({item}: {item: Interest}) {
@@ -131,17 +166,21 @@ export function AlgorithmTweaksScreen({}: Props) {
       <Layout.Center>
         <Layout.Header.Outer>
           <Layout.Header.BackButton />
+          <Layout.Header.SubtitleText>Back</Layout.Header.SubtitleText>
           <Layout.Header.Content>
-            <Layout.Header.TitleText>
-              <Trans>Back</Trans>
-            </Layout.Header.TitleText>
+            <View style={styles.pageTitleView}>
+              <Layout.Header.TitleText style={styles.pageTitle}>
+                <Trans>Feeds</Trans>
+              </Layout.Header.TitleText>
+            </View>
           </Layout.Header.Content>
           <Layout.Header.Slot>
             <Button
               label={'Save'}
+              style={[styles.saveButton, isDirty ? {} : {opacity: 0.5}]}
               disabled={!isDirty}
               onPress={() => handleSave()}>
-              <ButtonText>
+              <ButtonText style={styles.saveButtonText}>
                 <Trans>Save</Trans>
               </ButtonText>
             </Button>
@@ -149,23 +188,16 @@ export function AlgorithmTweaksScreen({}: Props) {
         </Layout.Header.Outer>
       </Layout.Center>
       <View style={{paddingHorizontal: 20}}>
-        <Text style={[a.font_heavy, a.text_4xl]}>
-          <Trans>Manage Topics</Trans>
-        </Text>
-        <Text
-          style={[
-            a.text_md,
-            {paddingBottom: 20, color: t.palette.contrast_600},
-          ]}>
-          <Trans>
-            Customize your feed to see more or less of the content you like.
-          </Trans>
-        </Text>
+        <View style={styles.interestsTitle}>
+          <Text style={[a.font_bold, a.text_md, a.mb_md]}>
+            <Trans>Your Interests</Trans>
+          </Text>
+        </View>
         <List
           data={interests}
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
-          style={{marginBottom: 250}}
+          style={{marginBottom: 180}}
         />
       </View>
     </Layout.Screen>
