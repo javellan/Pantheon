@@ -173,7 +173,7 @@ export class MergeFlowApi implements FeedAPI {
               const maxWeight = Math.max(
                 ...flow.userInterests.map(i => i.value),
               )
-              return Array(maxWeight).fill(i)
+              return Array(Math.round(maxWeight)).fill(i)
             }),
           )
           for (const feedIndex of weightedAndShuffled) {
