@@ -8,8 +8,6 @@ import debounce from 'lodash.debounce'
 
 import {Interest} from '#/lib/api/feed/interests'
 import {aggregateUserInterests, INTERESTS} from '#/lib/api/feed/utils'
-import {usePalette} from '#/lib/hooks/usePalette'
-import {InfoCircleIcon} from '#/lib/icons'
 import {CommonNavigatorParams} from '#/lib/routes/types'
 import * as persisted from '#/state/persisted'
 import {useAgent} from '#/state/session'
@@ -22,7 +20,6 @@ import {Text} from '#/components/Typography'
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
 export function AlgorithmTweaksScreen({}: Props) {
   const agent = useAgent()
-  const pal = usePalette('default')
   const [interests, setInterests] = useState<Interest[]>([])
   const [isDirty, setIsDirty] = useState(false)
   const t = useTheme()
@@ -60,35 +57,38 @@ export function AlgorithmTweaksScreen({}: Props) {
 
   const styles = StyleSheet.create({
     topicRenderer: {
-      paddingBottom: 30,
+      paddingBottom: 0,
     },
     topicTitle: {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    topicTitleInfoIcon: {
-      width: 68,
-      paddingLeft: 8,
+    topicTitleText: {
+      flex: 0,
+      width: 100,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    sliderView: {
+      flex: 1,
+      marginLeft: 10,
     },
     sliderThumb: {
-      width: 20,
-      height: 60,
-      backgroundColor: '#fff',
+      width: 16,
+      height: 16,
+      backgroundColor: 'rgba(46, 146, 252, 1)',
       boxShadow: 'rgba(0, 0, 0, 1) 0px 4px 4px',
     },
+    sliderMinimumTrack: {
+      backgroundColor: 'rgba(46, 146, 252, 1)',
+    },
     sliderTrack: {
-      height: 54,
-      backgroundColor: '#f2f2f2',
+      height: 3,
+      backgroundColor: '#FFF',
       borderRadius: 10,
     },
     sliderContainer: {
-      paddingVertical: 30,
-    },
-    sliderTrackMark: {
-      width: 2,
-      height: 15,
-      backgroundColor: '#aaa',
-      borderRadius: 5,
+      paddingVertical: 0,
     },
   })
 
@@ -96,26 +96,24 @@ export function AlgorithmTweaksScreen({}: Props) {
     return (
       <View style={styles.topicRenderer}>
         <View style={styles.topicTitle}>
-          <Text style={[a.font_heavy, a.text_lg]}>{item.name}</Text>
-          <View style={styles.topicTitleInfoIcon}>
-            <InfoCircleIcon size={20} style={pal.textLight} strokeWidth={1.5} />
+          <Text style={[a.font_heavy, a.text_lg, styles.topicTitleText]}>
+            {item.name}
+          </Text>
+          <View style={styles.sliderView}>
+            <Slider
+              thumbTouchSize={{width: 20, height: 20}}
+              thumbStyle={styles.sliderThumb}
+              trackStyle={styles.sliderTrack}
+              containerStyle={styles.sliderContainer}
+              minimumTrackStyle={styles.sliderMinimumTrack}
+              minimumValue={1}
+              maximumValue={10}
+              value={item.value}
+              step={1}
+              onValueChange={value => handleInterestChange(item.id, value[0])}
+            />
           </View>
         </View>
-        <Slider
-          thumbTouchSize={{width: 20, height: 20}}
-          thumbStyle={styles.sliderThumb}
-          trackStyle={styles.sliderTrack}
-          containerStyle={styles.sliderContainer}
-          minimumTrackStyle={{backgroundColor: '#f2f2f2'}}
-          minimumValue={1}
-          maximumValue={10}
-          trackMarks={[3, 5, 7]}
-          renderTrackMarkComponent={({}) => (
-            <View style={styles.sliderTrackMark} />
-          )}
-          value={item.value}
-          onValueChange={value => handleInterestChange(item.id, value[0])}
-        />
       </View>
     )
   }
