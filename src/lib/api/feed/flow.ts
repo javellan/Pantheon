@@ -84,34 +84,22 @@ export class MergeFlowApi implements FeedAPI {
   }
   _createCustomFeeds() {
     return this.userInterests
-      .flatMap(interest =>
-        getFeedUrisForInterest(interest).map(uri => ({
-          uri: uri,
-          weight: interest.value,
-        })),
-      )
-      .reduce((acc, {uri, weight}) => {
-        if (!acc.some(item => item.uri == uri)) {
-          acc.push({uri, weight})
+      .flatMap(interest => getFeedUrisForInterest(interest))
+      .reduce((acc, cur) => {
+        if (!acc.includes(cur)) {
+          acc.push(cur)
         }
         return acc
-      }, [] as {uri: string; weight: number}[])
-      .flatMap(({uri, weight}) => {
-        const flows = []
-        // Multiple number of flows by the weight of interest in that feed
-        // This will cause the shuffle() downstream to be more likely to pick
-        // feeds from higher weighted interests
-        for (let i = 0; i < weight; i++) {
-          flows.push(
-            new MergeFlowSource_Custom({
-              agent: this.agent,
-              feedUri: uri,
-              feedTuners: this.feedTuners,
-            }),
-          )
-        }
-        return flows
-      })
+      }, [] as string[])
+      .map(
+        feedUri =>
+          new MergeFlowSource_Custom({
+            agent: this.agent,
+            feedUri,
+            feedTuners: this.feedTuners,
+            userInterests: this.userInterests,
+          }),
+      )
   }
 
   async peekLatest(): Promise<AppBskyFeedDefs.FeedViewPost> {
@@ -179,7 +167,17 @@ export class MergeFlowApi implements FeedAPI {
       const nextSampleType = this.sampleBatch.shift() as string
       switch (nextSampleType) {
         case 'p':
-          for (const cf of shuffle(this.customFeeds)) {
+          const weightedAndShuffled = shuffle(
+            this.customFeeds.flatMap((flow, i) => {
+              // If a feed has > 1 interest, take the max of the two
+              const maxWeight = Math.max(
+                ...flow.userInterests.map(i => i.value),
+              )
+              return Array(maxWeight).fill(i)
+            }),
+          )
+          for (const feedIndex of weightedAndShuffled) {
+            const cf = this.customFeeds[feedIndex]
             if (cf.numReady > 0) {
               return cf.take(1)
             }
