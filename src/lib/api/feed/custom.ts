@@ -9,22 +9,23 @@ import {
   getAppLanguageAsContentLanguage,
   getContentLanguages,
 } from '#/state/preferences/languages'
+import {Interest} from './interests'
 import {FeedAPI, FeedAPIResponse} from './types'
 import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
 
 export class CustomFeedAPI implements FeedAPI {
   agent: BskyAgent
   params: GetCustomFeed.QueryParams
-  userInterests?: string
+  userInterests: Interest[] = []
 
   constructor({
     agent,
     feedParams,
-    userInterests,
+    userInterests = [],
   }: {
     agent: BskyAgent
     feedParams: GetCustomFeed.QueryParams
-    userInterests?: string
+    userInterests?: Interest[]
   }) {
     this.agent = agent
     this.params = feedParams

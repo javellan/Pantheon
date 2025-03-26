@@ -98,6 +98,7 @@ import {ProfileSearchScreen} from './screens/Profile/ProfileSearch'
 import {AboutSettingsScreen} from './screens/Settings/AboutSettings'
 import {AccessibilitySettingsScreen} from './screens/Settings/AccessibilitySettings'
 import {AccountSettingsScreen} from './screens/Settings/AccountSettings'
+import { AlgorithmTweaksScreen } from './screens/Settings/AlgorithmTweaks'
 import {AppPasswordsScreen} from './screens/Settings/AppPasswords'
 import {ContentAndMediaSettingsScreen} from './screens/Settings/ContentAndMediaSettings'
 import {ExternalMediaPreferencesScreen} from './screens/Settings/ExternalMediaPreferences'
@@ -358,6 +359,14 @@ function commonScreens(Stack: typeof HomeTab, unreadCountLabel?: string) {
         getComponent={() => AccountSettingsScreen}
         options={{
           title: title(msg`Account`),
+          requireAuth: true,
+        }}
+      />
+      <Stack.Screen
+        name="AlgorithmTweaks"
+        getComponent={() => AlgorithmTweaksScreen}
+        options={{
+          title: title(msg`Tweak My Algorithm`),
           requireAuth: true,
         }}
       />

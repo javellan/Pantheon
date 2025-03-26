@@ -39,6 +39,7 @@ export const router = new Router({
   AccessibilitySettings: '/settings/accessibility',
   AppearanceSettings: '/settings/appearance',
   SavedFeeds: '/settings/saved-feeds',
+  AlgorithmTweaks: '/settings/algorithm',
   // new settings
   AccountSettings: '/settings/account',
   PrivacyAndSecuritySettings: '/settings/privacy-and-security',

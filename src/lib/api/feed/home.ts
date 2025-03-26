@@ -3,6 +3,7 @@ import {AppBskyFeedDefs, BskyAgent} from '@atproto/api'
 import {PROD_DEFAULT_FEED} from '#/lib/constants'
 import {CustomFeedAPI} from './custom'
 import {FollowingFeedAPI} from './following'
+import {Interest} from './interests'
 import {FeedAPI, FeedAPIResponse} from './types'
 
 // HACK
@@ -32,13 +33,13 @@ export class HomeFeedAPI implements FeedAPI {
   discover: CustomFeedAPI
   usingDiscover = false
   itemCursor = 0
-  userInterests?: string
+  userInterests?: Interest[]
 
   constructor({
-    userInterests,
+    userInterests = [],
     agent,
   }: {
-    userInterests?: string
+    userInterests?: Interest[]
     agent: BskyAgent
   }) {
     this.agent = agent

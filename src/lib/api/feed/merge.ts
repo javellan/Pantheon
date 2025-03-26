@@ -7,6 +7,7 @@ import {feedUriToHref} from '#/lib/strings/url-helpers'
 import {getContentLanguages} from '#/state/preferences/languages'
 import {FeedParams} from '#/state/queries/post-feed'
 import {FeedTuner, FeedTunerFn} from '../feed-manip'
+import {Interest} from './interests'
 import {FeedAPI, FeedAPIResponse, ReasonFeedSource} from './types'
 import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
 
@@ -14,7 +15,7 @@ const REQUEST_WAIT_MS = 500 // 500ms
 const POST_AGE_CUTOFF = 60e3 * 60 * 24 // 24hours
 
 export class MergeFeedAPI implements FeedAPI {
-  userInterests?: string
+  userInterests: Interest[] = []
   agent: BskyAgent
   params: FeedParams
   feedTuners: FeedTunerFn[]
@@ -28,12 +29,12 @@ export class MergeFeedAPI implements FeedAPI {
     agent,
     feedParams,
     feedTuners,
-    userInterests,
+    userInterests = [],
   }: {
     agent: BskyAgent
     feedParams: FeedParams
     feedTuners: FeedTunerFn[]
-    userInterests?: string
+    userInterests: Interest[]
   }) {
     this.agent = agent
     this.params = feedParams
@@ -247,18 +248,18 @@ class MergeFeedSource_Custom extends MergeFeedSource {
   agent: BskyAgent
   minDate: Date
   feedUri: string
-  userInterests?: string
+  userInterests: Interest[] = []
 
   constructor({
     agent,
     feedUri,
     feedTuners,
-    userInterests,
+    userInterests = [],
   }: {
     agent: BskyAgent
     feedUri: string
     feedTuners: FeedTunerFn[]
-    userInterests?: string
+    userInterests: Interest[]
   }) {
     super({
       agent,
