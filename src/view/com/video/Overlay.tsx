@@ -1,19 +1,4 @@
-import {Repost_Stroke2_Corner2_Rounded as RepostIcon} from '#/components/icons/Repost'
-import {NavigationProp} from '#/lib/routes/types'
-import {sanitizeDisplayName} from '#/lib/strings/display-names'
-import {Shadow} from '#/state/cache/post-shadow'
-import {useShellLayout} from '#/state/shell/shell-layout'
-import {
-  AppBskyEmbedVideo,
-  AppBskyFeedDefs,
-  AppBskyFeedPost,
-  AtUri,
-  ModerationDecision,
-  RichText as RichTextAPI,
-} from '@atproto/api'
-import {useNavigation} from '@react-navigation/native'
-import {VideoPlayer} from 'expo-video'
-import {useCallback, useEffect, useMemo, useRef} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {View} from 'react-native'
 import {NativeGesture, Pressable} from 'react-native-gesture-handler'
 import Animated, {
@@ -25,14 +10,31 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context'
-// import {useComposerControls} from '#/state/shell'
-import {atoms as a} from '#/alf'
-import * as Hider from '#/components/moderation/Hider'
-import {Text} from '#/components/Typography'
+import {LinearGradient} from 'expo-linear-gradient'
+import {VideoPlayer} from 'expo-video'
+import {
+  AppBskyEmbedVideo,
+  AppBskyFeedDefs,
+  AppBskyFeedPost,
+  AtUri,
+  ModerationDecision,
+  RichText as RichTextAPI,
+} from '@atproto/api'
+import {useNavigation} from '@react-navigation/native'
+
 import {useHaptics} from '#/lib/haptics'
+import {NavigationProp} from '#/lib/routes/types'
+import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
+import {Shadow} from '#/state/cache/post-shadow'
 import {FeedPostSlice} from '#/state/queries/post-feed'
-import {useLingui} from '@lingui/react'
+import {useShellLayout} from '#/state/shell/shell-layout'
+// import {useComposerControls} from '#/state/shell'
+import {atoms as a, useTheme} from '#/alf'
+import * as Hider from '#/components/moderation/Hider'
+import {PlayIcon} from '#/components/tao-icons/Play'
+import {RepostIcon} from '#/components/tao-icons/Repost'
+import {Text} from '#/components/Typography'
 import {PostCtrls} from './components/PostCtrls'
 import {Scrubber} from './components/Scrubber'
 import {ExpandableRichTextView} from './ExpandableRichTextView'
@@ -61,12 +63,12 @@ export function Overlay({
   feedContext: string | undefined
 }) {
   // const {openComposer} = useComposerControls()
-  const {_} = useLingui()
+  const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
   const seekingAnimationSV = useSharedValue(0)
   const insets = useSafeAreaInsets()
   const {width: screenWidth} = useSafeAreaFrame()
-  const {headerHeight, footerHeight} = useShellLayout()
+  const {headerHeight, footerHeight, postCtrlsWidth} = useShellLayout()
   const overlayTop = useMemo(() => {
     return headerHeight.get() + insets.top
   }, [headerHeight, insets])
@@ -113,6 +115,27 @@ export function Overlay({
   useEffect(() => {
     ooval.set(isScrolling ? 0.4 : 1)
   }, [isScrolling, ooval])
+  const doSeek = useCallback(
+    (isSeeking: boolean) => {
+      ooval.set(isSeeking ? 0 : 1)
+    },
+    [ooval],
+  )
+
+  const x2opac = useSharedValue(0)
+  const x2tnsf = useSharedValue(20)
+  const x2style = useAnimatedStyle(() => {
+    'worklet'
+    return {
+      opacity: withTiming(x2opac.get(), {duration: 200}),
+      transform: [{translateY: withTiming(x2tnsf.get(), {duration: 200})}],
+    }
+  })
+  const [isDoubleSpeed, setIsDoubleSpeed] = useState(false)
+  useEffect(() => {
+    x2opac.set(isDoubleSpeed ? 1 : 0)
+    x2tnsf.set(isDoubleSpeed ? 0 : 20)
+  }, [isDoubleSpeed, x2opac, x2tnsf])
 
   const longPressRef = useRef<boolean>(false)
   const speedUpPlayer = useCallback(() => {
@@ -121,14 +144,22 @@ export function Overlay({
       player.preservesPitch = true
       player.playbackRate = 2
       longPressRef.current = true
+      setIsDoubleSpeed(true)
+      ooval.set(0)
     }
-  }, [player])
+  }, [player, ooval, setIsDoubleSpeed, playHaptic])
   const resetPlayerSpeed = useCallback(() => {
     if (player && longPressRef.current) {
       player.playbackRate = 1
       longPressRef.current = false
+      setIsDoubleSpeed(false)
+      ooval.set(1)
     }
-  }, [player])
+  }, [player, ooval, setIsDoubleSpeed])
+
+  const [lowerGradient, setLowerGradient] = useState<string>(
+    a.bg_transparent.backgroundColor,
+  )
 
   const isRepost = AppBskyFeedDefs.isReasonRepost(reason)
   const repostBy = isRepost
@@ -193,51 +224,82 @@ export function Overlay({
             />
           </View>
 
+          <LinearGradient
+            colors={[
+              a.bg_transparent.backgroundColor,
+              lowerGradient,
+              lowerGradient,
+            ]}
+            style={[a.w_full, a.absolute, a.bottom_0, a.left_0, a.z_10]}>
+            <Animated.View
+              style={[
+                {
+                  paddingBottom: footerHeight.get() + 20,
+                },
+                // a.z_40,
+                overlayOpacity,
+              ]}>
+              <View
+                style={[
+                  a.flex_1,
+                  a.pl_md,
+                  {
+                    paddingRight: a.pr_md.paddingRight + postCtrlsWidth.get(),
+                  },
+                ]}>
+                {isRepost && (
+                  <View
+                    style={[
+                      a.hidden, // Hiding for now
+                      a.py_xs,
+                      a.px_sm,
+                      a.mb_sm,
+                      a.rounded_sm,
+                      a.flex_row,
+                      a.align_center,
+                      {
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        alignSelf: 'flex-start',
+                      },
+                    ]}>
+                    <RepostIcon style={[a.mr_sm]} width={13} height={13} />
+                    <Text style={[a.text_sm]} emoji numberOfLines={1}>
+                      {repostBy}
+                    </Text>
+                  </View>
+                )}
+                <Text
+                  style={[a.text_lg, a.font_heavy, a.text_shadow_dark]}
+                  emoji
+                  numberOfLines={1}>
+                  {sanitizeDisplayName(
+                    post.author.displayName || post.author.handle,
+                  )}
+                </Text>
+                <ExpandableRichTextView
+                  value={richText}
+                  authorHandle={post.author.handle}
+                  onChangeExpand={isExpanded => {
+                    setLowerGradient(
+                      isExpanded
+                        ? t.atoms.bg.backgroundColor
+                        : a.bg_transparent.backgroundColor,
+                    )
+                  }}
+                />
+              </View>
+            </Animated.View>
+          </LinearGradient>
           <Animated.View
-            pointerEvents="box-none"
             style={[
               a.absolute,
               {
                 bottom: footerHeight.get() + 20,
-                left: 0,
-                right: 0,
               },
-              a.flex_row,
-              a.align_end,
-              a.z_40,
+              a.right_0,
+              a.z_30,
               overlayOpacity,
             ]}>
-            <View style={[a.flex_1, a.px_md]}>
-              {isRepost && (
-                <View
-                  style={[
-                    a.py_xs,
-                    a.px_sm,
-                    a.mb_sm,
-                    a.rounded_sm,
-                    a.flex_row,
-                    a.align_center,
-                    {
-                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                      alignSelf: 'flex-start',
-                    },
-                  ]}>
-                  <RepostIcon style={[a.mr_sm]} width={13} height={13} />
-                  <Text style={[a.text_sm]} emoji numberOfLines={1}>
-                    {repostBy}
-                  </Text>
-                </View>
-              )}
-              <Text style={[a.text_md, a.font_heavy]} emoji numberOfLines={1}>
-                {sanitizeDisplayName(
-                  post.author.displayName || post.author.handle,
-                )}
-              </Text>
-              <ExpandableRichTextView
-                value={richText}
-                authorHandle={post.author.handle}
-              />
-            </View>
             <PostCtrls
               post={post}
               logContext="FeedItem"
@@ -256,7 +318,27 @@ export function Overlay({
             player={player}
             seekingAnimationSV={seekingAnimationSV}
             scrollGesture={scrollGesture}
+            onSeekChange={doSeek}
           />
+
+          <Animated.View
+            style={[
+              a.absolute,
+              a.left_0,
+              a.right_0,
+              {
+                bottom: footerHeight.get(),
+              },
+              a.pb_md,
+              a.justify_center,
+              a.align_center,
+              a.flex_row,
+              x2style,
+            ]}>
+            <Text style={[a.text_md, a.mr_xs]}>Speed 2X</Text>
+            <PlayIcon size="sm" fill={t.atoms.text.color} />
+            <PlayIcon size="sm" fill={t.atoms.text.color} />
+          </Animated.View>
         </View>
       </Hider.Content>
     </Hider.Outer>

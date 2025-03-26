@@ -164,6 +164,7 @@
     "lodash.isequal": "^4.5.0",
     "lodash.shuffle": "^4.2.0",
     "lodash.throttle": "^4.1.1",
+    "lucide-react-native": "^0.483.0",
     "multiformats": "^13.1.0",
     "nanoid": "^5.0.5",
     "normalize-url": "^8.0.0",

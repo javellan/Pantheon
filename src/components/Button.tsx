@@ -1,3 +1,4 @@
+import {LinearGradient} from 'expo-linear-gradient'
 import React from 'react'
 import {
   AccessibilityProps,
@@ -14,7 +15,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import {LinearGradient} from 'expo-linear-gradient'
 
 import {atoms as a, flatten, select, tokens, useTheme} from '#/alf'
 import {Props as SVGIconProps} from '#/components/icons/common'
@@ -271,9 +271,9 @@ export const Button = React.forwardRef<View, ButtonProps>(
         } else if (variant === 'ghost') {
           if (!disabled) {
             baseStyles.push(t.atoms.bg)
-            hoverStyles.push({
-              backgroundColor: t.palette.contrast_25,
-            })
+            // hoverStyles.push({
+            //   backgroundColor: t.palette.contrast_25,
+            // })
           }
         }
       } else if (color === 'secondary_inverted') {

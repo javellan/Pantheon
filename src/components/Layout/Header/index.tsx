@@ -1,13 +1,10 @@
-import {createContext, useCallback, useContext} from 'react'
-import {GestureResponderEvent, Keyboard, View} from 'react-native'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useNavigation} from '@react-navigation/native'
+import {Menu} from 'lucide-react-native'
+import {createContext, useCallback, useContext} from 'react'
+import {GestureResponderEvent, Keyboard, View} from 'react-native'
 
-import {HITSLOP_30} from '#/lib/constants'
-import {NavigationProp} from '#/lib/routes/types'
-import {isIOS} from '#/platform/detection'
-import {useSetDrawerOpen} from '#/state/shell'
 import {
   atoms as a,
   platform,
@@ -20,7 +17,11 @@ import {
 } from '#/alf'
 import {Button, ButtonIcon, ButtonProps} from '#/components/Button'
 import {ArrowLeft_Stroke2_Corner0_Rounded as ArrowLeft} from '#/components/icons/Arrow'
-import {Menu_Stroke2_Corner0_Rounded as Menu} from '#/components/icons/Menu'
+import {HITSLOP_30} from '#/lib/constants'
+import {NavigationProp} from '#/lib/routes/types'
+import {isIOS} from '#/platform/detection'
+import {useSetDrawerOpen} from '#/state/shell'
+// import {Menu_Stroke2_Corner0_Rounded as Menu} from '#/components/icons/Menu'
 import {
   BUTTON_VISUAL_ALIGNMENT_OFFSET,
   HEADER_SLOT_SIZE,
@@ -146,6 +147,7 @@ export function MenuButton({transparent}: {transparent?: boolean}) {
   const {_} = useLingui()
   const setDrawerOpen = useSetDrawerOpen()
   const {gtMobile} = useBreakpoints()
+  const t = useTheme()
 
   const onPress = useCallback(() => {
     Keyboard.dismiss()
@@ -166,7 +168,7 @@ export function MenuButton({transparent}: {transparent?: boolean}) {
           {marginLeft: -BUTTON_VISUAL_ALIGNMENT_OFFSET},
           transparent ? {backgroundColor: 'transparent'} : undefined,
         ]}>
-        <ButtonIcon icon={Menu} size="lg" />
+        <Menu size={24} color={t.atoms.text.color} style={a.icon_shadow_dark} />
       </Button>
     </Slot>
   )

@@ -1,8 +1,14 @@
-import React, {memo} from 'react'
-import {type StyleProp, View, type ViewStyle} from 'react-native'
+import React, {memo, useCallback} from 'react'
+import {
+  LayoutChangeEvent,
+  type StyleProp,
+  View,
+  type ViewStyle,
+} from 'react-native'
 import {AppBskyFeedDefs} from '@atproto/api'
 
 import {Shadow} from '#/state/cache/types'
+import {useShellLayout} from '#/state/shell/shell-layout'
 import {atoms as a} from '#/alf'
 import {Author} from './post-ctrls/Author'
 import {Comment} from './post-ctrls/Comment'
@@ -27,8 +33,17 @@ let PostCtrls = ({
   onPostReply?: (postUri: string | undefined) => void
   logContext: 'FeedItem' | 'PostThreadItem' | 'Post' | 'ImmersiveVideo'
 }): React.ReactNode => {
+  const {postCtrlsWidth} = useShellLayout()
+  const onLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      postCtrlsWidth.set(e.nativeEvent.layout.width)
+    },
+    [postCtrlsWidth],
+  )
   return (
-    <View style={[a.justify_between, a.align_center, style, a.pr_sm]}>
+    <View
+      style={[a.justify_between, a.align_center, style, a.pr_sm]}
+      onLayout={onLayout}>
       <View style={[a.mb_xl]}>
         <Author post={post} />
       </View>

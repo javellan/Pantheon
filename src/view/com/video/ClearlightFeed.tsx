@@ -1,18 +1,16 @@
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
+import {Gesture, GestureDetector} from 'react-native-gesture-handler'
+import {runOnJS} from 'react-native-reanimated'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {VideoPlayer} from 'expo-video'
 import {
   AppBskyEmbedVideo,
   AppBskyFeedDefs,
   ModerationDecision,
 } from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
-import {VideoPlayer} from 'expo-video'
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
-import {Gesture, GestureDetector} from 'react-native-gesture-handler'
-import {runOnJS} from 'react-native-reanimated'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-import {atoms as a, useTheme} from '#/alf'
-import {ListFooter} from '#/components/Lists'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {ScrollProvider} from '#/lib/ScrollContext'
 import {cleanError} from '#/lib/strings/errors'
@@ -27,6 +25,8 @@ import {
 } from '#/state/queries/post-feed'
 import {useSession} from '#/state/session'
 import {List} from '#/view/com/util/List'
+import {atoms as a, useTheme} from '#/alf'
+import {ListFooter} from '#/components/Lists'
 import {EndMessage} from './EndMessage'
 import {
   createThreeVideoPlayers,
@@ -52,6 +52,7 @@ export function ClearlightFeed({
   const enabled = isPageFocused || (isNative && isPageAdjacent)
   const opts = useMemo(() => ({enabled}), [enabled])
   const feedFeedback = useFeedFeedback(feed, hasSession)
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   const {
     data,
@@ -113,8 +114,6 @@ export function ClearlightFeed({
       refetch()
     }
   }, [refetch, players, isPageFocused])
-
-  const [currentIndex, setCurrentIndex] = useState(0)
 
   const [isScrolling, setIsScrolling] = useState(false)
   const renderItem: ListRenderItem<VideoItem> = useCallback(

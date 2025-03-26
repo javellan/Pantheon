@@ -1,10 +1,11 @@
-import 'react-native-url-polyfill/auto'
-import '#/logger/sentry/setup'
 import '#/logger/bitdrift/setup'
+import '#/logger/sentry/setup'
 import '#/view/icons'
+import 'react-native-url-polyfill/auto'
 
 import React, {useEffect, useState} from 'react'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
+import {configureReanimatedLogger} from 'react-native-reanimated'
 import {RootSiblingParent} from 'react-native-root-siblings'
 import {
   initialWindowMetrics,
@@ -86,6 +87,10 @@ if (isAndroid) {
  * Begin geolocation ASAP
  */
 beginResolveGeolocation()
+
+configureReanimatedLogger({
+  strict: false,
+})
 
 function InnerApp() {
   const [isReady, setIsReady] = React.useState(false)

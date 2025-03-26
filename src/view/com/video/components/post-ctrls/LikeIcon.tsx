@@ -5,9 +5,9 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated'
 
+import {atoms as a, useTheme} from '#/alf'
+import {HeartSolidIcon} from '#/components/tao-icons/HeartSolid'
 import {s} from '#/lib/styles'
-import {useTheme} from '#/alf'
-import {Heart2_Filled_Stroke2_Corner0_Rounded as HeartIconFilled} from '#/components/icons/Heart2'
 
 const keyframe = new Keyframe({
   0: {
@@ -72,7 +72,7 @@ export function AnimatedLikeIcon({
   hasBeenToggled: boolean
 }) {
   const t = useTheme()
-  const size = 36
+  const size = 32
   const shouldAnimate = !useReducedMotion() && hasBeenToggled
 
   return (
@@ -81,12 +81,17 @@ export function AnimatedLikeIcon({
         {isLiked ? (
           <Animated.View
             entering={shouldAnimate ? keyframe.duration(300) : undefined}>
-            <HeartIconFilled style={s.likeColor} width={size} />
+            <HeartSolidIcon
+              style={[s.likeColor]}
+              width={size}
+              shadow={a.icon_shadow_dark.shadowColor}
+            />
           </Animated.View>
         ) : (
-          <HeartIconFilled
+          <HeartSolidIcon
             style={[{color: t.palette.white}, {pointerEvents: 'none'}]}
             width={size}
+            shadow={a.icon_shadow_dark.shadowColor}
           />
         )}
         {isLiked && shouldAnimate ? (

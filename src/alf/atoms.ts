@@ -324,6 +324,31 @@ export const atoms = {
   italic: {
     fontStyle: 'italic',
   },
+  text_shadow_dark: {
+    textShadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    textShadowRadius: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  text_shadow_dark_sharp: {
+    textShadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    textShadowRadius: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  icon_shadow_dark: {
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    shadowRadius: 3,
+    shadowOpacity: 1,
+  },
 
   /*
    * Border

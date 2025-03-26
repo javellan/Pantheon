@@ -99,6 +99,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
       const state = navigation.getState()
       const tabState = getTabState(state, tab)
       if (tabState === TabState.InsideAtRoot) {
+        console.log('EMITTING SOFT RESET================')
         emitSoftReset()
       } else if (tabState === TabState.Inside) {
         dedupe(() => navigation.dispatch(StackActions.popToTop()))

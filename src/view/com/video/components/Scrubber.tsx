@@ -35,12 +35,14 @@ export function Scrubber({
   player,
   seekingAnimationSV,
   scrollGesture,
+  onSeekChange,
   children,
 }: {
   active: boolean
   player?: VideoPlayer
   seekingAnimationSV: SharedValue<number>
   scrollGesture: NativeGesture
+  onSeekChange?: (isSeeking: boolean) => void
   children?: React.ReactNode
 }) {
   const {footerHeight} = useShellLayout()
@@ -95,6 +97,7 @@ export function Scrubber({
         seekProgressSV.set(currentTimeSV.get())
         isSeekingSV.set(true)
         seekingAnimationSV.set(withTiming(1, {duration: 500}))
+        onSeekChange && runOnJS(onSeekChange)(true)
       })
       .onUpdate(evt => {
         'worklet'
@@ -116,6 +119,8 @@ export function Scrubber({
         // it's seek by, so offset by the current time
         // seekBy sets isSeekingSV back to false, so no need to do that here
         runOnJS(seekBy)(newTime - currentTimeSV.get())
+
+        onSeekChange && runOnJS(onSeekChange)(false)
       })
   }, [
     scrollGesture,
@@ -126,6 +131,7 @@ export function Scrubber({
     durationSV,
     isSeekingSV,
     seekProgressSV,
+    onSeekChange,
   ])
 
   const timeStyle = useAnimatedStyle(() => {
@@ -176,6 +182,7 @@ export function Scrubber({
             bottom: footerHeight.get(),
           },
           timeStyle,
+          a.z_50,
         ]}
         pointerEvents="none">
         <Text style={[a.text_center, a.font_bold]}>

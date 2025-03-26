@@ -1,5 +1,12 @@
-import {useCallback, useMemo, useRef, useState} from 'react'
-import {View} from 'react-native'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {GestureResponderEvent, View} from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 import {useEvent} from 'expo'
 import {VideoPlayer} from 'expo-video'
 import {AppBskyFeedDefs, AppBskyFeedPost, RichText} from '@atproto/api'
@@ -11,11 +18,60 @@ import {sanitizeHandle} from '#/lib/strings/handles'
 import {Shadow} from '#/state/cache/post-shadow'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {usePostLikeMutationQueue} from '#/state/queries/post'
-import {atoms as a} from '#/alf'
+import {useShellLayout} from '#/state/shell/shell-layout'
+import {atoms as a, useTheme} from '#/alf'
 import {Button} from '#/components/Button'
 import * as Menu from '#/components/Menu'
 import {useMenuControl} from '#/components/Menu'
+import {DoubleTapLikeHeartIcon} from '#/components/tao-icons/DoubleTapLikeHeart'
+import {PlayIcon} from '#/components/tao-icons/Play'
 import {PostDropdownMenuItems} from '../util/forms/PostDropdownBtnMenuItems'
+
+function AnimatedHeart({x, y}: {x: number; y: number}) {
+  const opacity = useSharedValue(0)
+  const scale = useSharedValue(0.5)
+  const rotation = useSharedValue(Math.floor(Math.random() * 81) - 40)
+
+  useEffect(() => {
+    opacity.value = withSequence(
+      withTiming(1, {duration: 200}),
+      withDelay(200, withTiming(0, {duration: 400})),
+    )
+
+    scale.value = withSequence(
+      withTiming(1.2, {duration: 200}),
+      withTiming(1, {duration: 150}),
+      withDelay(50, withTiming(0.8, {duration: 400})),
+    )
+  }, [opacity, scale])
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [
+        {translateX: x - 32}, // feckinhuge is 64
+        {translateY: y - 32}, // feckinhuge is 64
+        {scale: scale.value},
+        {rotate: `${rotation.value}deg`},
+      ],
+    }
+  })
+  return (
+    <Animated.View
+      style={[
+        animatedStyle,
+        a.absolute,
+        a.justify_center,
+        a.align_center,
+        {
+          width: 64,
+          height: 64,
+        },
+      ]}>
+      <DoubleTapLikeHeartIcon size="feckinhuge" />
+    </Animated.View>
+  )
+}
 
 export function PlayPauseTapArea({
   player,
@@ -31,6 +87,8 @@ export function PlayPauseTapArea({
   richText: RichText
 }) {
   const {_} = useLingui()
+  const t = useTheme()
+  const {footerHeight} = useShellLayout()
   const doubleTapRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playHaptic = useHaptics()
   const [queueLike] = usePostLikeMutationQueue(post, 'ImmersiveVideo')
@@ -53,21 +111,46 @@ export function PlayPauseTapArea({
     [menuControl, setHasBeenOpen],
   )
 
+  const playButtonOpacity = useSharedValue(0)
+  const playButtonStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(playButtonOpacity.get(), {duration: 200}),
+    }
+  })
+
   const togglePlayPause = () => {
     if (!player) return
     doubleTapRef.current = null
     if (player.playing) {
+      playButtonOpacity.set(0.6)
       player.pause()
     } else {
+      playButtonOpacity.set(0)
       player.play()
     }
   }
 
-  const onPress = () => {
+  useEffect(() => {
+    if (isPlaying && playButtonOpacity.get() !== 0) {
+      playButtonOpacity.set(0)
+    }
+  }, [playButtonOpacity, isPlaying])
+
+  const [heartAnimations, setHeartAnimations] = useState<any[]>([])
+  const onPress = (e: GestureResponderEvent) => {
     if (doubleTapRef.current) {
       clearTimeout(doubleTapRef.current)
       doubleTapRef.current = null
       playHaptic('Light')
+
+      // Do stuff here...
+      const {locationX, locationY} = e.nativeEvent
+      const id = Date.now().toString()
+      setHeartAnimations(prev => [...prev, {id, x: locationX, y: locationY}])
+      setTimeout(() => {
+        setHeartAnimations(prev => prev.filter(item => item.id !== id))
+      }, 1000)
+
       queueLike()
       sendInteraction({
         item: post.uri,
@@ -103,6 +186,32 @@ export function PlayPauseTapArea({
         style={[a.absolute, a.inset_0, a.z_10]}>
         <View />
       </Button>
+
+      {heartAnimations.map(h => (
+        <AnimatedHeart key={h.id} x={h.x} y={h.y} />
+      ))}
+
+      <Animated.View
+        style={[
+          a.absolute,
+          a.inset_0,
+          a.z_10,
+          a.justify_center,
+          a.align_center,
+          {
+            bottom: -20 - footerHeight.get(),
+            pointerEvents: 'none',
+          },
+          playButtonStyle,
+        ]}>
+        <PlayIcon
+          size="feckinhuge"
+          style={{
+            color: t.palette.white,
+          }}
+          shadow={a.icon_shadow_dark.shadowColor}
+        />
+      </Animated.View>
       <Menu.Root control={lazyMenuControl}>
         {hasBeenOpen && (
           // Lazily initialized. Once mounted, they stay mounted.
