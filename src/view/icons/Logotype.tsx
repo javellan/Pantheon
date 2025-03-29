@@ -1,18 +1,7 @@
-import Svg, {Defs, FeComposite, FeFlood, FeGaussianBlur, FeMorphology, FeOffset, Filter, G, Path, PathProps, SvgProps, Text, TSpan, FontStyle} from 'react-native-svg'
+// @ts-ignore:file
+import Svg, {G, Text, TSpan} from 'react-native-svg'
 
-import {usePalette} from '#/lib/hooks/usePalette'
-import { fontSize } from '#/alf/tokens'
-
-const ratio = 17 / 64
-
-export function Logotype({
-  fill,
-  ...rest
-}: {fill?: PathProps['fill']} & SvgProps) {
-  const pal = usePalette('default')
-  // @ts-ignore it's fiiiiine
-  const size = parseInt(rest.width || 32)
-
+export function Logotype() {
   return (
     // <Svg
     //   fill="none"
@@ -37,11 +26,15 @@ export function Logotype({
           fontFamily="Candara-Bold"
           fontWeight="700"
           fontSize="192"
-          fill='#41A3FF'
-        >
-           T
-          <TSpan x="207.125 328.063" y="960 960">AO </TSpan>
-          <TSpan x="470" y="960"> Social</TSpan>
+          fill="#41A3FF">
+          T
+          <TSpan x="207.125 328.063" y="960 960">
+            AO{' '}
+          </TSpan>
+          <TSpan x="470" y="960">
+            {' '}
+            Social
+          </TSpan>
         </Text>
       </G>
     </Svg>

@@ -5,9 +5,9 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated'
 
+import {s} from '#/lib/styles'
 import {atoms as a, useTheme} from '#/alf'
 import {HeartSolidIcon} from '#/components/tao-icons/HeartSolid'
-import {s} from '#/lib/styles'
 
 const keyframe = new Keyframe({
   0: {
@@ -67,12 +67,14 @@ const circle2Keyframe = new Keyframe({
 export function AnimatedLikeIcon({
   isLiked,
   hasBeenToggled,
+  big,
 }: {
   isLiked: boolean
   hasBeenToggled: boolean
+  big: boolean | undefined
 }) {
   const t = useTheme()
-  const size = 32
+  const size = big ? 32 : 16
   const shouldAnimate = !useReducedMotion() && hasBeenToggled
 
   return (

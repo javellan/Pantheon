@@ -25,7 +25,7 @@ import * as Menu from '#/components/Menu'
 import {useMenuControl} from '#/components/Menu'
 import {DoubleTapLikeHeartIcon} from '#/components/tao-icons/DoubleTapLikeHeart'
 import {PlayIcon} from '#/components/tao-icons/Play'
-import {PostDropdownMenuItems} from '../util/forms/PostDropdownBtnMenuItems'
+import {PostDropdownMenuItems} from '../../util/forms/PostDropdownBtnMenuItems'
 
 function AnimatedHeart({x, y}: {x: number; y: number}) {
   const opacity = useSharedValue(0)
@@ -143,7 +143,6 @@ export function PlayPauseTapArea({
       doubleTapRef.current = null
       playHaptic('Light')
 
-      // Do stuff here...
       const {locationX, locationY} = e.nativeEvent
       const id = Date.now().toString()
       setHeartAnimations(prev => [...prev, {id, x: locationX, y: locationY}])

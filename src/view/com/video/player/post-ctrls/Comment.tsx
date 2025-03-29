@@ -1,31 +1,29 @@
+import React from 'react'
+import {Pressable, type StyleProp, type ViewStyle} from 'react-native'
 import {AppBskyFeedDefs} from '@atproto/api'
 import {msg, plural} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
-import React from 'react'
-import {Pressable, type StyleProp, type ViewStyle} from 'react-native'
 
-import {atoms as a, useTheme} from '#/alf'
-import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
 import {POST_CTRL_HITSLOP} from '#/lib/constants'
-import {useHaptics} from '#/lib/haptics'
 import {Shadow} from '#/state/cache/types'
 import {useRequireAuth} from '#/state/session'
+// import {useHaptics} from '#/lib/haptics'
+import {atoms as a, useTheme} from '#/alf'
+import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
 import {formatCount} from '../../../util/numeric/format'
 import {Text} from '../../../util/text/Text'
 
 export function Comment({
-  big,
   post,
   onPressReply,
 }: {
-  big?: boolean
   post: Shadow<AppBskyFeedDefs.PostView>
   onPressReply: () => void
 }): React.ReactNode {
   const t = useTheme()
   const {_, i18n} = useLingui()
   const requireAuth = useRequireAuth()
-  const playHaptic = useHaptics()
+  // const playHaptic = useHaptics()
 
   const defaultCtrlColor = React.useMemo(
     () => ({
@@ -51,7 +49,7 @@ export function Comment({
       style={btnStyle}
       onPress={() => {
         if (!post.viewer?.replyDisabled) {
-          playHaptic('Light')
+          // playHaptic('Light')
           requireAuth(() => onPressReply())
         }
       }}
@@ -74,6 +72,7 @@ export function Comment({
           style={[
             defaultCtrlColor,
             a.text_sm,
+            a.font_bold,
             a.user_select_none,
             a.text_shadow_dark_sharp,
             {paddingHorizontal: 2},

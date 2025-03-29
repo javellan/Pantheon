@@ -16,14 +16,11 @@ import {
   AppBskyEmbedVideo,
   AppBskyFeedDefs,
   AppBskyFeedPost,
-  AtUri,
   ModerationDecision,
   RichText as RichTextAPI,
 } from '@atproto/api'
-import {useNavigation} from '@react-navigation/native'
 
 import {useHaptics} from '#/lib/haptics'
-import {NavigationProp} from '#/lib/routes/types'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
 import {Shadow} from '#/state/cache/post-shadow'
@@ -35,11 +32,11 @@ import * as Hider from '#/components/moderation/Hider'
 import {PlayIcon} from '#/components/tao-icons/Play'
 import {RepostIcon} from '#/components/tao-icons/Repost'
 import {Text} from '#/components/Typography'
-import {PostCtrls} from './components/PostCtrls'
-import {Scrubber} from './components/Scrubber'
 import {ExpandableRichTextView} from './ExpandableRichTextView'
 import {ModerationOverlay} from './ModerationOverlay'
 import {PlayPauseTapArea} from './PlayPauseTapArea'
+import {PostCtrls} from './PostCtrls'
+import {Scrubber} from './Scrubber'
 
 export function Overlay({
   player,
@@ -48,9 +45,9 @@ export function Overlay({
   reason,
   active,
   scrollGesture,
-  isScrolling,
   moderation,
   feedContext,
+  onPressReply,
 }: {
   player?: VideoPlayer
   post: Shadow<AppBskyFeedDefs.PostView>
@@ -58,13 +55,11 @@ export function Overlay({
   reason: FeedPostSlice['reason']
   active: boolean
   scrollGesture: NativeGesture
-  isScrolling: boolean
   moderation: ModerationDecision
   feedContext: string | undefined
+  onPressReply: () => void
 }) {
-  // const {openComposer} = useComposerControls()
   const t = useTheme()
-  const navigation = useNavigation<NavigationProp>()
   const seekingAnimationSV = useSharedValue(0)
   const insets = useSafeAreaInsets()
   const {width: screenWidth} = useSafeAreaFrame()
@@ -74,7 +69,6 @@ export function Overlay({
   }, [headerHeight, insets])
   const playHaptic = useHaptics()
 
-  const rkey = new AtUri(post.uri).rkey
   const record = AppBskyFeedPost.isRecord(post.record) ? post.record : undefined
   const richText = new RichTextAPI({
     text: record?.text || ('' as any),
@@ -95,26 +89,11 @@ export function Overlay({
     return modui
   }, [moderation])
 
-  // const onPressReply = useCallback(() => {
-  //   openComposer({
-  //     replyTo: {
-  //       uri: post.uri,
-  //       cid: post.cid,
-  //       text: record?.text || '',
-  //       author: post.author,
-  //       embed: post.embed,
-  //     },
-  //   })
-  // }, [openComposer, post, record])
-
   const ooval = useSharedValue(1)
   const overlayOpacity = useAnimatedStyle(() => {
     'worklet'
     return {opacity: withTiming(ooval.get(), {duration: 200})}
   })
-  useEffect(() => {
-    ooval.set(isScrolling ? 0.4 : 1)
-  }, [isScrolling, ooval])
   const doSeek = useCallback(
     (isSeeking: boolean) => {
       ooval.set(isSeeking ? 0 : 1)
@@ -282,7 +261,8 @@ export function Overlay({
                   onChangeExpand={isExpanded => {
                     setLowerGradient(
                       isExpanded
-                        ? t.atoms.bg.backgroundColor
+                        ? // ? t.atoms.bg.backgroundColor
+                          'black'
                         : a.bg_transparent.backgroundColor,
                     )
                   }}
@@ -303,12 +283,7 @@ export function Overlay({
             <PostCtrls
               post={post}
               logContext="FeedItem"
-              onPressReply={() =>
-                navigation.navigate('PostThread', {
-                  name: post.author.did,
-                  rkey,
-                })
-              }
+              onPressReply={onPressReply}
               big
             />
           </Animated.View>

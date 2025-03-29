@@ -118,3 +118,38 @@ export function createMultiPathSVG({paths}: {paths: string[]}) {
     )
   })
 }
+
+export function createMultiPathStrokeSVG({paths}: {paths: string[]}) {
+  return React.forwardRef<Svg, Props>(function LogoImpl(props, ref) {
+    const {fill, size, style, gradient, shadow, ...rest} =
+      useCommonSVGProps(props)
+
+    return (
+      <Svg
+        fill="none"
+        {...rest}
+        ref={ref}
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        style={[style]}>
+        {gradient}
+        {shadow}
+        {paths.map((path, i) => (
+          <Path
+            key={i}
+            fill="none"
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d={path}
+            stroke={fill}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter={shadow ? 'url(#DropShadow)' : undefined}
+          />
+        ))}
+      </Svg>
+    )
+  })
+}

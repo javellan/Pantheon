@@ -1,13 +1,9 @@
+import React, {useCallback} from 'react'
+import {Pressable, type StyleProp, View, type ViewStyle} from 'react-native'
 import {AppBskyFeedDefs, AtUri} from '@atproto/api'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
-import React, {useCallback} from 'react'
-import {Pressable, type StyleProp, View, type ViewStyle} from 'react-native'
 
-import {atoms as a, useTheme} from '#/alf'
-import {useDialogControl} from '#/components/Dialog'
-import * as Prompt from '#/components/Prompt'
-import {ShareIcon} from '#/components/tao-icons/Share'
 import {POST_CTRL_HITSLOP} from '#/lib/constants'
 import {makeProfileLink} from '#/lib/routes/links'
 import {shareUrl} from '#/lib/sharing'
@@ -15,6 +11,10 @@ import {toShareUrl} from '#/lib/strings/url-helpers'
 import {Shadow} from '#/state/cache/types'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {useSession} from '#/state/session'
+import {atoms as a, useTheme} from '#/alf'
+import {useDialogControl} from '#/components/Dialog'
+import * as Prompt from '#/components/Prompt'
+import {ShareIcon} from '#/components/tao-icons/Share'
 
 export function Share({
   big,
