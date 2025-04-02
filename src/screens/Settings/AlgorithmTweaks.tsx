@@ -1,51 +1,96 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef,useState} from 'react'
 import React from 'react'
-import {StyleSheet, View} from 'react-native'
-import {Trans} from '@lingui/macro'
+import {
+  Animated,
+  Easing,
+  Modal,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native'
+import {FlatList} from 'react-native-gesture-handler'
+import {t, Trans} from '@lingui/macro'
 import {Slider} from '@miblanchard/react-native-slider'
 import {NativeStackScreenProps} from '@react-navigation/native-stack'
 import debounce from 'lodash.debounce'
 
 import {Interest} from '#/lib/api/feed/interests'
-import {aggregateUserInterests, INTERESTS} from '#/lib/api/feed/utils'
+import {
+  defaultFeedPreferences,
+  FeedPreferences,
+  FeedType,
+} from '#/lib/api/feed/preferences'
+import {aggregateFeedPreferences, FEED_PREFERENCES} from '#/lib/api/feed/utils'
 import {CommonNavigatorParams} from '#/lib/routes/types'
 import * as persisted from '#/state/persisted'
-import {useAgent} from '#/state/session'
 import {List} from '#/view/com/util/List'
-import {atoms as a} from '#/alf'
+import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
+import {SearchInput} from '#/components/forms/SearchInput'
+import {Heart2_Filled_Stroke2_Corner0_Rounded} from '#/components/icons/Heart2'
+import {Trending2_Stroke2_Corner2_Rounded} from '#/components/icons/Trending2'
+import {UserCircle_Filled_Corner0_Rounded} from '#/components/icons/UserCircle'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
+import {InterestFinder} from './components/InterestFinder'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
 export function AlgorithmTweaksScreen({}: Props) {
-  const agent = useAgent()
-  const [interests, setInterests] = useState<Interest[]>([])
+  const [feedPreferences, setFeedPreferences] = useState<FeedPreferences>(
+    defaultFeedPreferences,
+  )
   const [isDirty, setIsDirty] = useState(false)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const interestDrawerSlideUp = useRef(new Animated.Value(0)).current
+  const searchInputRef = useRef<TextInput>(null)
 
+  const theme = useTheme()
   useEffect(() => {
     const fetchPrefs = async () => {
       try {
-        const aggregated = aggregateUserInterests()
-        setInterests(aggregated)
+        const prefs = aggregateFeedPreferences()
+        setFeedPreferences(prefs)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
       }
     }
     fetchPrefs()
-  }, [agent])
+  }, [])
 
   const debouncedInterestStateChange = React.useMemo(
     () =>
       debounce((id, value) => {
         setIsDirty(true)
-        setInterests(prev =>
-          prev.map(interest =>
-            interest.id === id
-              ? {...interest, value: Math.trunc(value)}
-              : interest,
-          ),
-        )
+        setFeedPreferences(prev => {
+          return {
+            ...prev,
+            interests: prev.interests.map(interest =>
+              interest.id === id
+                ? {...interest, value: Math.trunc(value)}
+                : interest,
+            ),
+          }
+        })
+      }, 200),
+    [],
+  )
+
+  const debouncedFeedPreferenceChange = React.useMemo(
+    () =>
+      debounce((key, value) => {
+        setIsDirty(true)
+        setFeedPreferences(prev => {
+          return {
+            ...prev,
+            feedTypes: prev.feedTypes.map(feedType =>
+              feedType.id === key
+                ? {...feedType, weight: Math.trunc(value)}
+                : feedType,
+            ),
+          }
+        })
       }, 200),
     [],
   )
@@ -55,9 +100,22 @@ export function AlgorithmTweaksScreen({}: Props) {
   }
 
   const styles = StyleSheet.create({
-    topicRenderer: {
-      paddingBottom: 0,
+    feedTypeRenderer: {
+      paddingVertical: 18,
     },
+    feedTypeTitle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    feedTypeTitleText: {
+      flex: 0,
+      width: 100,
+      paddingLeft: 8,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+
+    topicRenderer: {},
     topicTitle: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -86,23 +144,18 @@ export function AlgorithmTweaksScreen({}: Props) {
       backgroundColor: '#FFF',
       borderRadius: 10,
     },
-    sliderContainer: {
-      paddingVertical: 0,
-    },
+    feedTypeSliderContainer: {},
+    interestSliderContainer: {},
     saveButton: {
       backgroundColor: '#007BFF',
       borderRadius: 8,
-      paddingVertical: 4,
-      paddingHorizontal: 4,
+      paddingVertical: 2,
+      paddingHorizontal: 2,
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
       width: 70,
       position: 'absolute',
       left: -38,
-      top: -18,
+      top: -13,
     },
     saveButtonText: {
       color: '#FFF',
@@ -127,6 +180,42 @@ export function AlgorithmTweaksScreen({}: Props) {
     },
   })
 
+  const feedTypeIcons = {
+    trending: Trending2_Stroke2_Corner2_Rounded,
+    following: UserCircle_Filled_Corner0_Rounded,
+    interests: Heart2_Filled_Stroke2_Corner0_Rounded,
+  }
+
+  function FeedTypeRenderer({item}: {item: FeedType}) {
+    const Icon = feedTypeIcons[item.id]
+    return (
+      <View style={styles.feedTypeRenderer}>
+        <View style={styles.feedTypeTitle}>
+          {Icon && <Icon style={{color: theme.palette.contrast_975}} />}
+          <Text style={[a.font_heavy, a.text_lg, styles.feedTypeTitleText]}>
+            {item.label}
+          </Text>
+        </View>
+        <View style={styles.sliderView}>
+          <Slider
+            thumbTouchSize={{width: 20, height: 20}}
+            thumbStyle={styles.sliderThumb}
+            trackStyle={styles.sliderTrack}
+            containerStyle={styles.feedTypeSliderContainer}
+            minimumTrackStyle={styles.sliderMinimumTrack}
+            minimumValue={1}
+            maximumValue={10}
+            value={item.weight}
+            step={1}
+            onValueChange={value =>
+              debouncedFeedPreferenceChange(item.id, value[0])
+            }
+          />
+        </View>
+      </View>
+    )
+  }
+
   function InterestRenderer({item}: {item: Interest}) {
     return (
       <View style={styles.topicRenderer}>
@@ -139,7 +228,7 @@ export function AlgorithmTweaksScreen({}: Props) {
               thumbTouchSize={{width: 20, height: 20}}
               thumbStyle={styles.sliderThumb}
               trackStyle={styles.sliderTrack}
-              containerStyle={styles.sliderContainer}
+              containerStyle={styles.interestSliderContainer}
               minimumTrackStyle={styles.sliderMinimumTrack}
               minimumValue={1}
               maximumValue={10}
@@ -155,10 +244,73 @@ export function AlgorithmTweaksScreen({}: Props) {
 
   function handleSave() {
     // Only need to store the key and the tweak the user made to it
-    const strippedInterests = interests.map(({id, value}) => ({id, value}))
-    console.log('storing strippedInterests', strippedInterests)
-    persisted.write(INTERESTS, strippedInterests)
+    const strippedInterests = feedPreferences.interests
+      .filter(interest => interest.selected)
+      .map(({id, value, selected}) => ({id, value, selected}))
+    persisted.write(FEED_PREFERENCES, {
+      ...feedPreferences,
+      interests: strippedInterests,
+    })
     setIsDirty(false)
+  }
+
+  function interestSelected(interest: Interest): void {
+    setFeedPreferences(prev => {
+      return {
+        ...prev,
+        interests: prev.interests.map(i =>
+          i.id === interest.id ? {...i, selected: true} : i,
+        ),
+      }
+    })
+    setIsDirty(true)
+  }
+
+  function interestDeselected(interest: Interest): void {
+    setFeedPreferences(prev => {
+      return {
+        ...prev,
+        interests: prev.interests.map(i =>
+          i.id === interest.id ? {...i, selected: false} : i,
+        ),
+      }
+    })
+    setIsDirty(true)
+  }
+
+  const onAddInterestFocus = () => {
+    setIsModalVisible(true)
+
+    Animated.timing(interestDrawerSlideUp, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start(() => {
+      searchInputRef.current?.focus()
+    })
+  }
+
+  const closeModal = () => {
+    Animated.timing(interestDrawerSlideUp, {
+      toValue: 0,
+      duration: 300,
+      easing: Easing.in(Easing.ease),
+      useNativeDriver: false,
+    }).start(() => {
+      setIsModalVisible(false)
+    })
+  }
+
+  const slideUpStyle = {
+    transform: [
+      {
+        translateY: interestDrawerSlideUp.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0], // Slide from off-screen (500px) to on-screen (0px)
+        }),
+      },
+    ],
   }
 
   return (
@@ -187,19 +339,66 @@ export function AlgorithmTweaksScreen({}: Props) {
           </Layout.Header.Slot>
         </Layout.Header.Outer>
       </Layout.Center>
-      <View style={{paddingHorizontal: 20}}>
+      <View style={{paddingHorizontal: 20, opacity: isModalVisible ? 0 : 1}}>
+        <List
+          data={feedPreferences.feedTypes}
+          renderItem={FeedTypeRenderer}
+          scrollEnabled={false}
+          keyExtractor={item => item.id}
+        />
         <View style={styles.interestsTitle}>
           <Text style={[a.font_bold, a.text_md, a.mb_md]}>
             <Trans>Your Interests</Trans>
           </Text>
         </View>
-        <List
-          data={interests}
+        <TouchableOpacity accessibilityRole="button" activeOpacity={1} onPress={onAddInterestFocus}>
+          <SearchInput
+            placeholder={t`Add interest`}
+            editable={false}
+            pointerEvents="none"
+          />
+        </TouchableOpacity>
+        <FlatList
+          data={feedPreferences.interests.filter(interest => interest.selected)}
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
-          style={{marginBottom: 180}}
+          style={{height: 340}}
         />
       </View>
+
+      {/* Modal for InterestFinder */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="none"
+        statusBarTranslucent={true}>
+        <TouchableWithoutFeedback accessibilityRole="button" onPress={closeModal}>
+          <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}} />
+        </TouchableWithoutFeedback>
+        <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: theme.atoms.bg.backgroundColor,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                padding: 20,
+              },
+              slideUpStyle,
+            ]}>
+            <InterestFinder
+              interests={feedPreferences.interests}
+              onInterestSelected={interestSelected}
+              onInterestDeselected={interestDeselected}
+              searchInputRef={searchInputRef}
+            />
+          </Animated.View>
+        </View>
+      </Modal>
     </Layout.Screen>
   )
 }

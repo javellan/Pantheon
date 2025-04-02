@@ -8,6 +8,7 @@ import {getContentLanguages} from '#/state/preferences/languages'
 import {FeedParams} from '#/state/queries/post-feed'
 import {FeedTuner, FeedTunerFn} from '../feed-manip'
 import {Interest} from './interests'
+import {defaultFeedPreferences, FeedPreferences} from './preferences'
 import {FeedAPI, FeedAPIResponse, ReasonFeedSource} from './types'
 import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
 
@@ -32,31 +33,35 @@ export class MergeFlowApi implements FeedAPI {
   params: FeedParams
   feedTuners: FeedTunerFn[]
   following: MergeFlowSource_Following
-  customFeeds: MergeFlowSource_Custom[] = []
+  interestFeeds: MergeFlowSource_Custom[] = []
   trendingFeed: MergeFlowSource_Custom
   feedCursor = 0
   itemCursor = 0
   sampleCursor = 0
   sampleBatch: string[] = []
+  feedPreferences: FeedPreferences
 
   constructor({
     agent,
     feedParams,
     feedTuners,
     userInterests = [],
+    feedPreferences = defaultFeedPreferences,
     killDoomscroll,
   }: {
     agent: BskyAgent
     feedParams: FeedParams
     feedTuners: FeedTunerFn[]
     userInterests?: Interest[]
+    feedPreferences?: FeedPreferences
     killDoomscroll?: boolean
   }) {
     this.agent = agent
     this.params = feedParams
     this.feedTuners = feedTuners
     this.userInterests = userInterests
-    this.customFeeds = this._createCustomFeeds()
+    this.interestFeeds = this._createInterestFeeds()
+    this.feedPreferences = feedPreferences
 
     this.following = new MergeFlowSource_Following({
       agent: this.agent,
@@ -76,13 +81,13 @@ export class MergeFlowApi implements FeedAPI {
       agent: this.agent,
       feedTuners: this.feedTuners,
     })
-    this.customFeeds = []
+    this.interestFeeds = []
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    this.customFeeds = this._createCustomFeeds()
+    this.interestFeeds = this._createInterestFeeds()
   }
-  _createCustomFeeds() {
+  _createInterestFeeds() {
     return this.userInterests
       .flatMap(interest => getFeedUrisForInterest(interest))
       .reduce((acc, cur) => {
@@ -122,7 +127,7 @@ export class MergeFlowApi implements FeedAPI {
 
     // Load prefs-based, trending and following feeds
     const promises = []
-    for (const feed of this.customFeeds) {
+    for (const feed of this.interestFeeds) {
       if (feed.numReady < 5) {
         promises.push(feed.fetchNext(10))
       }
@@ -156,28 +161,30 @@ export class MergeFlowApi implements FeedAPI {
     const availableRightNow =
       this.following.numReady +
       this.trendingFeed.numReady +
-      this.customFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
+      this.interestFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
     if (availableRightNow < 1) {
       return []
     }
     while (true) {
       if (this.sampleBatch.length === 0) {
-        this.sampleBatch = shuffle('pppppffftt'.split(''))
+        this.sampleBatch = shuffle(
+          createWeightedFeedTypes(this.feedPreferences),
+        )
       }
       const nextSampleType = this.sampleBatch.shift() as string
       switch (nextSampleType) {
-        case 'p':
+        case 'i':
           const weightedAndShuffled = shuffle(
-            this.customFeeds.flatMap((flow, i) => {
+            this.interestFeeds.flatMap((feed, i) => {
               // If a feed has > 1 interest, take the max of the two
               const maxWeight = Math.max(
-                ...flow.userInterests.map(i => i.value),
+                ...feed.userInterests.map(i => i.value),
               )
               return Array(Math.round(maxWeight)).fill(i)
             }),
           )
           for (const feedIndex of weightedAndShuffled) {
-            const cf = this.customFeeds[feedIndex]
+            const cf = this.interestFeeds[feedIndex]
             if (cf.numReady > 0) {
               return cf.take(1)
             }
@@ -199,6 +206,37 @@ export class MergeFlowApi implements FeedAPI {
       }
     }
   }
+}
+
+function createWeightedFeedTypes(feedPreferences: FeedPreferences): string[] {
+  // Extract weights for 'i', 'f', and 't' from feedPreferences.feedTypes
+  const weights = feedPreferences.feedTypes.reduce(
+    (acc, feedType) => {
+      const typeMap: Record<string, keyof typeof acc> = {
+        trending: 't',
+        following: 'f',
+        interests: 'i',
+      }
+
+      const key = typeMap[feedType.id]
+      if (!key) {
+        throw new Error(`Unknown feed type: ${feedType.id}`)
+      }
+
+      acc[key] = feedType.weight
+      return acc
+    },
+    {i: 5, f: 3, t: 2}, // Default weights
+  )
+  const totalWeight = weights.i + weights.f + weights.t
+  const fCount = Math.round((weights.f / totalWeight) * 10)
+  const tCount = Math.round((weights.t / totalWeight) * 10)
+  const iCount = 10 - fCount - tCount
+  return [
+    ...Array(iCount).fill('i'),
+    ...Array(fCount).fill('f'),
+    ...Array(tCount).fill('t'),
+  ]
 }
 
 class MergeFlowSource {

@@ -24,8 +24,15 @@ import {Interest} from '#/lib/api/feed/interests'
 import {LikesFeedAPI} from '#/lib/api/feed/likes'
 import {ListFeedAPI} from '#/lib/api/feed/list'
 import {MergeFeedAPI} from '#/lib/api/feed/merge'
+import {
+  defaultFeedPreferences,
+  FeedPreferences,
+} from '#/lib/api/feed/preferences'
 import {FeedAPI, ReasonFeedSource} from '#/lib/api/feed/types'
-import {aggregateUserInterests} from '#/lib/api/feed/utils'
+import {
+  aggregateFeedPreferences,
+  aggregateUserInterests,
+} from '#/lib/api/feed/utils'
 import {FeedTuner, FeedTunerFn} from '#/lib/api/feed-manip'
 import {BSKY_FEED_OWNER_DIDS, DISCOVER_FEED_URI} from '#/lib/constants'
 import {moderatePost_wrapped as moderatePost} from '#/lib/moderatePost_wrapped'
@@ -131,6 +138,7 @@ export function usePostFeedQuery(
   const {data: preferences} = usePreferencesQuery()
   const enabled =
     opts?.enabled !== false && Boolean(moderationOpts) && Boolean(preferences)
+  const feedPreferences = aggregateFeedPreferences()
   const userInterests = aggregateUserInterests(preferences)
   const followingPinnedIndex =
     preferences?.savedFeeds?.findIndex(
@@ -185,6 +193,7 @@ export function usePostFeedQuery(
               agent,
               // Not in the query key because they don't change:
               userInterests,
+              feedPreferences,
               // Not in the query key. Reacting to it switching isn't important:
               enableFollowingToDiscoverFallback,
             }),
@@ -443,6 +452,7 @@ function createApi({
   feedParams,
   feedTuners,
   userInterests = [],
+  feedPreferences = defaultFeedPreferences,
   agent,
   enableFollowingToDiscoverFallback,
 }: {
@@ -450,6 +460,7 @@ function createApi({
   feedParams: FeedParams
   feedTuners: FeedTunerFn[]
   userInterests: Interest[]
+  feedPreferences: FeedPreferences
   agent: BskyAgent
   enableFollowingToDiscoverFallback: boolean
 }) {
@@ -462,6 +473,7 @@ function createApi({
       feedParams,
       feedTuners,
       userInterests,
+      feedPreferences,
     })
   }
   if (feedDesc === 'following') {
