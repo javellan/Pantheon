@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {runOnJS} from 'react-native-reanimated'
@@ -11,6 +11,7 @@ import {
 } from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
 
+import {getFeedPreferences} from '#/lib/api/feed/utils'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {ScrollProvider} from '#/lib/ScrollContext'
 import {cleanError} from '#/lib/strings/errors'
@@ -53,6 +54,7 @@ export function ClearlightFeed({
   const opts = useMemo(() => ({enabled}), [enabled])
   const feedFeedback = useFeedFeedback(feed, hasSession)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const lastFeedRefreshTime = useRef<number>(Date.now())
 
   const {
     data,
@@ -114,6 +116,17 @@ export function ClearlightFeed({
       refetch()
     }
   }, [refetch, players, isPageFocused])
+
+  //If the user has updated their preferences, we need to refetch the feed
+  useFocusEffect(
+    useCallback(() => {
+      const feedPrefs = getFeedPreferences()
+      if (feedPrefs.lastUpdated > lastFeedRefreshTime.current) {
+        lastFeedRefreshTime.current = feedPrefs.lastUpdated
+        doRefresh()
+      }
+    }, [doRefresh]),
+  )
 
   const [isScrolling, setIsScrolling] = useState(false)
   const renderItem: ListRenderItem<VideoItem> = useCallback(

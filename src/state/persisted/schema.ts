@@ -145,6 +145,7 @@ const schema = z.object({
           }),
         )
         .optional(),
+      lastUpdated: z.number(),
     })
     .optional(),
 })

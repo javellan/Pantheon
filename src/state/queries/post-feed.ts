@@ -29,10 +29,7 @@ import {
   FeedPreferences,
 } from '#/lib/api/feed/preferences'
 import {FeedAPI, ReasonFeedSource} from '#/lib/api/feed/types'
-import {
-  aggregateFeedPreferences,
-  aggregateUserInterests,
-} from '#/lib/api/feed/utils'
+import {aggregateUserInterests, getFeedPreferences} from '#/lib/api/feed/utils'
 import {FeedTuner, FeedTunerFn} from '#/lib/api/feed-manip'
 import {BSKY_FEED_OWNER_DIDS, DISCOVER_FEED_URI} from '#/lib/constants'
 import {moderatePost_wrapped as moderatePost} from '#/lib/moderatePost_wrapped'
@@ -138,7 +135,7 @@ export function usePostFeedQuery(
   const {data: preferences} = usePreferencesQuery()
   const enabled =
     opts?.enabled !== false && Boolean(moderationOpts) && Boolean(preferences)
-  const feedPreferences = aggregateFeedPreferences()
+  const feedPreferences = getFeedPreferences()
   const userInterests = aggregateUserInterests(preferences)
   const followingPinnedIndex =
     preferences?.savedFeeds?.findIndex(

@@ -1,4 +1,4 @@
-import {defaultInterests,Interest} from './interests'
+import {defaultInterests, Interest} from './interests'
 
 export type FeedType = {
   id: 'trending' | 'following' | 'interests'
@@ -10,6 +10,7 @@ export type FeedType = {
 export type FeedPreferences = {
   feedTypes: FeedType[]
   interests: Interest[]
+  lastUpdated: number
 }
 
 export const defaultFeedPreferences: FeedPreferences = {
@@ -34,4 +35,5 @@ export const defaultFeedPreferences: FeedPreferences = {
     },
   ],
   interests: defaultInterests,
+  lastUpdated: 0,
 }

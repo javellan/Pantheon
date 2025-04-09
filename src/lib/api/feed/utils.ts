@@ -4,7 +4,7 @@ import {BSKY_FEED_OWNER_DIDS} from '#/lib/constants'
 import {isWeb} from '#/platform/detection'
 import * as persisted from '#/state/persisted'
 import {UsePreferencesQueryResponse} from '#/state/queries/preferences'
-import {defaultInterests,Interest} from './interests'
+import {defaultInterests, Interest} from './interests'
 import {defaultFeedPreferences, FeedPreferences} from './preferences'
 
 let debugTopics = ''
@@ -21,7 +21,27 @@ export function createBskyTopicsHeader(userInterests: Interest[] = []) {
 }
 export const FEED_PREFERENCES = 'feedPreferences'
 
-export function aggregateFeedPreferences() {
+export function getFeedPreferences(): FeedPreferences {
+  const storedFeedPreferences = (persisted.get(FEED_PREFERENCES) ||
+    []) as FeedPreferences
+  const hydratedInterests = storedFeedPreferences.interests.map(
+    (interest: Interest) => {
+      return {
+        ...defaultFeedPreferences.interests.find(
+          (defaultInterest: Interest) => defaultInterest.id === interest.id,
+        ),
+        ...interest,
+      }
+    },
+  )
+  return {
+    ...defaultFeedPreferences,
+    ...storedFeedPreferences,
+    interests: hydratedInterests,
+  }
+}
+
+export function mergedUserAndDefaultFeedPreferences() {
   const storedFeedPreferences = (persisted.get(FEED_PREFERENCES) ||
     []) as FeedPreferences
 
@@ -35,13 +55,12 @@ export function aggregateFeedPreferences() {
       ? {...interest, value: userInterest.value, selected: true}
       : interest
   })
-  const mergedFeedPreferences: FeedPreferences = {
+
+  return {
     ...defaultFeedPreferences,
     ...storedFeedPreferences,
     interests: mergedInterests,
   }
-
-  return mergedFeedPreferences
 }
 
 export function aggregateUserInterests(

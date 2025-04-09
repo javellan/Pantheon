@@ -1,4 +1,4 @@
-import {useEffect, useRef,useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import React from 'react'
 import {
   Animated,
@@ -22,7 +22,10 @@ import {
   FeedPreferences,
   FeedType,
 } from '#/lib/api/feed/preferences'
-import {aggregateFeedPreferences, FEED_PREFERENCES} from '#/lib/api/feed/utils'
+import {
+  FEED_PREFERENCES,
+  mergedUserAndDefaultFeedPreferences,
+} from '#/lib/api/feed/utils'
 import {CommonNavigatorParams} from '#/lib/routes/types'
 import * as persisted from '#/state/persisted'
 import {List} from '#/view/com/util/List'
@@ -50,7 +53,7 @@ export function AlgorithmTweaksScreen({}: Props) {
   useEffect(() => {
     const fetchPrefs = async () => {
       try {
-        const prefs = aggregateFeedPreferences()
+        const prefs = mergedUserAndDefaultFeedPreferences()
         setFeedPreferences(prefs)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
@@ -203,7 +206,7 @@ export function AlgorithmTweaksScreen({}: Props) {
             trackStyle={styles.sliderTrack}
             containerStyle={styles.feedTypeSliderContainer}
             minimumTrackStyle={styles.sliderMinimumTrack}
-            minimumValue={1}
+            minimumValue={0}
             maximumValue={10}
             value={item.weight}
             step={1}
@@ -250,6 +253,7 @@ export function AlgorithmTweaksScreen({}: Props) {
     persisted.write(FEED_PREFERENCES, {
       ...feedPreferences,
       interests: strippedInterests,
+      lastUpdated: Date.now(),
     })
     setIsDirty(false)
   }
@@ -351,7 +355,10 @@ export function AlgorithmTweaksScreen({}: Props) {
             <Trans>Your Interests</Trans>
           </Text>
         </View>
-        <TouchableOpacity accessibilityRole="button" activeOpacity={1} onPress={onAddInterestFocus}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={1}
+          onPress={onAddInterestFocus}>
           <SearchInput
             placeholder={t`Add interest`}
             editable={false}
@@ -372,7 +379,9 @@ export function AlgorithmTweaksScreen({}: Props) {
         transparent={true}
         animationType="none"
         statusBarTranslucent={true}>
-        <TouchableWithoutFeedback accessibilityRole="button" onPress={closeModal}>
+        <TouchableWithoutFeedback
+          accessibilityRole="button"
+          onPress={closeModal}>
           <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}} />
         </TouchableWithoutFeedback>
         <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
