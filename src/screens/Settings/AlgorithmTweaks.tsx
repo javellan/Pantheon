@@ -370,12 +370,25 @@ export function AlgorithmTweaksScreen({}: Props) {
         </Layout.Header.Outer>
       </Layout.Center>
       <View style={{paddingHorizontal: 20, opacity: isModalVisible ? 0 : 1}}>
-        <View onLayout={onAboveInterestLayout}>
-          <List
-            data={feedPreferences.feedTypes}
-            renderItem={FeedTypeRenderer}
-            scrollEnabled={false}
-            keyExtractor={item => item.id}
+        <List
+          data={feedPreferences.feedTypes}
+          renderItem={FeedTypeRenderer}
+          scrollEnabled={false}
+          keyExtractor={item => item.id}
+        />
+        <View style={styles.interestsTitle}>
+          <Text style={[a.font_bold, a.text_md, a.mb_md]}>
+            <Trans>Your Interests</Trans>
+          </Text>
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={1}
+          onPress={onAddInterestFocus}>
+          <SearchInput
+            placeholder={t`Add interest`}
+            editable={false}
+            pointerEvents="none"
           />
           <View style={styles.interestsTitle}>
             <Text style={[a.font_bold, a.text_md, a.mb_md]}>

@@ -21,10 +21,6 @@ export function createBskyTopicsHeader(userInterests: Interest[] = []) {
 }
 export const FEED_PREFERENCES = 'feedPreferences'
 
-export function getFeedPreferencesLastUpdated() {
-  return persisted.get(FEED_PREFERENCES)?.lastUpdated || 0
-}
-
 export function getFeedPreferences(): FeedPreferences {
   const storedFeedPreferences = (persisted.get(FEED_PREFERENCES) ||
     []) as FeedPreferences
