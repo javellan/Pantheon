@@ -3,6 +3,7 @@ import React from 'react'
 import {
   Animated,
   Easing,
+  LayoutChangeEvent,
   Modal,
   StyleSheet,
   TextInput,
@@ -10,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native'
+import {Dimensions} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
 import {t, Trans} from '@lingui/macro'
 import {Slider} from '@miblanchard/react-native-slider'
@@ -48,7 +50,9 @@ export function AlgorithmTweaksScreen({}: Props) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const interestDrawerSlideUp = useRef(new Animated.Value(0)).current
   const searchInputRef = useRef<TextInput>(null)
-
+  const {height: screenHeight} = Dimensions.get('window')
+  const [aboveInterestHeight, setAboveInterestHeight] = useState(0)
+  const [headerHeight, setHeaderHeight] = useState(0)
   const theme = useTheme()
   useEffect(() => {
     const fetchPrefs = async () => {
@@ -317,9 +321,17 @@ export function AlgorithmTweaksScreen({}: Props) {
     ],
   }
 
+  function onHeaderLayout(event: LayoutChangeEvent): void {
+    setHeaderHeight(event.nativeEvent.layout.height)
+  }
+
+  function onAboveInterestLayout(event: LayoutChangeEvent): void {
+    setAboveInterestHeight(event.nativeEvent.layout.height)
+  }
+
   return (
     <Layout.Screen testID="FeedsScreen">
-      <Layout.Center>
+      <Layout.Center onLayout={onHeaderLayout}>
         <Layout.Header.Outer>
           <Layout.Header.BackButton />
           <Layout.Header.SubtitleText>Back</Layout.Header.SubtitleText>
@@ -344,32 +356,36 @@ export function AlgorithmTweaksScreen({}: Props) {
         </Layout.Header.Outer>
       </Layout.Center>
       <View style={{paddingHorizontal: 20, opacity: isModalVisible ? 0 : 1}}>
-        <List
-          data={feedPreferences.feedTypes}
-          renderItem={FeedTypeRenderer}
-          scrollEnabled={false}
-          keyExtractor={item => item.id}
-        />
-        <View style={styles.interestsTitle}>
-          <Text style={[a.font_bold, a.text_md, a.mb_md]}>
-            <Trans>Your Interests</Trans>
-          </Text>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={1}
-          onPress={onAddInterestFocus}>
-          <SearchInput
-            placeholder={t`Add interest`}
-            editable={false}
-            pointerEvents="none"
+        <View onLayout={onAboveInterestLayout}>
+          <List
+            data={feedPreferences.feedTypes}
+            renderItem={FeedTypeRenderer}
+            scrollEnabled={false}
+            keyExtractor={item => item.id}
           />
-        </TouchableOpacity>
+          <View style={styles.interestsTitle}>
+            <Text style={[a.font_bold, a.text_md, a.mb_md]}>
+              <Trans>Your Interests</Trans>
+            </Text>
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            activeOpacity={1}
+            onPress={onAddInterestFocus}>
+            <SearchInput
+              placeholder={t`Add interest`}
+              editable={false}
+              pointerEvents="none"
+            />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={feedPreferences.interests.filter(interest => interest.selected)}
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
-          style={{height: 340}}
+          style={{
+            height: screenHeight - headerHeight - aboveInterestHeight - 140,
+          }}
         />
       </View>
 
