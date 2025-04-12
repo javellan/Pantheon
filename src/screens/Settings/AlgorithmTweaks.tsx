@@ -370,25 +370,12 @@ export function AlgorithmTweaksScreen({}: Props) {
         </Layout.Header.Outer>
       </Layout.Center>
       <View style={{paddingHorizontal: 20, opacity: isModalVisible ? 0 : 1}}>
-        <List
-          data={feedPreferences.feedTypes}
-          renderItem={FeedTypeRenderer}
-          scrollEnabled={false}
-          keyExtractor={item => item.id}
-        />
-        <View style={styles.interestsTitle}>
-          <Text style={[a.font_bold, a.text_md, a.mb_md]}>
-            <Trans>Your Interests</Trans>
-          </Text>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={1}
-          onPress={onAddInterestFocus}>
-          <SearchInput
-            placeholder={t`Add interest`}
-            editable={false}
-            pointerEvents="none"
+        <View onLayout={onAboveInterestLayout}>
+          <List
+            data={feedPreferences.feedTypes}
+            renderItem={FeedTypeRenderer}
+            scrollEnabled={false}
+            keyExtractor={item => item.id}
           />
           <View style={styles.interestsTitle}>
             <Text style={[a.font_bold, a.text_md, a.mb_md]}>
@@ -411,7 +398,6 @@ export function AlgorithmTweaksScreen({}: Props) {
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
           style={{
-            paddingTop: 15,
             height: screenHeight - headerHeight - aboveInterestHeight - 140,
           }}
         />

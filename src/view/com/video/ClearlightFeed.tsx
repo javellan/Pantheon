@@ -12,7 +12,10 @@ import {
 import {useFocusEffect} from '@react-navigation/native'
 
 import {useEnableKeyboardControllerScreen} from '#/lib/hooks/useEnableKeyboardController'
-import {getFeedPreferences} from '#/lib/api/feed/utils'
+import {
+  getFeedPreferences,
+  getFeedPreferencesLastUpdated,
+} from '#/lib/api/feed/utils'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {ScrollProvider} from '#/lib/ScrollContext'
 import {cleanError} from '#/lib/strings/errors'
@@ -127,9 +130,9 @@ export function ClearlightFeed({
   //If the user has updated their preferences, we need to refetch the feed
   useFocusEffect(
     useCallback(() => {
-      const feedPrefs = getFeedPreferences()
-      if (feedPrefs.lastUpdated > lastFeedRefreshTime.current) {
-        lastFeedRefreshTime.current = feedPrefs.lastUpdated
+      const feedPrefsLastUpdated = getFeedPreferencesLastUpdated()
+      if (feedPrefsLastUpdated > lastFeedRefreshTime.current) {
+        lastFeedRefreshTime.current = feedPrefsLastUpdated
         doRefresh()
       }
     }, [doRefresh]),
