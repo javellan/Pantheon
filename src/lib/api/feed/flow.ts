@@ -165,7 +165,7 @@ export class MergeFlowApi implements FeedAPI {
 
   sampleItem(): AppBskyFeedDefs.FeedViewPost | null {
     // If there are no available feeds, we need to skip the while loop
-    // below, otherwise it will the loop will be infinite and the client
+    // below, otherwise the loop will be infinite and the client
     // process will be blocked indefinitely, preventing further attempts
     // to fetch from those feeds and correct the problem
     const feedPreferences = getFeedPreferences()
@@ -198,7 +198,7 @@ export class MergeFlowApi implements FeedAPI {
       // configuration the user has chosen and we should stop trying
       // to sample.  For now, this falls back to the trending feed,
       // because the user can have interest feeds that are empty, and
-      // not be following anyone, but trending will always have conten
+      // not be following anyone, but trending will always have content
       const samplingTimeExpired = Date.now() - startTime > 10000
       const nextSampleType = samplingTimeExpired
         ? 't'
