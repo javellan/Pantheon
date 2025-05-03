@@ -44,8 +44,6 @@ export function useFeedFeedback(feed: FeedDescriptor, hasSession: boolean) {
   )
 
   const sendToFeedNoDelay = React.useCallback(() => {
-    if (Date.now() > 0) return
-
     const interactions = Array.from(queue.current).map(toInteraction)
     queue.current.clear()
 
