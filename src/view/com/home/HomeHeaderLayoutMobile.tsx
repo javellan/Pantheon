@@ -1,16 +1,16 @@
 import React from 'react'
 import Animated from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-
-import {atoms as a, useTheme} from '#/alf'
-import * as Layout from '#/components/Layout'
-import {Link} from '#/components/Link'
-import {HITSLOP_10} from '#/lib/constants'
-import {useMinimalShellHeaderTransform} from '#/lib/hooks/useMinimalShellTransform'
-import {useShellLayout} from '#/state/shell/shell-layout'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {Hash} from 'lucide-react-native'
+
+import {HITSLOP_10} from '#/lib/constants'
+import {useMinimalShellHeaderTransform} from '#/lib/hooks/useMinimalShellTransform'
+import {useShellLayout} from '#/state/shell/shell-layout'
+import {atoms as a, useTheme} from '#/alf'
+import * as Layout from '#/components/Layout'
+import {Link} from '#/components/Link'
 
 export function HomeHeaderLayoutMobile({
   children,

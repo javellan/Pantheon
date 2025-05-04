@@ -1,3 +1,6 @@
+import React, {useCallback, useMemo} from 'react'
+import {StyleSheet} from 'react-native'
+import {SafeAreaView} from 'react-native-safe-area-context'
 import {
   AppBskyActorDefs,
   moderateProfile,
@@ -8,23 +11,12 @@ import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect} from '@react-navigation/native'
 import {useQueryClient} from '@tanstack/react-query'
-import React, {useCallback, useMemo} from 'react'
-import {StyleSheet} from 'react-native'
-import {SafeAreaView} from 'react-native-safe-area-context'
 
-import {atoms as a} from '#/alf'
-import * as Layout from '#/components/Layout'
-import {ScreenHider} from '#/components/moderation/ScreenHider'
-import {ProfileStarterPacks} from '#/components/StarterPack/ProfileStarterPacks'
 import {useSetTitle} from '#/lib/hooks/useSetTitle'
 import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
 import {combinedDisplayName} from '#/lib/strings/display-names'
 import {cleanError} from '#/lib/strings/errors'
 import {colors} from '#/lib/styles'
-import {navigate} from '#/Navigation'
-import {ProfileHeader, ProfileHeaderLoading} from '#/screens/Profile/Header'
-import {ProfileFeedSection} from '#/screens/Profile/Sections/Feed'
-import {ProfileLabelsSection} from '#/screens/Profile/Sections/Labels'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
 import {listenSoftReset} from '#/state/events'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
@@ -34,12 +26,19 @@ import {useProfileQuery} from '#/state/queries/profile'
 import {useResolveDidQuery} from '#/state/queries/resolve-uri'
 import {useAgent, useSession} from '#/state/session'
 import {useSetMinimalShellMode} from '#/state/shell'
-import {useComposerControls} from '#/state/shell/composer'
 import {ProfileFeedgens} from '#/view/com/feeds/ProfileFeedgens'
 import {ProfileLists} from '#/view/com/lists/ProfileLists'
 import {PagerWithHeader} from '#/view/com/pager/PagerWithHeader'
 import {ErrorScreen} from '#/view/com/util/error/ErrorScreen'
 import {ListRef} from '#/view/com/util/List'
+import {ProfileHeader, ProfileHeaderLoading} from '#/screens/Profile/Header'
+import {ProfileFeedSection} from '#/screens/Profile/Sections/Feed'
+import {ProfileLabelsSection} from '#/screens/Profile/Sections/Labels'
+import {atoms as a} from '#/alf'
+import * as Layout from '#/components/Layout'
+import {ScreenHider} from '#/components/moderation/ScreenHider'
+import {ProfileStarterPacks} from '#/components/StarterPack/ProfileStarterPacks'
+import {navigate} from '#/Navigation'
 import {ExpoScrollForwarderView} from '../../../modules/expo-scroll-forwarder'
 
 interface SectionRef {
@@ -162,7 +161,6 @@ function ProfileScreenLoaded({
   const profile = useProfileShadow(profileUnshadowed)
   const {hasSession, currentAccount} = useSession()
   const setMinimalShellMode = useSetMinimalShellMode()
-  const {openComposer} = useComposerControls()
   const {
     data: labelerInfo,
     error: labelerError,

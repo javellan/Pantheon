@@ -1,8 +1,11 @@
-import {msg, plural, Trans} from '@lingui/macro'
-import {useLingui} from '@lingui/react'
 import React, {memo, useCallback} from 'react'
 import {View} from 'react-native'
+import {msg, plural, Trans} from '@lingui/macro'
+import {useLingui} from '@lingui/react'
 
+import {POST_CTRL_HITSLOP} from '#/lib/constants'
+import {useHaptics} from '#/lib/haptics'
+import {useRequireAuth} from '#/state/session'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import * as Dialog from '#/components/Dialog'
@@ -10,9 +13,6 @@ import {CloseQuote_Stroke2_Corner1_Rounded as Quote} from '#/components/icons/Qu
 import {Repost_Stroke2_Corner2_Rounded as Repost} from '#/components/icons/Repost'
 import {RepostIcon} from '#/components/tao-icons/Repost'
 import {Text} from '#/components/Typography'
-import {POST_CTRL_HITSLOP} from '#/lib/constants'
-import {useHaptics} from '#/lib/haptics'
-import {useRequireAuth} from '#/state/session'
 import {formatCount} from '../../../util/numeric/format'
 
 interface Props {
@@ -20,7 +20,6 @@ interface Props {
   repostCount?: number
   onRepost: () => void
   onQuote: () => void
-  big?: boolean
   embeddingDisabled: boolean
 }
 
@@ -29,7 +28,6 @@ let RepostButton = ({
   repostCount,
   onRepost,
   onQuote,
-  big,
   embeddingDisabled,
 }: Props): React.ReactNode => {
   const t = useTheme()
@@ -90,12 +88,7 @@ let RepostButton = ({
         {typeof repostCount !== 'undefined' ? (
           <Text
             testID="repostCount"
-            style={[
-              color,
-              a.text_sm,
-              a.text_shadow_dark_sharp,
-              isReposted && a.font_bold,
-            ]}>
+            style={[color, a.text_sm, a.font_bold, a.text_shadow_dark_sharp]}>
             {formatCount(i18n, repostCount)}
           </Text>
         ) : undefined}

@@ -1,8 +1,8 @@
-import {AppBskyEmbedVideo} from '@atproto/api'
 import {Image, ImageStyle} from 'expo-image'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {AppBskyEmbedVideo} from '@atproto/api'
 
 import {atoms as a} from '#/alf'
+import {fit} from './VideoItemInner'
 
 export function VideoItemPlaceholder({
   embed,
@@ -13,7 +13,6 @@ export function VideoItemPlaceholder({
   style?: ImageStyle
   blur?: boolean
 }) {
-  const {bottom} = useSafeAreaInsets()
   const src = embed.thumbnail
   return src ? (
     <Image
@@ -27,11 +26,11 @@ export function VideoItemPlaceholder({
               top: 0,
               left: 0,
               right: 0,
-              bottom: bottom,
+              bottom: 0,
             },
         style,
       ]}
-      contentFit={blur ? 'cover' : 'contain'}
+      contentFit={blur ? 'cover' : fit(embed)}
       blurRadius={blur ? 100 : 0}
     />
   ) : null

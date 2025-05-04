@@ -18,8 +18,10 @@ import {
 import {ComposerImage, createInitialImages} from '#/state/gallery'
 import {createPostgateRecord} from '#/state/queries/postgate/util'
 import {Gif} from '#/state/queries/tenor'
-import {threadgateRecordToAllowUISetting} from '#/state/queries/threadgate'
-import {ThreadgateAllowUISetting} from '#/state/queries/threadgate'
+import {
+  ThreadgateAllowUISetting,
+  threadgateRecordToAllowUISetting,
+} from '#/state/queries/threadgate'
 import {ComposerOpts} from '#/state/shell/composer'
 import {
   LinkFacetMatch,
@@ -614,6 +616,6 @@ export function createComposerState({
   }
 }
 
-function getShortenedLength(rt: RichText) {
+export function getShortenedLength(rt: RichText) {
   return shortenLinks(rt).graphemeLength
 }
