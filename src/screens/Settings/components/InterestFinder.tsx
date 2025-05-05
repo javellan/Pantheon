@@ -59,6 +59,7 @@ export function InterestFinder({
   const interestStyles = StyleSheet.create({
     container: {
       paddingVertical: 4,
+      width: '100%',
     },
     icon: {
       paddingTop: 10,
@@ -67,7 +68,8 @@ export function InterestFinder({
     },
     title: {},
     description: {
-      width: 300,
+      flex: 1,
+      width: '100%',
     },
   })
 
@@ -77,16 +79,17 @@ export function InterestFinder({
       <View style={interestStyles.container}>
         <View style={{flexDirection: 'row'}}>
           <View style={interestStyles.icon}>{Icon && <Icon size="2xl" />}</View>
-          <View>
+          <View style={{flex: 1}}>
             <FeedCard.TitleAndByline title={interest.name} />
             <FeedCard.Description
               description={interest.description}
               style={interestStyles.description}
             />
           </View>
-          <View style={{flexGrow: 1, paddingTop: 14}}>
+          <View style={{flexShrink: 0, paddingTop: 14}}>
             {interest.selected ? (
-              <TouchableOpacity accessibilityRole="button"
+              <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => {
                   setFilteredInterests(
                     filteredInterests.map(i => {
@@ -98,7 +101,8 @@ export function InterestFinder({
                 <Trash_Stroke2_Corner0_Rounded width={24} height={24} />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity accessibilityRole="button"
+              <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => {
                   setFilteredInterests(
                     filteredInterests.map(i => {

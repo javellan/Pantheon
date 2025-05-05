@@ -108,7 +108,8 @@ export function AlgorithmTweaksScreen({}: Props) {
 
   const styles = StyleSheet.create({
     feedTypeRenderer: {
-      paddingVertical: 18,
+      paddingVertical: 4,
+      width: '100%',
     },
     feedTypeTitle: {
       flexDirection: 'row',
@@ -116,13 +117,14 @@ export function AlgorithmTweaksScreen({}: Props) {
     },
     feedTypeTitleText: {
       flex: 0,
-      width: 100,
       paddingLeft: 8,
       fontSize: 16,
       fontWeight: '600',
     },
 
-    topicRenderer: {},
+    topicRenderer: {
+      width: '100%',
+    },
     topicTitle: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -136,6 +138,7 @@ export function AlgorithmTweaksScreen({}: Props) {
     sliderView: {
       flex: 1,
       marginLeft: 10,
+      width: '100%',
     },
     sliderThumb: {
       width: 16,
@@ -150,6 +153,18 @@ export function AlgorithmTweaksScreen({}: Props) {
       height: 3,
       backgroundColor: '#FFF',
       borderRadius: 10,
+    },
+    modalContent: {
+      flex: 1,
+      width: '100%',
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: theme.atoms.bg.backgroundColor,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      padding: 20,
     },
     feedTypeSliderContainer: {},
     interestSliderContainer: {},
@@ -181,7 +196,6 @@ export function AlgorithmTweaksScreen({}: Props) {
       paddingRight: 30,
     },
     interestsTitle: {
-      paddingTop: 20,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -384,6 +398,7 @@ export function AlgorithmTweaksScreen({}: Props) {
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
           style={{
+            paddingTop: 15,
             height: screenHeight - headerHeight - aboveInterestHeight - 140,
           }}
         />
@@ -401,20 +416,7 @@ export function AlgorithmTweaksScreen({}: Props) {
           <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}} />
         </TouchableWithoutFeedback>
         <View style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: theme.atoms.bg.backgroundColor,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
-                padding: 20,
-              },
-              slideUpStyle,
-            ]}>
+          <Animated.View style={[slideUpStyle, styles.modalContent]}>
             <InterestFinder
               interests={feedPreferences.interests}
               onInterestSelected={interestSelected}
