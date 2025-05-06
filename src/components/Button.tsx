@@ -1,4 +1,3 @@
-import {LinearGradient} from 'expo-linear-gradient'
 import React from 'react'
 import {
   AccessibilityProps,
@@ -15,6 +14,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 
 import {atoms as a, flatten, select, tokens, useTheme} from '#/alf'
 import {Props as SVGIconProps} from '#/components/icons/common'

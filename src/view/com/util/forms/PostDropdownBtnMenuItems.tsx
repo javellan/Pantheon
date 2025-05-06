@@ -31,8 +31,11 @@ import {isWeb} from '#/platform/detection'
 import {Shadow} from '#/state/cache/post-shadow'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
-import {useLanguagePrefs} from '#/state/preferences'
-import {useHiddenPosts, useHiddenPostsApi} from '#/state/preferences'
+import {
+  useHiddenPosts,
+  useHiddenPostsApi,
+  useLanguagePrefs,
+} from '#/state/preferences'
 import {useDevModeEnabled} from '#/state/preferences/dev-mode'
 import {usePinnedPostMutation} from '#/state/queries/pinned-post'
 import {
@@ -57,27 +60,7 @@ import {
   usePrefetchPostInteractionSettings,
 } from '#/components/dialogs/PostInteractionSettingsDialog'
 import {SendViaChatDialog} from '#/components/dms/dialogs/ShareViaChatDialog'
-import {ArrowOutOfBox_Stroke2_Corner0_Rounded as Share} from '#/components/icons/ArrowOutOfBox'
-import {BubbleQuestion_Stroke2_Corner0_Rounded as Translate} from '#/components/icons/Bubble'
-import {Clipboard_Stroke2_Corner2_Rounded as ClipboardIcon} from '#/components/icons/Clipboard'
 import {CodeBrackets_Stroke2_Corner0_Rounded as CodeBrackets} from '#/components/icons/CodeBrackets'
-import {
-  EmojiSad_Stroke2_Corner0_Rounded as EmojiSad,
-  EmojiSmile_Stroke2_Corner0_Rounded as EmojiSmile,
-} from '#/components/icons/Emoji'
-import {Eye_Stroke2_Corner0_Rounded as Eye} from '#/components/icons/Eye'
-import {EyeSlash_Stroke2_Corner0_Rounded as EyeSlash} from '#/components/icons/EyeSlash'
-import {Filter_Stroke2_Corner0_Rounded as Filter} from '#/components/icons/Filter'
-import {Mute_Stroke2_Corner0_Rounded as MuteIcon} from '#/components/icons/Mute'
-import {Mute_Stroke2_Corner0_Rounded as Mute} from '#/components/icons/Mute'
-import {PaperPlane_Stroke2_Corner0_Rounded as Send} from '#/components/icons/PaperPlane'
-import {PersonX_Stroke2_Corner0_Rounded as PersonX} from '#/components/icons/Person'
-import {Pin_Stroke2_Corner0_Rounded as PinIcon} from '#/components/icons/Pin'
-import {SettingsGear2_Stroke2_Corner0_Rounded as Gear} from '#/components/icons/SettingsGear2'
-import {SpeakerVolumeFull_Stroke2_Corner0_Rounded as UnmuteIcon} from '#/components/icons/Speaker'
-import {SpeakerVolumeFull_Stroke2_Corner0_Rounded as Unmute} from '#/components/icons/Speaker'
-import {Trash_Stroke2_Corner0_Rounded as Trash} from '#/components/icons/Trash'
-import {Warning_Stroke2_Corner0_Rounded as Warning} from '#/components/icons/Warning'
 import {Loader} from '#/components/Loader'
 import * as Menu from '#/components/Menu'
 import {
@@ -85,6 +68,22 @@ import {
   useReportDialogControl,
 } from '#/components/moderation/ReportDialog'
 import * as Prompt from '#/components/Prompt'
+import {CopyIcon} from '#/components/tao-icons/Copy'
+import {EyeIcon} from '#/components/tao-icons/Eye'
+import {EyeOffIcon} from '#/components/tao-icons/EyeOff'
+import {FilterIcon} from '#/components/tao-icons/Filter'
+import {FrownIcon} from '#/components/tao-icons/Frown'
+import {MuteIcon} from '#/components/tao-icons/Mute'
+import {PersonXIcon} from '#/components/tao-icons/PersonX'
+import {PinIcon} from '#/components/tao-icons/Pin'
+import {SendIcon} from '#/components/tao-icons/Send'
+import {SettingsIcon} from '#/components/tao-icons/Settings'
+import {ShareIcon} from '#/components/tao-icons/Share'
+import {SmileIcon} from '#/components/tao-icons/Smile'
+import {TranslateIcon} from '#/components/tao-icons/Translate'
+import {TrashIcon} from '#/components/tao-icons/Trash'
+import {TriangleAlertIcon} from '#/components/tao-icons/TriangleAlert'
+import {UnmuteIcon} from '#/components/tao-icons/Unmute'
 import * as Toast from '../Toast'
 
 let PostDropdownMenuItems = ({
@@ -221,18 +220,18 @@ let PostDropdownMenuItems = ({
     try {
       if (isThreadMuted) {
         unmuteThread()
-        Toast.show(_(msg`You will now receive notifications for this thread`))
+        Toast.show(_(msg`You will now receive notifications for this post`))
       } else {
         muteThread()
         Toast.show(
-          _(msg`You will no longer receive notifications for this thread`),
+          _(msg`You will no longer receive notifications for this post`),
         )
       }
     } catch (e: any) {
       if (e?.name !== 'AbortError') {
-        logger.error('Failed to toggle thread mute', {message: e})
+        logger.error('Failed to toggle post notification mute', {message: e})
         Toast.show(
-          _(msg`Failed to toggle thread mute, please try again`),
+          _(msg`Failed to toggle post notification mute, please try again`),
           'xmark',
         )
       }
@@ -448,22 +447,23 @@ let PostDropdownMenuItems = ({
             <>
               <Menu.Item
                 testID="postDropdownTranslateBtn"
-                label={_(msg`Translate`)}
+                label={_(msg`Translate post description`)}
                 onPress={onPressTranslate}>
-                <Menu.ItemText>{_(msg`Translate`)}</Menu.ItemText>
-                <Menu.ItemIcon icon={Translate} position="right" />
+                <Menu.ItemText>
+                  {_(msg`Translate post description`)}
+                </Menu.ItemText>
+                <Menu.ItemIcon icon={TranslateIcon} position="right" />
               </Menu.Item>
 
               <Menu.Item
                 testID="postDropdownCopyTextBtn"
-                label={_(msg`Copy post text`)}
+                label={_(msg`Copy post description`)}
                 onPress={onCopyPostText}>
-                <Menu.ItemText>{_(msg`Copy post text`)}</Menu.ItemText>
-                <Menu.ItemIcon icon={ClipboardIcon} position="right" />
+                <Menu.ItemText>{_(msg`Copy post description`)}</Menu.ItemText>
+                <Menu.ItemIcon icon={CopyIcon} position="right" />
               </Menu.Item>
             </>
           )}
-
           {hasSession && (
             <Menu.Item
               testID="postDropdownSendViaDMBtn"
@@ -472,10 +472,9 @@ let PostDropdownMenuItems = ({
               <Menu.ItemText>
                 <Trans>Send via direct message</Trans>
               </Menu.ItemText>
-              <Menu.ItemIcon icon={Send} position="right" />
+              <Menu.ItemIcon icon={SendIcon} position="right" />
             </Menu.Item>
           )}
-
           <Menu.Item
             testID="postDropdownShareBtn"
             label={isWeb ? _(msg`Copy link to post`) : _(msg`Share`)}
@@ -489,7 +488,7 @@ let PostDropdownMenuItems = ({
             <Menu.ItemText>
               {isWeb ? _(msg`Copy link to post`) : _(msg`Share`)}
             </Menu.ItemText>
-            <Menu.ItemIcon icon={Share} position="right" />
+            <Menu.ItemIcon icon={ShareIcon} position="right" />
           </Menu.Item>
 
           {canEmbed && (
@@ -512,7 +511,7 @@ let PostDropdownMenuItems = ({
                 label={_(msg`Show more like this`)}
                 onPress={onPressShowMore}>
                 <Menu.ItemText>{_(msg`Show more like this`)}</Menu.ItemText>
-                <Menu.ItemIcon icon={EmojiSmile} position="right" />
+                <Menu.ItemIcon icon={SmileIcon} position="right" />
               </Menu.Item>
 
               <Menu.Item
@@ -520,7 +519,7 @@ let PostDropdownMenuItems = ({
                 label={_(msg`Show less like this`)}
                 onPress={onPressShowLess}>
                 <Menu.ItemText>{_(msg`Show less like this`)}</Menu.ItemText>
-                <Menu.ItemIcon icon={EmojiSad} position="right" />
+                <Menu.ItemIcon icon={FrownIcon} position="right" />
               </Menu.Item>
             </Menu.Group>
           </>
@@ -533,14 +532,18 @@ let PostDropdownMenuItems = ({
               <Menu.Item
                 testID="postDropdownMuteThreadBtn"
                 label={
-                  isThreadMuted ? _(msg`Unmute thread`) : _(msg`Mute thread`)
+                  isThreadMuted
+                    ? _(msg`Unmute post notifications`)
+                    : _(msg`Mute post notifications`)
                 }
                 onPress={onToggleThreadMute}>
                 <Menu.ItemText>
-                  {isThreadMuted ? _(msg`Unmute thread`) : _(msg`Mute thread`)}
+                  {isThreadMuted
+                    ? _(msg`Unmute post notifications`)
+                    : _(msg`Mute post notifications`)}
                 </Menu.ItemText>
                 <Menu.ItemIcon
-                  icon={isThreadMuted ? Unmute : Mute}
+                  icon={isThreadMuted ? UnmuteIcon : MuteIcon}
                   position="right"
                 />
               </Menu.Item>
@@ -550,7 +553,7 @@ let PostDropdownMenuItems = ({
                 label={_(msg`Mute words & tags`)}
                 onPress={() => mutedWordsDialogControl.open()}>
                 <Menu.ItemText>{_(msg`Mute words & tags`)}</Menu.ItemText>
-                <Menu.ItemIcon icon={Filter} position="right" />
+                <Menu.ItemIcon icon={FilterIcon} position="right" />
               </Menu.Item>
             </Menu.Group>
           </>
@@ -575,7 +578,7 @@ let PostDropdownMenuItems = ({
                         ? _(msg`Hide reply for me`)
                         : _(msg`Hide post for me`)}
                     </Menu.ItemText>
-                    <Menu.ItemIcon icon={EyeSlash} position="right" />
+                    <Menu.ItemIcon icon={EyeOffIcon} position="right" />
                   </Menu.Item>
                 )}
                 {canHideReplyForEveryone && (
@@ -597,7 +600,7 @@ let PostDropdownMenuItems = ({
                         : _(msg`Hide reply for everyone`)}
                     </Menu.ItemText>
                     <Menu.ItemIcon
-                      icon={isReplyHiddenByThreadgate ? Eye : EyeSlash}
+                      icon={isReplyHiddenByThreadgate ? EyeIcon : EyeOffIcon}
                       position="right"
                     />
                   </Menu.Item>
@@ -627,8 +630,8 @@ let PostDropdownMenuItems = ({
                         isDetachPending
                           ? Loader
                           : quoteEmbed.isDetached
-                          ? Eye
-                          : EyeSlash
+                          ? EyeIcon
+                          : EyeOffIcon
                       }
                       position="right"
                     />
@@ -669,7 +672,7 @@ let PostDropdownMenuItems = ({
                       label={_(msg`Block account`)}
                       onPress={() => blockPromptControl.open()}>
                       <Menu.ItemText>{_(msg`Block account`)}</Menu.ItemText>
-                      <Menu.ItemIcon icon={PersonX} position="right" />
+                      <Menu.ItemIcon icon={PersonXIcon} position="right" />
                     </Menu.Item>
                   )}
 
@@ -678,7 +681,7 @@ let PostDropdownMenuItems = ({
                     label={_(msg`Report post`)}
                     onPress={() => reportDialogControl.open()}>
                     <Menu.ItemText>{_(msg`Report post`)}</Menu.ItemText>
-                    <Menu.ItemIcon icon={Warning} position="right" />
+                    <Menu.ItemIcon icon={TriangleAlertIcon} position="right" />
                   </Menu.Item>
                 </>
               )}
@@ -702,14 +705,14 @@ let PostDropdownMenuItems = ({
                     <Menu.ItemText>
                       {_(msg`Edit interaction settings`)}
                     </Menu.ItemText>
-                    <Menu.ItemIcon icon={Gear} position="right" />
+                    <Menu.ItemIcon icon={SettingsIcon} position="right" />
                   </Menu.Item>
                   <Menu.Item
                     testID="postDropdownDeleteBtn"
                     label={_(msg`Delete post`)}
                     onPress={() => deletePromptControl.open()}>
                     <Menu.ItemText>{_(msg`Delete post`)}</Menu.ItemText>
-                    <Menu.ItemIcon icon={Trash} position="right" />
+                    <Menu.ItemIcon icon={TrashIcon} position="right" />
                   </Menu.Item>
                 </>
               )}
@@ -724,14 +727,14 @@ let PostDropdownMenuItems = ({
                     label={_(msg`Copy post at:// URI`)}
                     onPress={onShareATURI}>
                     <Menu.ItemText>{_(msg`Copy post at:// URI`)}</Menu.ItemText>
-                    <Menu.ItemIcon icon={Share} position="right" />
+                    <Menu.ItemIcon icon={ShareIcon} position="right" />
                   </Menu.Item>
                   <Menu.Item
                     testID="postAuthorDIDShareBtn"
                     label={_(msg`Copy author DID`)}
                     onPress={onShareAuthorDID}>
                     <Menu.ItemText>{_(msg`Copy author DID`)}</Menu.ItemText>
-                    <Menu.ItemIcon icon={Share} position="right" />
+                    <Menu.ItemIcon icon={ShareIcon} position="right" />
                   </Menu.Item>
                 </Menu.Group>
               </>

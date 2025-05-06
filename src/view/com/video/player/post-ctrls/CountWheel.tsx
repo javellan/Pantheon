@@ -144,6 +144,7 @@ export function CountWheel({
               a.user_select_none,
               {color: t.palette.white},
               a.text_shadow_dark_sharp,
+              a.font_bold,
               {paddingHorizontal: 2},
             ]}>
             {formattedCount}

@@ -87,13 +87,14 @@ export function Like({
 
   const btnStyle = React.useCallback(
     () => [
+      big ? a.flex_col : a.flex_row,
       a.gap_xs,
       a.justify_center,
       a.align_center,
       a.overflow_hidden,
       {padding: 5},
     ],
-    [],
+    [big],
   )
 
   return (
@@ -122,10 +123,10 @@ export function Like({
       <AnimatedLikeIcon
         isLiked={Boolean(post.viewer?.like)}
         hasBeenToggled={hasLikeIconBeenToggled}
+        big={big}
       />
       <CountWheel
         likeCount={post.likeCount ?? 0}
-        big={big}
         isLiked={Boolean(post.viewer?.like)}
         hasBeenToggled={hasLikeIconBeenToggled}
       />

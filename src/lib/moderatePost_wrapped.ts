@@ -1,4 +1,4 @@
-/* eslint-disable-next-line no-restricted-imports */
+ 
 import {BSKY_LABELER_DID, moderatePost} from '@atproto/api'
 
 type ModeratePost = typeof moderatePost

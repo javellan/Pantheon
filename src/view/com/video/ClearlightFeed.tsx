@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
-import {runOnJS} from 'react-native-reanimated'
+import {useSharedValue} from 'react-native-reanimated'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {VideoPlayer} from 'expo-video'
 import {
@@ -10,6 +10,7 @@ import {
   ModerationDecision,
 } from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
+
 
 import {
   getFeedPreferences,
@@ -37,7 +38,16 @@ import {
   CurrentSource,
   viewabilityConfig,
 } from './utils'
-import {VideoItem} from './VideoItem'
+import VideoItem from './VideoItem'
+
+export type VideoData = {
+  _reactKey: string
+  moderation: ModerationDecision
+  post: AppBskyFeedDefs.PostView
+  video: AppBskyEmbedVideo.View
+  feedContext: string | undefined
+  reason: FeedPostSlice['reason']
+}
 
 export function ClearlightFeed({
   feed,
@@ -59,6 +69,8 @@ export function ClearlightFeed({
   const [currentIndex, setCurrentIndex] = useState(0)
   const lastFeedRefreshTime = useRef<number>(Date.now())
 
+  useEnableKeyboardControllerScreen(true)
+
   const {
     data,
     isFetching,
@@ -73,14 +85,7 @@ export function ClearlightFeed({
   const videos = useMemo(() => {
     return (
       data?.pages.flatMap(page => {
-        const items: {
-          _reactKey: string
-          moderation: ModerationDecision
-          post: AppBskyFeedDefs.PostView
-          video: AppBskyEmbedVideo.View
-          feedContext: string | undefined
-          reason: FeedPostSlice['reason']
-        }[] = []
+        const items: VideoData[] = []
         for (const slice of page.slices) {
           const feedPost = slice.items.find(
             item => item.uri === slice.feedPostUri,
@@ -167,7 +172,7 @@ export function ClearlightFeed({
       isPageFocused,
       currentSources,
       scrollGesture,
-      isScrolling,
+      scrollValue,
     ],
   )
 
@@ -329,15 +334,7 @@ export function ClearlightFeed({
 
   return (
     <FeedFeedbackProvider value={feedFeedback}>
-      <ScrollProvider
-        onBeginDrag={() => {
-          'worklet'
-          runOnJS(setIsScrolling)(true)
-        }}
-        onEndDrag={() => {
-          'worklet'
-          runOnJS(setIsScrolling)(false)
-        }}>
+      <ScrollProvider onBeginDrag={onBeginDrag} onEndDrag={onEndDrag}>
         <GestureDetector gesture={scrollGesture}>
           <List
             data={videos}

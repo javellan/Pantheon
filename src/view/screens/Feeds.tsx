@@ -1,11 +1,33 @@
+import React from 'react'
+import {ActivityIndicator, StyleSheet, View} from 'react-native'
 import {AppBskyFeedDefs} from '@atproto/api'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect} from '@react-navigation/native'
 import debounce from 'lodash.debounce'
-import React from 'react'
-import {ActivityIndicator, StyleSheet, View} from 'react-native'
 
+import {usePalette} from '#/lib/hooks/usePalette'
+import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
+import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
+import {cleanError} from '#/lib/strings/errors'
+import {s} from '#/lib/styles'
+import {isNative, isWeb} from '#/platform/detection'
+import {useActorAutocompleteQuery} from '#/state/queries/actor-autocomplete'
+import {
+  actorSearchActivator,
+  SavedFeedItem,
+  useGetPopularFeedsQuery,
+  useSavedFeeds,
+  useSearchPopularFeedsMutation,
+} from '#/state/queries/feed'
+import {useSession} from '#/state/session'
+import {useSetMinimalShellMode} from '#/state/shell'
+import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
+import {List, ListMethods} from '#/view/com/util/List'
+import {FeedFeedLoadingPlaceholder} from '#/view/com/util/LoadingPlaceholder'
+import {Text} from '#/view/com/util/text/Text'
+import {NoFollowingFeed} from '#/screens/Feeds/NoFollowingFeed'
+import {NoSavedFeedsOfAnyType} from '#/screens/Feeds/NoSavedFeedsOfAnyType'
 import {atoms as a, useTheme} from '#/alf'
 import {ButtonIcon} from '#/components/Button'
 import {Divider} from '#/components/Divider'
@@ -20,29 +42,6 @@ import {SettingsGear2_Stroke2_Corner0_Rounded as Gear} from '#/components/icons/
 import * as Layout from '#/components/Layout'
 import {Link} from '#/components/Link'
 import * as ListCard from '#/components/ListCard'
-import {usePalette} from '#/lib/hooks/usePalette'
-import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
-import {CommonNavigatorParams, NativeStackScreenProps} from '#/lib/routes/types'
-import {cleanError} from '#/lib/strings/errors'
-import {s} from '#/lib/styles'
-import {isNative, isWeb} from '#/platform/detection'
-import {NoFollowingFeed} from '#/screens/Feeds/NoFollowingFeed'
-import {NoSavedFeedsOfAnyType} from '#/screens/Feeds/NoSavedFeedsOfAnyType'
-import {useActorAutocompleteQuery} from '#/state/queries/actor-autocomplete'
-import {
-  actorSearchActivator,
-  SavedFeedItem,
-  useGetPopularFeedsQuery,
-  useSavedFeeds,
-  useSearchPopularFeedsMutation,
-} from '#/state/queries/feed'
-import {useSession} from '#/state/session'
-import {useSetMinimalShellMode} from '#/state/shell'
-import {useComposerControls} from '#/state/shell/composer'
-import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
-import {List, ListMethods} from '#/view/com/util/List'
-import {FeedFeedLoadingPlaceholder} from '#/view/com/util/LoadingPlaceholder'
-import {Text} from '#/view/com/util/text/Text'
 import {AutocompleteResults} from './Search/Search'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'Feeds'>
@@ -56,7 +55,7 @@ type FlatlistSlice =
   | {
       type: 'feedsHeaderLinks'
       key: string
-  }
+    }
   | {
       type: 'savedFeedsHeader'
       key: string
@@ -115,7 +114,6 @@ type FlatlistSlice =
 
 export function FeedsScreen(_props: Props) {
   const pal = usePalette('default')
-  const {openComposer} = useComposerControls()
   const {isMobile} = useWebMediaQueries()
   const [query, setQuery] = React.useState('')
   const [isPTR, setIsPTR] = React.useState(false)
@@ -167,14 +165,6 @@ export function FeedsScreen(_props: Props) {
     () => debounce(q => search(q), 500), // debounce for 500ms
     [search],
   )
-
-  const onPressCompose = React.useCallback(() => {
-    openComposer({
-      setError: function (error: string): void {
-        console.error(error)
-      }
-    })
-  }, [openComposer])
 
   const onChangeQuery = React.useCallback(
     (text: string) => {
@@ -249,13 +239,16 @@ export function FeedsScreen(_props: Props) {
       !hasSession || (hasSession && hasActualSavedCount)
 
     if (hasSession) {
-      slices.push({
-        key: 'feedsHeaderLinks',
-        type: 'feedsHeaderLinks',
-      },{
-        key: 'savedFeedsHeader',
-        type: 'savedFeedsHeader',
-      })
+      slices.push(
+        {
+          key: 'feedsHeaderLinks',
+          type: 'feedsHeaderLinks',
+        },
+        {
+          key: 'savedFeedsHeader',
+          type: 'savedFeedsHeader',
+        },
+      )
 
       if (savedFeedsError) {
         slices.push({
@@ -801,20 +794,25 @@ function FeedsSavedHeader() {
 function FeedsHeaderLinks() {
   const feedHeaderLinks = [
     {
-      label: "Tweak My Algorithm",
+      label: 'Tweak My Algorithm',
       description: 'Customize your FYP content',
       to: '/settings/algorithm',
     },
   ]
-  return(
+  return (
     <List
-      data={feedHeaderLinks} 
+      data={feedHeaderLinks}
       renderItem={({item}) => <HeaderLinkItem item={item} />}
-      keyExtractor={(item) => item.to} />
+      keyExtractor={item => item.to}
+    />
   )
 }
 
-function HeaderLinkItem({ item }: { item: { label: string; description: string; to: string } }) {
+function HeaderLinkItem({
+  item,
+}: {
+  item: {label: string; description: string; to: string}
+}) {
   const t = useTheme()
   return (
     <Link to={item.to} style={[a.flex_1, a.gap_xs]} label={item.label}>
@@ -828,7 +826,7 @@ function HeaderLinkItem({ item }: { item: { label: string; description: string; 
                 a.gap_md,
                 a.border_b,
                 t.atoms.border_contrast_low,
-                a.align_center
+                a.align_center,
               ]
             : [
                 {flexDirection: 'row-reverse'},
@@ -836,7 +834,7 @@ function HeaderLinkItem({ item }: { item: { label: string; description: string; 
                 a.gap_md,
                 a.border_b,
                 t.atoms.border_contrast_low,
-                a.align_center
+                a.align_center,
               ]
         }>
         <ChevronRight size="lg" fill={t.atoms.text_contrast_low.color} />
