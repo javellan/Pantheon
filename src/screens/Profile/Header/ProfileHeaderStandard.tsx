@@ -51,6 +51,7 @@ interface Props {
 let ProfileHeaderStandard = ({
   profile: profileUnshadowed,
   descriptionRT,
+  truAnonData,
   moderationOpts,
   hideBackButton = false,
   isPlaceholderProfile,
@@ -239,10 +240,14 @@ let ProfileHeaderStandard = ({
           ) : null}
           <ProfileMenu profile={profile} />
         </View>
-        <View style={[a.flex_col, a.gap_2xs, a.pt_2xs, a.pb_sm]}>
-          <ProfileHeaderDisplayName profile={profile} moderation={moderation} />
-          <ProfileHeaderHandle profile={profile} />
+        <View style={[a.flex_row, a.align_center, a.gap_xs]}>
+          <ProfileHeaderDisplayName
+            truAnonData={truAnonData}
+            profile={profile}
+            moderation={moderation}
+          />
         </View>
+        <ProfileHeaderHandle profile={profile} truAnonData={truAnonData} />
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>
             <ProfileHeaderMetrics profile={profile} />

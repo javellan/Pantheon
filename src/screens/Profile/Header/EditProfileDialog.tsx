@@ -8,6 +8,7 @@ import {useLingui} from '@lingui/react'
 import {compressIfNeeded} from '#/lib/media/manip'
 import {cleanError} from '#/lib/strings/errors'
 import {useWarnMaxGraphemeCount} from '#/lib/strings/helpers'
+import {getVerifyLink} from '#/lib/truanon/useTruAnonProfile'
 import {logger} from '#/logger'
 import {isWeb} from '#/platform/detection'
 import {useProfileUpdateMutation} from '#/state/queries/profile'
@@ -20,10 +21,10 @@ import {Button, ButtonText} from '#/components/Button'
 import * as Dialog from '#/components/Dialog'
 import * as TextField from '#/components/forms/TextField'
 import * as Prompt from '#/components/Prompt'
+import {TruAnonVerificationSwitch} from '#/components/truanon/TruAnonVerificationSwitch'
 
 const DISPLAY_NAME_MAX_GRAPHEMES = 64
 const DESCRIPTION_MAX_GRAPHEMES = 256
-
 const SCREEN_HEIGHT = Dimensions.get('window').height
 
 export function EditProfileDialog({
@@ -39,7 +40,6 @@ export function EditProfileDialog({
   const cancelControl = Dialog.useDialogControl()
   const [dirty, setDirty] = useState(false)
 
-  // 'You might lose unsaved changes' warning
   useEffect(() => {
     if (isWeb && dirty) {
       const abortController = new AbortController()
@@ -47,9 +47,7 @@ export function EditProfileDialog({
       window.addEventListener('beforeunload', evt => evt.preventDefault(), {
         signal,
       })
-      return () => {
-        abortController.abort()
-      }
+      return () => abortController.abort()
     }
   }, [dirty])
 
@@ -64,10 +62,7 @@ export function EditProfileDialog({
   return (
     <Dialog.Outer
       control={control}
-      nativeOptions={{
-        preventDismiss: dirty,
-        minHeight: SCREEN_HEIGHT,
-      }}
+      nativeOptions={{preventDismiss: dirty, minHeight: SCREEN_HEIGHT}}
       testID="editProfileModal">
       <DialogInner
         profile={profile}
@@ -75,7 +70,6 @@ export function EditProfileDialog({
         setDirty={setDirty}
         onPressCancel={onPressCancel}
       />
-
       <Prompt.Basic
         control={cancelControl}
         title={_(msg`Discard changes?`)}
@@ -102,28 +96,30 @@ function DialogInner({
   const {_} = useLingui()
   const t = useTheme()
   const control = Dialog.useDialogContext()
+
   const {
     mutateAsync: updateProfileMutation,
     error: updateProfileError,
     isError: isUpdateProfileError,
     isPending: isUpdatingProfile,
   } = useProfileUpdateMutation()
+
   const [imageError, setImageError] = useState('')
+  const [verifyUrl, setVerifyUrl] = useState<string | undefined>()
+  const [assignedUrl, setAssignedUrl] = useState<string | undefined>()
+  const [truAnonDetails, setTruAnonDetails] = useState<any>()
+
   const initialDisplayName = profile.displayName || ''
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const initialDescription = profile.description || ''
   const [description, setDescription] = useState(initialDescription)
-  const [userBanner, setUserBanner] = useState<string | undefined | null>(
-    profile.banner,
-  )
-  const [userAvatar, setUserAvatar] = useState<string | undefined | null>(
-    profile.avatar,
-  )
+  const [userBanner, setUserBanner] = useState(profile.banner)
+  const [userAvatar, setUserAvatar] = useState(profile.avatar)
   const [newUserBanner, setNewUserBanner] = useState<
-    RNImage | undefined | null
+    RNImage | null | undefined
   >()
   const [newUserAvatar, setNewUserAvatar] = useState<
-    RNImage | undefined | null
+    RNImage | null | undefined
   >()
 
   const dirty =
@@ -132,47 +128,54 @@ function DialogInner({
     userAvatar !== profile.avatar ||
     userBanner !== profile.banner
 
+  useEffect(() => setDirty(dirty), [dirty, setDirty])
+
   useEffect(() => {
-    setDirty(dirty)
-  }, [dirty, setDirty])
+    const fetchVerify = async () => {
+      const result = await getVerifyLink(profile.handle)
+      // console.log('[TruAnon] Verification fetch result:', result)
+      setVerifyUrl(result?.verifyUrl)
+      setAssignedUrl(result?.assignedUrl)
+      setTruAnonDetails(result?.truAnonDetails)
+    }
+    fetchVerify()
+  }, [profile.handle])
 
-  const onSelectNewAvatar = useCallback(
-    async (img: RNImage | null) => {
-      setImageError('')
-      if (img === null) {
-        setNewUserAvatar(null)
-        setUserAvatar(null)
-        return
-      }
-      try {
-        const finalImg = await compressIfNeeded(img, 1000000)
-        setNewUserAvatar(finalImg)
-        setUserAvatar(finalImg.path)
-      } catch (e: any) {
-        setImageError(cleanError(e))
-      }
-    },
-    [setNewUserAvatar, setUserAvatar, setImageError],
-  )
+  // console.log('verifyUrl:', verifyUrl)
+  // console.log('assignedUrl:', assignedUrl)
+  // console.log('truAnonDetails:', truAnonDetails)
 
-  const onSelectNewBanner = useCallback(
-    async (img: RNImage | null) => {
-      setImageError('')
-      if (!img) {
-        setNewUserBanner(null)
-        setUserBanner(null)
-        return
-      }
-      try {
-        const finalImg = await compressIfNeeded(img, 1000000)
-        setNewUserBanner(finalImg)
-        setUserBanner(finalImg.path)
-      } catch (e: any) {
-        setImageError(cleanError(e))
-      }
-    },
-    [setNewUserBanner, setUserBanner, setImageError],
-  )
+  const onSelectNewAvatar = useCallback(async (img: RNImage | null) => {
+    setImageError('')
+    if (img === null) {
+      setUserAvatar(null)
+      setNewUserAvatar(null)
+      return
+    }
+    try {
+      const finalImg = await compressIfNeeded(img, 1000000)
+      setNewUserAvatar(finalImg)
+      setUserAvatar(finalImg.path)
+    } catch (e) {
+      setImageError(cleanError(e))
+    }
+  }, [])
+
+  const onSelectNewBanner = useCallback(async (img: RNImage | null) => {
+    setImageError('')
+    if (!img) {
+      setUserBanner(null)
+      setNewUserBanner(null)
+      return
+    }
+    try {
+      const finalImg = await compressIfNeeded(img, 1000000)
+      setNewUserBanner(finalImg)
+      setUserBanner(finalImg.path)
+    } catch (e) {
+      setImageError(cleanError(e))
+    }
+  }, [])
 
   const onPressSave = useCallback(async () => {
     setImageError('')
@@ -189,7 +192,7 @@ function DialogInner({
       onUpdate?.()
       control.close()
       Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
-    } catch (e: any) {
+    } catch (e) {
       logger.error('Failed to update user profile', {message: String(e)})
     }
   }, [
@@ -214,63 +217,46 @@ function DialogInner({
     maxCount: DESCRIPTION_MAX_GRAPHEMES,
   })
 
-  const cancelButton = useCallback(
-    () => (
-      <Button
-        label={_(msg`Cancel`)}
-        onPress={onPressCancel}
-        size="small"
-        color="primary"
-        variant="ghost"
-        style={[a.rounded_full]}
-        testID="editProfileCancelBtn">
-        <ButtonText style={[a.text_md]}>
-          <Trans>Cancel</Trans>
-        </ButtonText>
-      </Button>
-    ),
-    [onPressCancel, _],
-  )
-
-  const saveButton = useCallback(
-    () => (
-      <Button
-        label={_(msg`Save`)}
-        onPress={onPressSave}
-        disabled={
-          !dirty ||
-          isUpdatingProfile ||
-          displayNameTooLong ||
-          descriptionTooLong
-        }
-        size="small"
-        color="primary"
-        variant="ghost"
-        style={[a.rounded_full]}
-        testID="editProfileSaveBtn">
-        <ButtonText style={[a.text_md, !dirty && t.atoms.text_contrast_low]}>
-          <Trans>Save</Trans>
-        </ButtonText>
-      </Button>
-    ),
-    [
-      _,
-      t,
-      dirty,
-      onPressSave,
-      isUpdatingProfile,
-      displayNameTooLong,
-      descriptionTooLong,
-    ],
-  )
-
   return (
     <Dialog.ScrollableInner
       label={_(msg`Edit profile`)}
       style={[a.overflow_hidden]}
       contentContainerStyle={[a.px_0, a.pt_0]}
       header={
-        <Dialog.Header renderLeft={cancelButton} renderRight={saveButton}>
+        <Dialog.Header
+          renderLeft={() => (
+            <Button
+              label={_(msg`Cancel`)}
+              onPress={onPressCancel}
+              size="small"
+              color="primary"
+              variant="ghost"
+              style={[a.rounded_full]}>
+              <ButtonText style={[a.text_md]}>
+                <Trans>Cancel</Trans>
+              </ButtonText>
+            </Button>
+          )}
+          renderRight={() => (
+            <Button
+              label={_(msg`Save`)}
+              onPress={onPressSave}
+              disabled={
+                !dirty ||
+                isUpdatingProfile ||
+                displayNameTooLong ||
+                descriptionTooLong
+              }
+              size="small"
+              color="primary"
+              variant="ghost"
+              style={[a.rounded_full]}>
+              <ButtonText
+                style={[a.text_md, !dirty && t.atoms.text_contrast_low]}>
+                <Trans>Save</Trans>
+              </ButtonText>
+            </Button>
+          )}>
           <Dialog.HeaderText>
             <Trans>Edit profile</Trans>
           </Dialog.HeaderText>
@@ -298,6 +284,7 @@ function DialogInner({
           />
         </View>
       </View>
+
       {isUpdateProfileError && (
         <View style={[a.mt_xl]}>
           <ErrorMessage message={cleanError(updateProfileError)} />
@@ -308,6 +295,7 @@ function DialogInner({
           <ErrorMessage message={imageError} />
         </View>
       )}
+
       <View style={[a.mt_4xl, a.px_xl, a.gap_xl]}>
         <View>
           <TextField.LabelText>
@@ -322,21 +310,6 @@ function DialogInner({
               testID="editProfileDisplayNameInput"
             />
           </TextField.Root>
-          {displayNameTooLong && (
-            <TextField.SuffixText
-              style={[
-                a.text_sm,
-                a.mt_xs,
-                a.font_bold,
-                {color: t.palette.negative_400},
-              ]}
-              label={_(msg`Display name is too long`)}>
-              <Trans>
-                Display name is too long. The maximum number of characters is{' '}
-                {DISPLAY_NAME_MAX_GRAPHEMES}.
-              </Trans>
-            </TextField.SuffixText>
-          )}
         </View>
 
         <View>
@@ -348,25 +321,23 @@ function DialogInner({
               defaultValue={description}
               onChangeText={setDescription}
               multiline
-              label={_(msg`Display name`)}
+              label={_(msg`Description`)}
               placeholder={_(msg`Tell us a bit about yourself`)}
               testID="editProfileDescriptionInput"
             />
           </TextField.Root>
-          {descriptionTooLong && (
-            <TextField.SuffixText
-              style={[
-                a.text_sm,
-                a.mt_xs,
-                a.font_bold,
-                {color: t.palette.negative_400},
-              ]}
-              label={_(msg`Description is too long`)}>
-              <Trans>
-                Description is too long. The maximum number of characters is{' '}
-                {DESCRIPTION_MAX_GRAPHEMES}.
-              </Trans>
-            </TextField.SuffixText>
+        </View>
+
+        <View style={[a.gap_md]}>
+          <TextField.LabelText>
+            <Trans>Verified identity</Trans>
+          </TextField.LabelText>
+          {(assignedUrl || verifyUrl) && (
+            <TruAnonVerificationSwitch
+              verifyUrl={verifyUrl}
+              assignedUrl={assignedUrl}
+              truAnonDetails={truAnonDetails}
+            />
           )}
         </View>
       </View>
