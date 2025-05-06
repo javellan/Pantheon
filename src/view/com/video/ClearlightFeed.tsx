@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {ActivityIndicator, ListRenderItem, ViewToken} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {useSharedValue} from 'react-native-reanimated'
@@ -11,7 +11,11 @@ import {
 } from '@atproto/api'
 import {useFocusEffect} from '@react-navigation/native'
 
-import {useEnableKeyboardControllerScreen} from '#/lib/hooks/useEnableKeyboardController'
+
+import {
+  getFeedPreferences,
+  getFeedPreferencesLastUpdated,
+} from '#/lib/api/feed/utils'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {ScrollProvider} from '#/lib/ScrollContext'
 import {cleanError} from '#/lib/strings/errors'
@@ -63,6 +67,7 @@ export function ClearlightFeed({
   const opts = useMemo(() => ({enabled}), [enabled])
   const feedFeedback = useFeedFeedback(feed, hasSession)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const lastFeedRefreshTime = useRef<number>(Date.now())
 
   useEnableKeyboardControllerScreen(true)
 
@@ -116,34 +121,51 @@ export function ClearlightFeed({
       if (players) {
         players.forEach(p => p.pause())
       }
+      const feedPrefs = getFeedPreferences()
+      if (feedPrefs.lastUpdated > lastFeedRefreshTime.current) {
+        lastFeedRefreshTime.current = feedPrefs.lastUpdated
+      }
       refetch()
     }
   }, [refetch, players, isPageFocused])
 
-  const scrollValue = useSharedValue(false)
-  const onBeginDrag = useCallback(() => {
-    'worklet'
-    scrollValue.set(true)
-  }, [scrollValue])
-  const onEndDrag = useCallback(() => {
-    'worklet'
-    scrollValue.set(false)
-  }, [scrollValue])
-  const renderItem: ListRenderItem<VideoData> = useCallback(
-    ({item, index}) => (
-      <VideoItem
-        data={item}
-        player={players?.[index % 3]}
-        active={
-          isPageFocused &&
-          index === currentIndex &&
-          currentSources[index % 3]?.source === item.video.playlist
-        }
-        adjacent={index === currentIndex - 1 || index === currentIndex + 1}
-        scrollGesture={scrollGesture}
-        scrollValue={scrollValue}
-      />
-    ),
+  //If the user has updated their preferences, we need to refetch the feed
+  useFocusEffect(
+    useCallback(() => {
+      const feedPrefsLastUpdated = getFeedPreferencesLastUpdated()
+      if (feedPrefsLastUpdated > lastFeedRefreshTime.current) {
+        lastFeedRefreshTime.current = feedPrefsLastUpdated
+        doRefresh()
+      }
+    }, [doRefresh]),
+  )
+
+  const [isScrolling, setIsScrolling] = useState(false)
+  const renderItem: ListRenderItem<VideoItem> = useCallback(
+    ({item, index}) => {
+      const {post, video, reason} = item
+      const player = players?.[index % 3]
+      const currentSource = currentSources[index % 3]
+
+      return (
+        <VideoItem
+          player={player}
+          post={post}
+          embed={video}
+          reason={reason}
+          active={
+            isPageFocused &&
+            index === currentIndex &&
+            currentSource?.source === video.playlist
+          }
+          adjacent={index === currentIndex - 1 || index === currentIndex + 1}
+          moderation={item.moderation}
+          scrollGesture={scrollGesture}
+          isScrolling={isScrolling}
+          feedContext={item.feedContext}
+        />
+      )
+    },
     [
       players,
       currentIndex,

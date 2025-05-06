@@ -1,5 +1,6 @@
 import {z} from 'zod'
 
+import {defaultFeedPreferences} from '#/lib/api/feed/preferences'
 import {deviceLanguageCodes, deviceLocales} from '#/locale/deviceLocales'
 import {findSupportedAppLanguage} from '#/locale/helpers'
 import {logger} from '#/logger'
@@ -127,13 +128,25 @@ const schema = z.object({
   mutedThreads: z.array(z.string()),
   trendingDisabled: z.boolean().optional(),
   trendingVideoDisabled: z.boolean().optional(),
-  interests: z
-    .array(
-      z.object({
-        id: z.string(),
-        value: z.number(),
-      }),
-    )
+  feedPreferences: z
+    .object({
+      weights: z
+        .object({
+          trending: z.number(),
+          following: z.number(),
+          interests: z.number(),
+        })
+        .optional(),
+      interests: z
+        .array(
+          z.object({
+            id: z.string(),
+            value: z.number(),
+          }),
+        )
+        .optional(),
+      lastUpdated: z.number(),
+    })
     .optional(),
 })
 export type Schema = z.infer<typeof schema>
@@ -182,6 +195,7 @@ export const defaults: Schema = {
   subtitlesEnabled: true,
   trendingDisabled: false,
   trendingVideoDisabled: false,
+  feedPreferences: defaultFeedPreferences,
 }
 
 export function tryParse(rawData: string): Schema | undefined {

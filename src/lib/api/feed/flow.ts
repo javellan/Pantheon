@@ -8,8 +8,14 @@ import {getContentLanguages} from '#/state/preferences/languages'
 import {FeedParams} from '#/state/queries/post-feed'
 import {FeedTuner, FeedTunerFn} from '../feed-manip'
 import {Interest} from './interests'
+import {defaultFeedPreferences, FeedPreferences} from './preferences'
 import {FeedAPI, FeedAPIResponse, ReasonFeedSource} from './types'
-import {createBskyTopicsHeader, isBlueskyOwnedFeed} from './utils'
+import {
+  createBskyTopicsHeader,
+  getFeedPreferences,
+  getFeedPreferencesLastUpdated,
+  isBlueskyOwnedFeed,
+} from './utils'
 
 const REQUEST_WAIT_MS = 500 // 500ms
 const POST_AGE_CUTOFF = 60e3 * 60 * 120 // 120 hours
@@ -32,7 +38,8 @@ export class MergeFlowApi implements FeedAPI {
   params: FeedParams
   feedTuners: FeedTunerFn[]
   following: MergeFlowSource_Following
-  customFeeds: MergeFlowSource_Custom[] = []
+  interestFeeds: MergeFlowSource_Custom[] = []
+  interestFeedLastUpdated: number = 0
   trendingFeed: MergeFlowSource_Custom
   feedCursor = 0
   itemCursor = 0
@@ -56,7 +63,7 @@ export class MergeFlowApi implements FeedAPI {
     this.params = feedParams
     this.feedTuners = feedTuners
     this.userInterests = userInterests
-    this.customFeeds = this._createCustomFeeds()
+    this.interestFeeds = this._createInterestFeeds(getFeedPreferences())
 
     this.following = new MergeFlowSource_Following({
       agent: this.agent,
@@ -76,30 +83,33 @@ export class MergeFlowApi implements FeedAPI {
       agent: this.agent,
       feedTuners: this.feedTuners,
     })
-    this.customFeeds = []
+    this.interestFeeds = []
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    this.customFeeds = this._createCustomFeeds()
+    this.interestFeeds = this._createInterestFeeds(getFeedPreferences())
   }
-  _createCustomFeeds() {
-    return this.userInterests
-      .flatMap(interest => getFeedUrisForInterest(interest))
+  _createInterestFeeds(feedPreferences: FeedPreferences) {
+    this.interestFeedLastUpdated = feedPreferences.lastUpdated
+    return feedPreferences.interests
+      .flatMap(interest => {
+        const uris = getFeedUrisForInterest(interest)
+        return uris
+      })
       .reduce((acc, cur) => {
         if (!acc.includes(cur)) {
           acc.push(cur)
         }
         return acc
       }, [] as string[])
-      .map(
-        feedUri =>
-          new MergeFlowSource_Custom({
-            agent: this.agent,
-            feedUri,
-            feedTuners: this.feedTuners,
-            userInterests: this.userInterests,
-          }),
-      )
+      .map(feedUri => {
+        return new MergeFlowSource_Custom({
+          agent: this.agent,
+          feedUri,
+          feedTuners: this.feedTuners,
+          userInterests: feedPreferences.interests,
+        })
+      })
   }
 
   async peekLatest(): Promise<AppBskyFeedDefs.FeedViewPost> {
@@ -116,15 +126,16 @@ export class MergeFlowApi implements FeedAPI {
     cursor: string | undefined
     limit: number
   }): Promise<FeedAPIResponse> {
-    if (!cursor) {
+    const feedPreferencesLastUpdated = getFeedPreferencesLastUpdated()
+    if (!cursor || feedPreferencesLastUpdated > this.interestFeedLastUpdated) {
       this.reset()
     }
 
     // Load prefs-based, trending and following feeds
-    const promises = []
-    for (const feed of this.customFeeds) {
-      if (feed.numReady < 5) {
-        promises.push(feed.fetchNext(10))
+    const promises: Promise<void>[] = []
+    for (const interestFeed of this.interestFeeds) {
+      if (interestFeed.numReady < 5) {
+        promises.push(interestFeed.fetchNext(10))
       }
     }
     if (this.trendingFeed.numReady < limit) {
@@ -138,9 +149,9 @@ export class MergeFlowApi implements FeedAPI {
     // assemble a response by sampling from feeds with content
     const posts: AppBskyFeedDefs.FeedViewPost[] = []
     while (posts.length < limit) {
-      let slice = this.sampleItem()
-      if (slice[0]) {
-        posts.push(slice[0])
+      let sample = this.sampleItem()
+      if (sample) {
+        posts.push(sample)
       } else {
         break
       }
@@ -152,53 +163,133 @@ export class MergeFlowApi implements FeedAPI {
     }
   }
 
-  sampleItem() {
-    const availableRightNow =
-      this.following.numReady +
-      this.trendingFeed.numReady +
-      this.customFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
+  sampleItem(): AppBskyFeedDefs.FeedViewPost | null {
+    // If there are no available feeds, we need to skip the while loop
+    // below, otherwise the loop will be infinite and the client
+    // process will be blocked indefinitely, preventing further attempts
+    // to fetch from those feeds and correct the problem
+    const feedPreferences = getFeedPreferences()
+    const availableRightNow = feedPreferences.feedTypes.reduce(
+      (acc, feedType) => {
+        switch (feedType.id) {
+          case 'trending':
+            return acc + feedType.weight > 0 ? this.trendingFeed.numReady : 0
+          case 'following':
+            return acc + feedType.weight > 0 ? this.following.numReady : 0
+          case 'interests':
+            return acc + feedType.weight > 0
+              ? this.interestFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
+              : 0
+        }
+        return acc
+      },
+      0,
+    )
     if (availableRightNow < 1) {
-      return []
+      return null
     }
+    const startTime = Date.now()
     while (true) {
       if (this.sampleBatch.length === 0) {
-        this.sampleBatch = shuffle('pppppffftt'.split(''))
+        this.sampleBatch = shuffle(createWeightedFeedTypes(feedPreferences))
       }
-      const nextSampleType = this.sampleBatch.shift() as string
+      // The time check is a circuit breaker.  After a certain amount
+      // of time we have to assume there's nothing available from the
+      // configuration the user has chosen and we should stop trying
+      // to sample.  For now, this falls back to the trending feed,
+      // because the user can have interest feeds that are empty, and
+      // not be following anyone, but trending will always have content
+      const samplingTimeExpired = Date.now() - startTime > 10000
+      const nextSampleType = samplingTimeExpired
+        ? 't'
+        : (this.sampleBatch.shift() as string)
       switch (nextSampleType) {
-        case 'p':
-          const weightedAndShuffled = shuffle(
-            this.customFeeds.flatMap((flow, i) => {
-              // If a feed has > 1 interest, take the max of the two
-              const maxWeight = Math.max(
-                ...flow.userInterests.map(i => i.value),
-              )
-              return Array(Math.round(maxWeight)).fill(i)
-            }),
-          )
+        case 'i':
+          // weighted is a list of indices in interestFeeds, where each index is
+          // repeated according to the interest value of the feed. This means that
+          // feeds with higher interest values are more likely to be sampled.
+          const weighted = this.interestFeeds.flatMap<number>((feed, i) => {
+            const interestWeights = feed.userInterests.map(interest => {
+              return interest.value
+            })
+            if (interestWeights.length === 0) {
+              return Array()
+            }
+            //If there are multiple interests associated with a feed then we
+            //need to weight the feed by the one with the max interest value
+            const maxWeight = Math.max(...interestWeights)
+            return Array(Math.round(maxWeight)).fill(i)
+          })
+          const weightedAndShuffled = shuffle(weighted)
+          if (weightedAndShuffled.length === 0) {
+            return this.interestFeeds[0].take(1)[0]
+          }
           for (const feedIndex of weightedAndShuffled) {
-            const cf = this.customFeeds[feedIndex]
-            if (cf.numReady > 0) {
-              return cf.take(1)
+            const interestFeed = this.interestFeeds[feedIndex]
+            if (interestFeed.numReady > 0) {
+              return interestFeed.take(1)[0]
             }
           }
           continue
         case 'f':
           if (this.following.numReady > 0) {
-            return this.following.take(1)
+            return this.following.take(1)[0]
           } else {
             continue
           }
         case 't':
         default:
           if (this.trendingFeed.numReady > 0) {
-            return this.trendingFeed.take(1)
+            return this.trendingFeed.take(1)[0]
           } else {
             continue
           }
       }
     }
   }
+}
+
+function createWeightedFeedTypes(feedPreferences: FeedPreferences): string[] {
+  // Extract weights for 'i', 'f', and 't' from feedPreferences.feedTypes
+  const defaults = defaultFeedPreferences.feedTypes.reduce((acc, feedType) => {
+    const key = feedType.id.charAt(0)
+    acc[key] = feedType.weight
+    return acc
+  }, {} as Record<string, number>)
+  let weights = feedPreferences.feedTypes.reduce(
+    (acc, feedType) => {
+      const typeMap: Record<string, keyof typeof acc> = {
+        trending: 't',
+        following: 'f',
+        interests: 'i',
+      }
+
+      const key = typeMap[feedType.id]
+      if (!key) {
+        throw new Error(`Unknown feed type: ${feedType.id}`)
+      }
+
+      acc[key] = feedType.weight
+      return acc
+    },
+    {...defaults},
+  )
+  // If the user has turned town all their sliders, then
+  // we wind up with division by 0, so go back to defaults.
+  // This can only be checked after the reduce, since a zero
+  // weight is valid, but all zeros is not.
+  if (weights.i === 0 && weights.f === 0 && weights.t === 0) {
+    weights = {...defaults}
+  }
+  const totalWeight = weights.i + weights.f + weights.t
+  const fCount = Math.round((weights.f / totalWeight) * 10)
+  const tCount = Math.round((weights.t / totalWeight) * 10)
+  const iCount = 10 - fCount - tCount
+  return [
+    ...Array(iCount).fill('i'),
+    ...Array(fCount).fill('f'),
+    ...Array(tCount).fill('t'),
+  ]
 }
 
 class MergeFlowSource {
