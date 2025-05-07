@@ -135,7 +135,7 @@ export function ProfileHeaderHandle({
             accessibilityRole="button"
             activeOpacity={0.5}
             onPress={() => Linking.openURL(`https://${truAnonData.truAnonUrl}`)}
-            style={{marginBottom: 4}}>
+            style={{marginBottom: 8}}>
             {badgePill}
           </TouchableOpacity>
         ) : (
