@@ -43,6 +43,8 @@ import {ProfileHeaderShell} from './Shell'
 interface Props {
   profile: AppBskyActorDefs.ProfileViewDetailed
   descriptionRT: RichTextAPI | null
+  truAnonData: any
+  truAnonDetails: TruAnonDetails
   moderationOpts: ModerationOpts
   hideBackButton?: boolean
   isPlaceholderProfile?: boolean
@@ -52,6 +54,7 @@ let ProfileHeaderStandard = ({
   profile: profileUnshadowed,
   descriptionRT,
   truAnonData,
+  truAnonDetails,
   moderationOpts,
   hideBackButton = false,
   isPlaceholderProfile,
@@ -247,7 +250,11 @@ let ProfileHeaderStandard = ({
             moderation={moderation}
           />
         </View>
-        <ProfileHeaderHandle profile={profile} truAnonData={truAnonData} />
+        <ProfileHeaderHandle
+          profile={profile}
+          truAnonData={truAnonData}
+          truAnonDetails={truAnonDetails}
+        />
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>
             <ProfileHeaderMetrics profile={profile} />

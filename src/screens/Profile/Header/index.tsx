@@ -59,7 +59,9 @@ interface Props {
 }
 
 let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
-  const {data: truAnonData} = useTruAnonProfile(props.profile.handle)
+  const {data: truAnonData, details: truAnonDetails} = useTruAnonProfile(
+    props.profile.handle,
+  )
 
   let content
   if (props.profile.associated?.labeler) {
@@ -69,7 +71,13 @@ let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
       content = <ProfileHeaderLabeler {...props} labeler={props.labeler} />
     }
   } else {
-    content = <ProfileHeaderStandard {...props} truAnonData={truAnonData} />
+    content = (
+      <ProfileHeaderStandard
+        {...props}
+        truAnonData={truAnonData}
+        truAnonDetails={truAnonDetails}
+      />
+    )
   }
 
   return (

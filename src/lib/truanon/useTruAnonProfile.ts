@@ -11,6 +11,7 @@ export type DataConfiguration = {
   dataPointIconClass: string
   dataPointType: string
   dataPointKind: string
+  displayString: string
 }
 
 export type TruAnonProfile = {
@@ -30,6 +31,11 @@ export type TruAnonDetails = {
   location?: string
   ageRange?: string
   profileLink?: string
+  socials?: {
+    dataPointName: string
+    displayValue: string
+    dataPointIconClass: string
+  }[]
 }
 
 const baseUrl = 'https://truanon.com/api'
@@ -43,6 +49,9 @@ export function useTruAnonProfile(handle: string) {
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true)
+
+      //handle = handle || 'hannab.bsky.social' // fallback test handle
+
       const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 
       console.log('[TruAnon] Fetched profile URL:', profileUrl)
@@ -55,6 +64,7 @@ export function useTruAnonProfile(handle: string) {
       } catch (err) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
+      // console.log('[TruAnon] Fetched JSON:', json)
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Unknown:', json)
@@ -85,6 +95,32 @@ export function useTruAnonProfile(handle: string) {
 
       const profileLink = extract('truanon')
 
+      const iconOverrides: Record<string, string> = {
+        medium: 'fab fa-medium',
+        tiktok: 'fab fa-tiktok',
+      }
+
+      const socialLinks =
+        profile.dataConfigurations
+          ?.filter(
+            d =>
+              d.dataPointKind === 'social' &&
+              d.displayValue &&
+              !['truanon', 'peepletok', 'bskyapp'].includes(
+                (d.dataPointType || '').toLowerCase(),
+              ),
+          )
+          .map(d => {
+            const type = d.dataPointType?.toLowerCase() || ''
+            const fallback = 'fas fa-link'
+            return {
+              dataPointName: d.dataPointName || 'Link',
+              displayValue: d.displayValue,
+              dataPointIconClass:
+                iconOverrides[type] || d.dataPointIconClass || fallback,
+            }
+          }) || []
+
       setData(profile)
       setDetails({
         truAnonUrl: profileLink,
@@ -92,6 +128,7 @@ export function useTruAnonProfile(handle: string) {
         zodiac: extract('birthday', 'personal'),
         location: extract('location', 'personal'),
         ageRange: extract('birthday', 'personal'),
+        socials: socialLinks,
       })
     } catch (err: any) {
       console.warn('[TruAnon] Fetch failed:', err.message)
@@ -117,6 +154,8 @@ export async function getVerifyLink(handle: string): Promise<{
   truAnonDetails?: any
 }> {
   if (!handle) return {}
+
+  //handle = handle || 'hannab.bsky.social'
 
   const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 

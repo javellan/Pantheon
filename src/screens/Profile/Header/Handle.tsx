@@ -15,10 +15,12 @@ export function ProfileHeaderHandle({
   profile,
   disableTaps,
   truAnonData,
+  truAnonDetails,
 }: {
   profile: Shadow<AppBskyActorDefs.ProfileViewDetailed>
   disableTaps?: boolean
   truAnonData?: any
+  truAnonDetails?: TruAnonDetails
 }) {
   const t = useTheme()
   const {_} = useLingui()
@@ -28,7 +30,7 @@ export function ProfileHeaderHandle({
   const dataPointsOfTypeKind = (
     type: string,
     kind?: string,
-  ): {value: string; iconClass: string}[] => {
+  ): {value: string; dataPointIconClass: string}[] => {
     if (!truAnonData?.dataConfigurations) return []
     return truAnonData.dataConfigurations
       .filter(
@@ -38,18 +40,19 @@ export function ProfileHeaderHandle({
       )
       .map(d => ({
         value: d.displayValue,
-        iconClass: d.dataPointIconClass || '',
+        name: d.dataPointName,
+        dataPointIconClass: d.dataPointIconClass || '',
       }))
       .filter(d => d.value)
   }
 
   const renderLine = (
-    entries: {value: string; iconClass: string}[],
+    entries: {value: string; dataPointIconClass: string}[],
     keyPrefix: string,
   ) => {
     if (entries.length === 0) return null
     const values = entries.map(e => e.value).join(', ')
-    const parts = entries[0].iconClass.split(' ')
+    const parts = entries[0].dataPointIconClass.split(' ')
     const name = parts.find(p => p.startsWith('fa-'))?.replace('fa-', '') || ''
 
     return (
@@ -68,6 +71,34 @@ export function ProfileHeaderHandle({
         />{' '}
         {values}
       </Text>
+    )
+  }
+
+  const renderInlineSocial = (
+    name: string,
+    value: string,
+    iconClass: string,
+    key: string,
+  ) => {
+    const parts = iconClass?.split(' ') || []
+    const icon =
+      parts.find(p => p.startsWith('fa-'))?.replace('fa-', '') || 'link'
+
+    return (
+      <TouchableOpacity accessibilityRole="button"
+        key={key}
+        onPress={() => Linking.openURL(`http://${value}`)}
+        activeOpacity={0.6}
+        style={{marginRight: 12, marginBottom: 6}}>
+        <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+          <FontAwesome5
+            name={icon as any}
+            size={StyleSheet.flatten(a.text_sm).fontSize}
+            color="#fff"
+          />{' '}
+          {name}
+        </Text>
+      </TouchableOpacity>
     )
   }
 
@@ -105,7 +136,7 @@ export function ProfileHeaderHandle({
             elevation: 2,
           },
         ]}>
-        <Text style={{marginTop: 1}}>
+        <Text>
           <FontAwesome
             name="check-circle"
             size={StyleSheet.flatten(a.text_sm).fontSize * 2.25}
@@ -124,10 +155,12 @@ export function ProfileHeaderHandle({
         </View>
       </View>
     )
+
     const birthdayData = dataPointsOfTypeKind('birthday', 'personal')
     const locationData = dataPointsOfTypeKind('location', 'personal')
     const genderData = dataPointsOfTypeKind('gender', 'personal')
-
+    const socialData = truAnonDetails?.socials || []
+    // console.log('socialData ! == ', socialData)
     return (
       <View style={{marginTop: 8, marginBottom: 4}}>
         {truAnonData?.truAnonUrl && !isUnknown ? (
@@ -158,7 +191,32 @@ export function ProfileHeaderHandle({
               {renderLine(birthdayData, 'birthday')}
               {'   '}
               {renderLine(genderData, 'gender')}
+              {'   '}
             </Text>
+            <View style={{marginTop: 16}}>
+              {socialData.length > 0 && (
+                <Text
+                  style={[
+                    a.text_sm,
+                    a.font_bold,
+                    t.atoms.text_contrast_medium,
+                    {
+                      flexWrap: 'wrap',
+                      lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
+                      marginTop: 6,
+                    },
+                  ]}>
+                  {socialData.map((s, i) =>
+                    renderInlineSocial(
+                      s.dataPointName,
+                      s.displayValue,
+                      s.dataPointIconClass,
+                      `social-${i}`,
+                    ),
+                  )}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </View>
