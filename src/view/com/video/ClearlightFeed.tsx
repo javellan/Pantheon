@@ -39,6 +39,7 @@ import {
   viewabilityConfig,
 } from './utils'
 import VideoItem from './VideoItem'
+import { useEnableKeyboardControllerScreen } from '#/lib/hooks/useEnableKeyboardController'
 
 export type VideoData = {
   _reactKey: string
@@ -149,21 +150,29 @@ export function ClearlightFeed({
     'worklet'
     scrollValue.set(false)
   }, [scrollValue])
+
+  const [isScrolling, setIsScrolling] = useState(false)
   const renderItem: ListRenderItem<VideoData> = useCallback(
-    ({item, index}) => (
-      <VideoItem
-        data={item}
-        player={players?.[index % 3]}
-        active={
-          isPageFocused &&
-          index === currentIndex &&
-          currentSources[index % 3]?.source === item.video.playlist
-        }
-        adjacent={index === currentIndex - 1 || index === currentIndex + 1}
-        scrollGesture={scrollGesture}
-        scrollValue={scrollValue}
-      />
-    ),
+    ({item, index}) => {
+      const {post, video, reason} = item
+      const player = players?.[index % 3]
+      const currentSource = currentSources[index % 3]
+
+      return (
+        <VideoItem
+          data={item}
+          player={player}
+          active={
+            isPageFocused &&
+            index === currentIndex &&
+            currentSource?.source === video.playlist
+          }
+          adjacent={index === currentIndex - 1 || index === currentIndex + 1}
+          scrollGesture={scrollGesture}
+          scrollValue={scrollValue}
+        />
+      )
+    },
     [
       players,
       currentIndex,
