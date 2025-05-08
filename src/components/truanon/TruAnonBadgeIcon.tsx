@@ -5,7 +5,7 @@ import {Text} from '#/components/Typography'
 
 const rankColors: Record<string, string> = {
   Dangerous: '#e0245e',
-  Cautioned: '#f45d22',
+  Cautioned: '#ffad1f',
   Credible: '#333',
   Reliable: '#17bf63',
   Genuine: '#1d9bf0',

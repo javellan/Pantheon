@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
 
 const TRUANON_AUTH_HEADER = {
@@ -32,87 +32,85 @@ export type TruAnonDetails = {
   profileLink?: string
 }
 
+const baseUrl = 'https://truanon.com/api'
+
 export function useTruAnonProfile(handle: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
   const [details, setDetails] = useState<TruAnonDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true)
+      const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
+
+      console.log('[TruAnon] Fetched profile URL:', profileUrl)
+      const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
+      const text = await res.text()
+
+      let json: any
+      try {
+        json = JSON.parse(text)
+      } catch (err) {
+        throw new Error('Invalid JSON: ' + text.slice(0, 100))
+      }
+
+      if (!res.ok || json.error || json.type === 'error') {
+        console.log('[TruAnon] API Unknown:', json)
+        setData({authorRank: 'Unknown', dataConfigurations: []})
+        setDetails({})
+        return
+      }
+
+      const truAnonConfig = (json.dataConfigurations || []).find(
+        d => d.dataPointType === 'truanon',
+      )
+
+      const profile: TruAnonProfile = {
+        authorRank: json.authorRank,
+        authorRankScore: json.authorRankScore,
+        authorFullName: json.authorFullName,
+        authorTitle: json.authorTitle,
+        authorAgeBadge: json.authorAgeBadge,
+        authorPhoto: json.authorPhoto,
+        truAnonUrl: truAnonConfig?.displayValue || undefined,
+        dataConfigurations: json.dataConfigurations || [],
+      }
+
+      const extract = (type: string, kind?: string): string | undefined =>
+        profile.dataConfigurations.find(
+          d => d.dataPointType === type && (!kind || d.dataPointKind === kind),
+        )?.displayValue
+
+      const profileLink = extract('truanon')
+
+      setData(profile)
+      setDetails({
+        truAnonUrl: profileLink,
+        profileLink,
+        zodiac: extract('birthday', 'personal'),
+        location: extract('location', 'personal'),
+        ageRange: extract('birthday', 'personal'),
+      })
+    } catch (err: any) {
+      console.warn('[TruAnon] Fetch failed:', err.message)
+      setError(err.message)
+      setData(null)
+      setDetails(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [handle])
+
   useEffect(() => {
     if (!handle) return
-    const fetchProfile = async () => {
-      try {
-        setLoading(true)
-        const profileUrl = `https://truanon.com/api/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
-
-        console.log('[TruAnon] Fetched profile URL: ', profileUrl)
-        const res = await fetch(profileUrl, {
-          headers: TRUANON_AUTH_HEADER,
-        })
-
-        const text = await res.text()
-        let json: any
-        try {
-          json = JSON.parse(text)
-        } catch (err) {
-          throw new Error('Invalid JSON: ' + text.slice(0, 100))
-        }
-
-        if (!res.ok || json.error || json.type === 'error') {
-          console.log('[TruAnon] API Unknown:', json)
-          setData({authorRank: 'Unknown', dataConfigurations: []})
-          setDetails({})
-          return
-        }
-
-        const truAnonConfig = (json.dataConfigurations || []).find(
-          d => d.dataPointType === 'truanon',
-        )
-
-        const profile: TruAnonProfile = {
-          authorRank: json.authorRank,
-          authorRankScore: json.authorRankScore,
-          authorFullName: json.authorFullName,
-          authorTitle: json.authorTitle,
-          authorAgeBadge: json.authorAgeBadge,
-          authorPhoto: json.authorPhoto,
-          truAnonUrl: truAnonConfig?.displayValue
-            ? `${truAnonConfig.displayValue}`
-            : undefined,
-          dataConfigurations: json.dataConfigurations || [],
-        }
-
-        const extract = (type: string, kind?: string): string | undefined =>
-          profile.dataConfigurations.find(
-            d =>
-              d.dataPointType === type && (!kind || d.dataPointKind === kind),
-          )?.displayValue
-
-        const profileLink = extract('truanon')
-
-        setData(profile)
-        setDetails({
-          truAnonUrl: profileLink,
-          profileLink,
-          zodiac: extract('birthday', 'personal'),
-          location: extract('location', 'personal'),
-          ageRange: extract('birthday', 'personal'),
-        })
-      } catch (err: any) {
-        console.warn('[TruAnon] Fetch failed:', err.message)
-        setError(err.message)
-        setData(null)
-        setDetails(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchProfile()
-  }, [handle])
+  }, [handle, fetchProfile])
 
   return {data, details, error, loading}
 }
+
 export async function getVerifyLink(handle: string): Promise<{
   verifyUrl?: string
   assignedUrl?: string
@@ -120,15 +118,11 @@ export async function getVerifyLink(handle: string): Promise<{
 }> {
   if (!handle) return {}
 
-  //handle = 'hannab.bsky.social' // fallback test handle
-
-  const profileUrl = `https://truanon.com/api/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
+  const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 
   try {
-    const profileRes = await fetch(profileUrl, {
-      headers: TRUANON_AUTH_HEADER,
-    })
-    console.log('[TruAnon] Fetched Verify Link get_profile URL: ', profileUrl)
+    const profileRes = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
+    console.log('[TruAnon] Fetched Verify Link get_profile URL:', profileUrl)
 
     const profileJson = await profileRes.json()
 
@@ -147,16 +141,13 @@ export async function getVerifyLink(handle: string): Promise<{
       }
     }
 
-    // Only if unknown, then fetch token
-    const tokenUrl = `https://truanon.com/api/get_token?id=${handle}&service=${TRUANON_SERVICE}`
-    const tokenRes = await fetch(tokenUrl, {
-      headers: TRUANON_AUTH_HEADER,
-    })
+    const tokenUrl = `${baseUrl}/get_token?id=${handle}&service=${TRUANON_SERVICE}`
+    const tokenRes = await fetch(tokenUrl, {headers: TRUANON_AUTH_HEADER})
     console.log('[TruAnon] Fetched Token Link get_token URL', tokenUrl)
 
     const tokenJson = await tokenRes.json()
     if (tokenJson?.id) {
-      const verifyUrl = `https://truanon.com/truanon/wa/verifyProfile?id=${handle}&service=${TRUANON_SERVICE}&token=${tokenJson.id}`
+      const verifyUrl = `${baseUrl}/verifyProfile?id=${handle}&service=${TRUANON_SERVICE}&token=${tokenJson.id}`
       console.log('[TruAnon] Generated public confirmation URL:', verifyUrl)
       return {
         verifyUrl,

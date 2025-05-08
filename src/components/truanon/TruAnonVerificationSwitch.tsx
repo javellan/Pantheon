@@ -78,6 +78,7 @@ export function TruAnonVerificationSwitch({
               key={verifyUrl}
               source={{uri: verifyUrl}}
               onMessage={event => {
+                console.log('WebView message:', event.nativeEvent.data)
                 if (event.nativeEvent.data === 'windowClose') {
                   closeModal()
                 }
@@ -85,8 +86,9 @@ export function TruAnonVerificationSwitch({
               originWhitelist={['*']}
               cacheEnabled={false}
               sharedCookiesEnabled={true}
-              javaScriptEnabled
-              domStorageEnabled
+              javaScriptEnabled={true}
+              mediaPlaybackRequiresUserAction={false}
+              domStorageEnabled={true}
               startInLoadingState
               style={{flex: 1, backgroundColor: '#000'}}
             />

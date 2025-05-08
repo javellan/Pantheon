@@ -30,10 +30,12 @@ const SCREEN_HEIGHT = Dimensions.get('window').height
 export function EditProfileDialog({
   profile,
   control,
+  onClose,
   onUpdate,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   control: Dialog.DialogControlProps
+  onClose?: () => void
   onUpdate?: () => void
 }) {
   const {_} = useLingui()
@@ -56,8 +58,9 @@ export function EditProfileDialog({
       cancelControl.open()
     } else {
       control.close()
+      onClose?.()
     }
-  }, [dirty, control, cancelControl])
+  }, [dirty, control, onClose, cancelControl])
 
   return (
     <Dialog.Outer
@@ -130,17 +133,22 @@ function DialogInner({
 
   useEffect(() => setDirty(dirty), [dirty, setDirty])
 
-  useEffect(() => {
-    const fetchVerify = async () => {
-      const result = await getVerifyLink(profile.handle)
-      // console.log('[TruAnon] Verification fetch result:', result)
-      setVerifyUrl(result?.verifyUrl)
-      setAssignedUrl(result?.assignedUrl)
-      setTruAnonDetails(result?.truAnonDetails)
-    }
-    fetchVerify()
+  const fetchVerify = useCallback(async () => {
+    const result = await getVerifyLink(profile.handle)
+    setVerifyUrl(result?.verifyUrl)
+    setAssignedUrl(result?.assignedUrl)
+    setTruAnonDetails(result?.truAnonDetails)
   }, [profile.handle])
 
+  // const closeModal = () => {
+  //   console.log('closeModal:')
+  //   props.control.close()
+  //   props.onClose?.() // ← this is the missing piece
+  // }
+
+  useEffect(() => {
+    fetchVerify()
+  }, [fetchVerify])
   // console.log('verifyUrl:', verifyUrl)
   // console.log('assignedUrl:', assignedUrl)
   // console.log('truAnonDetails:', truAnonDetails)
@@ -176,6 +184,13 @@ function DialogInner({
       setImageError(cleanError(e))
     }
   }, [])
+
+  const handleVerified = async () => {
+    setVerifyUrl(undefined)
+    setAssignedUrl(undefined)
+    setTruAnonDetails(undefined)
+    await fetchVerify()
+  }
 
   const onPressSave = useCallback(async () => {
     setImageError('')
@@ -337,6 +352,7 @@ function DialogInner({
               verifyUrl={verifyUrl}
               assignedUrl={assignedUrl}
               truAnonDetails={truAnonDetails}
+              onVerified={() => handleVerified()}
             />
           )}
         </View>

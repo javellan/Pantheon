@@ -74,10 +74,10 @@ export function ProfileHeaderHandle({
   const renderTruAnon = () => {
     if (!truAnonData) return null
     const rankColors: Record<string, string> = {
-      Dangerous: '#d93f0b',
-      Cautioned: '#ff9900',
-      Credible: '#71767b',
-      Reliable: '#00ba7c',
+      Dangerous: '#e0245e',
+      Cautioned: '#ffad1f',
+      Credible: '#333',
+      Reliable: '#17bf63',
       Genuine: '#1d9bf0',
     }
     const rankColor = rankColors[truAnonData.authorRank] || '#666'
