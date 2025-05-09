@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react'
+import React, {memo, useCallback, useMemo} from 'react'
 import {View} from 'react-native'
 import {
   AppBskyActorDefs,
@@ -10,6 +10,7 @@ import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
+import {useTruAnonProfile} from '#/lib/truanon/useTruAnonProfile'
 import {logger} from '#/logger'
 import {isIOS, isWeb} from '#/platform/detection'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
@@ -43,8 +44,6 @@ import {ProfileHeaderShell} from './Shell'
 interface Props {
   profile: AppBskyActorDefs.ProfileViewDetailed
   descriptionRT: RichTextAPI | null
-  truAnonData: any
-  truAnonDetails: TruAnonDetails
   moderationOpts: ModerationOpts
   hideBackButton?: boolean
   isPlaceholderProfile?: boolean
@@ -53,8 +52,6 @@ interface Props {
 let ProfileHeaderStandard = ({
   profile: profileUnshadowed,
   descriptionRT,
-  truAnonData,
-  truAnonDetails,
   moderationOpts,
   hideBackButton = false,
   isPlaceholderProfile,
@@ -63,10 +60,18 @@ let ProfileHeaderStandard = ({
     useProfileShadow(profileUnshadowed)
   const {currentAccount, hasSession} = useSession()
   const {_} = useLingui()
+
   const moderation = useMemo(
     () => moderateProfile(profile, moderationOpts),
     [profile, moderationOpts],
   )
+
+  const {
+    data: truAnonData,
+    details: truAnonDetails,
+    refetch,
+  } = useTruAnonProfile(profile.handle)
+
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
     profile,
     'ProfileHeader',
@@ -81,9 +86,9 @@ let ProfileHeaderStandard = ({
 
   const {openModal} = useModalControls()
   const editProfileControl = useDialogControl()
-  const onPressEditProfile = React.useCallback(() => {
+
+  const onPressEditProfile = useCallback(() => {
     if (isWeb) {
-      // temp, while we figure out the nested dialog bug
       openModal({
         name: 'edit-profile',
         profile,
@@ -135,7 +140,7 @@ let ProfileHeaderStandard = ({
     })
   }
 
-  const unblockAccount = React.useCallback(async () => {
+  const unblockAccount = useCallback(async () => {
     try {
       await queueUnblock()
       Toast.show(_(msg({message: 'Account unblocked', context: 'toast'})))
@@ -189,6 +194,9 @@ let ProfileHeaderStandard = ({
               <EditProfileDialog
                 profile={profile}
                 control={editProfileControl}
+                onUpdate={() => {
+                  refetch()
+                }}
               />
             </>
           ) : profile.viewer?.blocking ? (

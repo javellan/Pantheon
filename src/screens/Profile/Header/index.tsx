@@ -15,7 +15,6 @@ import {
 } from '@atproto/api'
 import {useIsFocused} from '@react-navigation/native'
 
-import {useTruAnonProfile} from '#/lib/truanon/useTruAnonProfile'
 import {isNative} from '#/platform/detection'
 import {useSetLightStatusBar} from '#/state/shell/light-status-bar'
 import {usePagerHeaderContext} from '#/view/com/pager/PagerHeaderContext'
@@ -59,10 +58,6 @@ interface Props {
 }
 
 let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
-  const {data: truAnonData, details: truAnonDetails} = useTruAnonProfile(
-    props.profile.handle,
-  )
-
   let content
   if (props.profile.associated?.labeler) {
     if (!props.labeler) {
@@ -71,13 +66,7 @@ let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
       content = <ProfileHeaderLabeler {...props} labeler={props.labeler} />
     }
   } else {
-    content = (
-      <ProfileHeaderStandard
-        {...props}
-        truAnonData={truAnonData}
-        truAnonDetails={truAnonDetails}
-      />
-    )
+    content = <ProfileHeaderStandard {...props} />
   }
 
   return (

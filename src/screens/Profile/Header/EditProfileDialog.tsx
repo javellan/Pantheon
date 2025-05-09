@@ -59,8 +59,9 @@ export function EditProfileDialog({
     } else {
       control.close()
       onClose?.()
+      onUpdate?.()
     }
-  }, [dirty, control, onClose, cancelControl])
+  }, [dirty, control, onClose, onUpdate, cancelControl])
 
   return (
     <Dialog.Outer
@@ -77,7 +78,11 @@ export function EditProfileDialog({
         control={cancelControl}
         title={_(msg`Discard changes?`)}
         description={_(msg`Are you sure you want to discard your changes?`)}
-        onConfirm={() => control.close()}
+        onConfirm={() => {
+          control.close()
+          onClose?.()
+          onUpdate?.() // <-- ensure TruAnon refetch fires after discard
+        }}
         confirmButtonCta={_(msg`Discard`)}
         confirmButtonColor="negative"
       />

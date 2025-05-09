@@ -46,13 +46,14 @@ export function useTruAnonProfile(handle: string) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  handle = 'hannab.bsky.social'
+
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true)
 
-      //handle = 'hannab.bsky.social'
-
-      const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
+      const safeHandle = String(handle).split(':')[0]
+      const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
 
       console.log('[TruAnon] Fetched profile URL:', profileUrl)
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
@@ -64,7 +65,7 @@ export function useTruAnonProfile(handle: string) {
       } catch (err) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
-      // console.log('[TruAnon] Fetched JSON:', json)
+      // console.log('[TruAnon] Fetched profile URL JSON:', json)
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Unknown:', json)
@@ -145,7 +146,7 @@ export function useTruAnonProfile(handle: string) {
     fetchProfile()
   }, [handle, fetchProfile])
 
-  return {data, details, error, loading}
+  return {data, details, error, loading, refetch: fetchProfile}
 }
 
 export async function getVerifyLink(handle: string): Promise<{
