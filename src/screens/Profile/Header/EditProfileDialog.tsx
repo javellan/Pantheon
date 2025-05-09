@@ -81,7 +81,7 @@ export function EditProfileDialog({
         onConfirm={() => {
           control.close()
           onClose?.()
-          onUpdate?.() // <-- ensure TruAnon refetch fires after discard
+          onUpdate?.()
         }}
         confirmButtonCta={_(msg`Discard`)}
         confirmButtonColor="negative"

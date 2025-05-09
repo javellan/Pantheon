@@ -25,9 +25,9 @@ export function TruAnonVerificationSwitch({
   onVerified?: () => void
 }) {
   const [showWebModal, setShowWebModal] = useState(false)
-  const [useVerifiedIdentity, setUseVerifiedIdentity] = useState(false)
-  const [displayPersonalInfo, setDisplayPersonalInfo] = useState(false)
-  const [displaySocialLinks, setDisplaySocialLinks] = useState(false)
+  const [useVerifiedIdentity, setUseVerifiedIdentity] = useState(true)
+  const [displayPersonalInfo, setDisplayPersonalInfo] = useState(true)
+  const [displaySocialLinks, setDisplaySocialLinks] = useState(true)
   const [isPrivateProfile, setIsPrivateProfile] = useState(false)
 
   const t = useTheme()
