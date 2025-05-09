@@ -140,12 +140,6 @@ function DialogInner({
     setTruAnonDetails(result?.truAnonDetails)
   }, [profile.handle])
 
-  // const closeModal = () => {
-  //   console.log('closeModal:')
-  //   props.control.close()
-  //   props.onClose?.() // ← this is the missing piece
-  // }
-
   useEffect(() => {
     fetchVerify()
   }, [fetchVerify])

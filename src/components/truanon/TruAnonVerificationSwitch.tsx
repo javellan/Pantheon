@@ -5,6 +5,7 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  Switch,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -24,8 +25,12 @@ export function TruAnonVerificationSwitch({
   onVerified?: () => void
 }) {
   const [showWebModal, setShowWebModal] = useState(false)
-  const t = useTheme()
+  const [useVerifiedIdentity, setUseVerifiedIdentity] = useState(false)
+  const [displayPersonalInfo, setDisplayPersonalInfo] = useState(false)
+  const [displaySocialLinks, setDisplaySocialLinks] = useState(false)
+  const [isPrivateProfile, setIsPrivateProfile] = useState(false)
 
+  const t = useTheme()
   const isVerified = Boolean(assignedUrl && assignedUrl.trim())
 
   const closeModal = () => {
@@ -78,7 +83,6 @@ export function TruAnonVerificationSwitch({
               key={verifyUrl}
               source={{uri: verifyUrl}}
               onMessage={event => {
-                console.log('WebView message:', event.nativeEvent.data)
                 if (event.nativeEvent.data === 'windowClose') {
                   closeModal()
                 }
@@ -141,21 +145,96 @@ export function TruAnonVerificationSwitch({
           </Text>
         </TouchableOpacity>
 
-        <Text style={[a.text_sm, a.text_contrast_low]}>
-          {isVerified ? (
-            <Trans>
-              Boost your Rank/Score using links and profiles others know you by.
-              A special Ribbon is for those having both TikTok and also BlueSky
-              visibly validated with their identity.
-            </Trans>
-          ) : (
-            <Trans>
-              A verified badge shows you’re real, credible, and worth engaging.
-              It means you care enough to be reliable and trusted. It is
-              extending a hand of good faith and accountability.
-            </Trans>
-          )}
-        </Text>
+        {isVerified && (
+          <View style={[a.mt_md, a.gap_md]}>
+            <View>
+              <View style={[a.pl_md]}>
+                <View style={[a.flex_row, a.justify_between, a.items_center]}>
+                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                    Use Verified Identity
+                  </Text>
+                  <Switch
+                    value={useVerifiedIdentity}
+                    onValueChange={setUseVerifiedIdentity}
+                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    thumbColor="#fff"
+                  />
+                </View>
+                <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
+                  Turns off verified identity, showing only "Unknown"
+                </Text>
+              </View>
+            </View>
+
+            <View style={[a.pl_md]}>
+              <View>
+                <View style={[a.flex_row, a.justify_between, a.items_center]}>
+                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                    Display Personal Info
+                  </Text>
+                  <Switch
+                    value={displayPersonalInfo}
+                    onValueChange={setDisplayPersonalInfo}
+                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    thumbColor="#fff"
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={[a.pl_md]}>
+              <View>
+                <View style={[a.flex_row, a.justify_between, a.items_center]}>
+                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                    Display Social Profiles
+                  </Text>
+                  <Switch
+                    value={displaySocialLinks}
+                    onValueChange={setDisplaySocialLinks}
+                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    thumbColor="#fff"
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={[a.pl_md]}>
+              <View>
+                <View style={[a.flex_row, a.justify_between, a.items_center]}>
+                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                    Private Profile
+                  </Text>
+                  <Switch
+                    value={isPrivateProfile}
+                    onValueChange={setIsPrivateProfile}
+                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    thumbColor="#fff"
+                  />
+                </View>
+              </View>
+              <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
+                Turns off all links and assures privacy
+              </Text>
+            </View>
+          </View>
+        )}
+        <View style={([a.mt_lg, a.mb_lg], {paddingBottom: 80, paddingTop: 16})}>
+          <Text style={[a.text_sm, a.text_contrast_low]}>
+            {isVerified ? (
+              <Trans>
+                Boost your Rank/Score using links and profiles others know you
+                by. A special Ribbon is for those having both TikTok and also
+                BlueSky visibly validated with their identity.
+              </Trans>
+            ) : (
+              <Trans>
+                A verified badge shows you’re real, credible, and worth
+                engaging. It means you care enough to be reliable and trusted.
+                It is extending a hand of good faith and accountability.
+              </Trans>
+            )}
+          </Text>
+        </View>
       </View>
     </>
   )

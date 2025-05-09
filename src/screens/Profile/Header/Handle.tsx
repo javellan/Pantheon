@@ -108,7 +108,8 @@ export function ProfileHeaderHandle({
     }
 
     return (
-      <TouchableOpacity accessibilityRole="button"
+      <TouchableOpacity
+        accessibilityRole="button"
         key={key}
         onPress={() => Linking.openURL(`http://${value}`)}
         activeOpacity={0.6}
@@ -140,7 +141,7 @@ export function ProfileHeaderHandle({
             borderColor: isPrivateView ? '#999' : rankColor,
             marginBottom: 4,
             borderWidth: 1,
-            backgroundColor: '#000',
+            backgroundColor: isPrivateView ? '#2c2c2c' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
