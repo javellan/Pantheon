@@ -22,6 +22,7 @@ export function ProfileHeaderHandle({
   truAnonData?: any
   truAnonDetails?: TruAnonDetails
 }) {
+  const isPrivateView = false
   const t = useTheme()
   const {_} = useLingui()
   const invalidHandle = isInvalidHandle(profile.handle)
@@ -62,12 +63,12 @@ export function ProfileHeaderHandle({
           a.text_sm,
           a.font_bold,
           t.atoms.text_contrast_medium,
-          {lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25}, // Tight line height
+          {lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25},
         ]}>
         <FontAwesome5
           name={name as any}
           size={StyleSheet.flatten(a.text_sm).fontSize}
-          color="#fff"
+          color={isPrivateView ? '#999' : '#fff'}
         />{' '}
         {values}
       </Text>
@@ -84,20 +85,35 @@ export function ProfileHeaderHandle({
     const icon =
       parts.find(p => p.startsWith('fa-'))?.replace('fa-', '') || 'link'
 
+    const Icon = (
+      <FontAwesome5
+        name={icon as any}
+        size={StyleSheet.flatten(a.text_sm).fontSize}
+        color={isPrivateView ? '#999' : '#fff'}
+      />
+    )
+
+    const TextContent = (
+      <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+        {Icon} {name}
+      </Text>
+    )
+
+    if (isPrivateView) {
+      return (
+        <View key={key} style={{marginRight: 12, marginBottom: 6}}>
+          {TextContent}
+        </View>
+      )
+    }
+
     return (
       <TouchableOpacity accessibilityRole="button"
         key={key}
         onPress={() => Linking.openURL(`http://${value}`)}
         activeOpacity={0.6}
         style={{marginRight: 12, marginBottom: 6}}>
-        <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
-          <FontAwesome5
-            name={icon as any}
-            size={StyleSheet.flatten(a.text_sm).fontSize}
-            color="#fff"
-          />{' '}
-          {name}
-        </Text>
+        {TextContent}
       </TouchableOpacity>
     )
   }
@@ -121,7 +137,7 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: rankColor,
+            borderColor: isPrivateView ? '#999' : rankColor,
             marginBottom: 4,
             borderWidth: 1,
             backgroundColor: '#000',
@@ -136,7 +152,7 @@ export function ProfileHeaderHandle({
             elevation: 2,
           },
         ]}>
-        <Text>
+        <Text style={[{color: isPrivateView ? '#999' : rankColor}]}>
           <FontAwesome
             name="check-circle"
             size={StyleSheet.flatten(a.text_sm).fontSize * 2.25}
@@ -144,10 +160,15 @@ export function ProfileHeaderHandle({
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text style={[a.text_sm, a.font_bold, {color: '#fff'}]}>
+          <Text
+            style={[
+              a.text_sm,
+              a.font_bold,
+              {color: isPrivateView ? '#999' : '#fff'},
+            ]}>
             {truAnonData.authorRank}
           </Text>
-          <Text style={[a.text_xs, {color: '#fff'}]}>
+          <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#fff'}]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
               : `${truAnonData.authorRankScore ?? '–'} of 5`}
@@ -160,10 +181,10 @@ export function ProfileHeaderHandle({
     const locationData = dataPointsOfTypeKind('location', 'personal')
     const genderData = dataPointsOfTypeKind('gender', 'personal')
     const socialData = truAnonDetails?.socials || []
-    // console.log('socialData ! == ', socialData)
+
     return (
       <View style={{marginTop: 8, marginBottom: 4}}>
-        {truAnonData?.truAnonUrl && !isUnknown ? (
+        {!isPrivateView && truAnonData?.truAnonUrl && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
@@ -172,7 +193,7 @@ export function ProfileHeaderHandle({
             {badgePill}
           </TouchableOpacity>
         ) : (
-          <View style={{marginBottom: 4}}>{badgePill}</View>
+          <View style={{marginBottom: 8}}>{badgePill}</View>
         )}
         {!isUnknown && (
           <View style={{marginBottom: 8}}>

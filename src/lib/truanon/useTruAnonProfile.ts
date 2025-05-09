@@ -50,7 +50,7 @@ export function useTruAnonProfile(handle: string) {
     try {
       setLoading(true)
 
-      //handle = handle || 'hannab.bsky.social' // fallback test handle
+      //handle = 'hannab.bsky.social'
 
       const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 
@@ -155,7 +155,7 @@ export async function getVerifyLink(handle: string): Promise<{
 }> {
   if (!handle) return {}
 
-  //handle = handle || 'hannab.bsky.social'
+  //handle = 'hannab.bsky.social'
 
   const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 
