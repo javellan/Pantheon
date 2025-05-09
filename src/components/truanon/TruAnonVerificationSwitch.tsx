@@ -218,14 +218,10 @@ export function TruAnonVerificationSwitch({
             </View>
           </View>
         )}
-        <View style={([a.mt_lg, a.mb_lg], {paddingBottom: 80, paddingTop: 16})}>
+        <View style={([a.mt_lg, a.mb_lg], {paddingBottom: 44, paddingTop: 16})}>
           <Text style={[a.text_sm, a.text_contrast_low]}>
             {isVerified ? (
-              <Trans>
-                Boost your Rank/Score using links and profiles others know you
-                by. A special Ribbon is for those having both TikTok and also
-                BlueSky visibly validated with their identity.
-              </Trans>
+              <Trans />
             ) : (
               <Trans>
                 A verified badge shows you’re real, credible, and worth

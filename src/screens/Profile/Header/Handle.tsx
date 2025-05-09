@@ -61,14 +61,13 @@ export function ProfileHeaderHandle({
         key={keyPrefix}
         style={[
           a.text_sm,
-          a.font_bold,
           t.atoms.text_contrast_medium,
           {lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25},
         ]}>
         <FontAwesome5
           name={name as any}
           size={StyleSheet.flatten(a.text_sm).fontSize}
-          color={isPrivateView ? '#999' : '#fff'}
+          color="#fff"
         />{' '}
         {values}
       </Text>
@@ -94,7 +93,12 @@ export function ProfileHeaderHandle({
     )
 
     const TextContent = (
-      <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+      <Text
+        style={[
+          a.text_sm,
+          !isPrivateView && a.font_bold,
+          t.atoms.text_contrast_medium,
+        ]}>
         {Icon} {name}
       </Text>
     )
@@ -141,7 +145,7 @@ export function ProfileHeaderHandle({
             borderColor: isPrivateView ? '#999' : rankColor,
             marginBottom: 4,
             borderWidth: 1,
-            backgroundColor: isPrivateView ? '#2c2c2c' : '#000',
+            backgroundColor: isPrivateView ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
@@ -161,12 +165,7 @@ export function ProfileHeaderHandle({
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text
-            style={[
-              a.text_sm,
-              a.font_bold,
-              {color: isPrivateView ? '#999' : '#fff'},
-            ]}>
+          <Text style={[a.text_sm, {color: isPrivateView ? '#999' : '#fff'}]}>
             {truAnonData.authorRank}
           </Text>
           <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#fff'}]}>
@@ -201,7 +200,6 @@ export function ProfileHeaderHandle({
             <Text
               style={[
                 a.text_sm,
-                a.font_bold,
                 t.atoms.text_contrast_medium,
                 {
                   flexWrap: 'wrap',
