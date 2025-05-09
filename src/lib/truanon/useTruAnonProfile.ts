@@ -46,7 +46,7 @@ export function useTruAnonProfile(handle: string) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  handle = 'hannab.bsky.social'
+  // handle = 'hannab.bsky.social'
 
   const fetchProfile = useCallback(async () => {
     try {
