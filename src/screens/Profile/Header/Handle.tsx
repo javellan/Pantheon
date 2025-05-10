@@ -10,6 +10,7 @@ import {Shadow} from '#/state/cache/types'
 import {atoms as a, useTheme, web} from '#/alf'
 import {NewskieDialog} from '#/components/NewskieDialog'
 import {Text} from '#/components/Typography'
+// import {useEffect, useState} from 'react'
 
 export function ProfileHeaderHandle({
   profile,
@@ -22,13 +23,38 @@ export function ProfileHeaderHandle({
   truAnonData?: any
   truAnonDetails?: TruAnonDetails
 }) {
-  const isPrivateView = false
-  const wantsPersonal = true
-  const wantsSocial = true
   const t = useTheme()
   const {_} = useLingui()
   const invalidHandle = isInvalidHandle(profile.handle)
   const blockHide = profile.viewer?.blocking || profile.viewer?.blockedBy
+
+  const isPrivateView = false
+  const wantsPersonal = true
+  const wantsSocial = true
+
+  // const testInterface = [
+  //   {isPrivateView: false, wantsPersonal: true, wantsSocial: true},
+  //   {isPrivateView: false, wantsPersonal: true, wantsSocial: false},
+  //   {isPrivateView: false, wantsPersonal: false, wantsSocial: true},
+  //   {isPrivateView: false, wantsPersonal: false, wantsSocial: false},
+  //   {isPrivateView: true, wantsPersonal: true, wantsSocial: true},
+  // ]
+
+  // const [testIndex, setTestIndex] = useState(0)
+  // const [testState, setTestState] = useState(testInterface[0])
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setTestIndex(prev => {
+  //       const next = (prev + 1) % testInterface.length
+  //       setTestState(testInterface[next])
+  //       return next
+  //     })
+  //   }, 3500)
+  //   return () => clearInterval(interval)
+  // }, [])
+
+  // const {isPrivateView, wantsPersonal, wantsSocial} = testState
 
   const dataPointsOfTypeKind = (
     type: string,
@@ -105,23 +131,19 @@ export function ProfileHeaderHandle({
       </Text>
     )
 
-    if (isPrivateView) {
-      return (
-        <View key={key} style={{marginRight: 12, marginBottom: 6}}>
-          {TextContent}
-        </View>
-      )
-    }
+    const Container = isPrivateView ? View : TouchableOpacity
 
     return (
-      <TouchableOpacity
-        accessibilityRole="button"
+      <Container
         key={key}
-        onPress={() => Linking.openURL(`http://${value}`)}
-        activeOpacity={0.6}
+        accessibilityRole={isPrivateView ? undefined : 'button'}
+        onPress={
+          isPrivateView ? undefined : () => Linking.openURL(`http://${value}`)
+        }
+        activeOpacity={isPrivateView ? undefined : 0.6}
         style={{marginRight: 12, marginBottom: 6}}>
         {TextContent}
-      </TouchableOpacity>
+      </Container>
     )
   }
 
@@ -191,11 +213,11 @@ export function ProfileHeaderHandle({
             accessibilityRole="button"
             activeOpacity={0.5}
             onPress={() => Linking.openURL(`https://${truAnonData.truAnonUrl}`)}
-            style={{marginBottom: 12}}>
+            style={{marginBottom: 2}}>
             {badgePill}
           </TouchableOpacity>
         ) : (
-          <View style={{marginBottom: 12}}>{badgePill}</View>
+          <View>{badgePill}</View>
         )}
 
         {!isUnknown && (
@@ -206,7 +228,7 @@ export function ProfileHeaderHandle({
                   a.text_sm,
                   t.atoms.text_contrast_medium,
                   {
-                    lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
+                    marginTop: 4,
                     marginBottom: 16,
                   },
                 ]}>
@@ -226,7 +248,6 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     flexWrap: 'wrap',
-                    lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
                     marginTop: 4,
                     marginBottom: 8,
                   },
