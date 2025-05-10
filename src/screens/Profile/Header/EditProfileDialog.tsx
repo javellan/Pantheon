@@ -53,27 +53,12 @@ export function EditProfileDialog({
     }
   }, [dirty])
 
-  const onPressCancel = useCallback(() => {
-    if (dirty) {
-      cancelControl.open()
-    } else {
-      control.close()
-      onClose?.()
-      onUpdate?.()
-    }
-  }, [dirty, control, onClose, onUpdate, cancelControl])
-
   return (
     <Dialog.Outer
       control={control}
       nativeOptions={{preventDismiss: dirty, minHeight: SCREEN_HEIGHT}}
       testID="editProfileModal">
-      <DialogInner
-        profile={profile}
-        onUpdate={onUpdate}
-        setDirty={setDirty}
-        onPressCancel={onPressCancel}
-      />
+      <DialogInner profile={profile} onUpdate={onUpdate} setDirty={setDirty} />
       <Prompt.Basic
         control={cancelControl}
         title={_(msg`Discard changes?`)}
@@ -94,12 +79,10 @@ function DialogInner({
   profile,
   onUpdate,
   setDirty,
-  onPressCancel,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   onUpdate?: () => void
   setDirty: (dirty: boolean) => void
-  onPressCancel: () => void
 }) {
   const {_} = useLingui()
   const t = useTheme()
@@ -109,7 +92,6 @@ function DialogInner({
     mutateAsync: updateProfileMutation,
     error: updateProfileError,
     isError: isUpdateProfileError,
-    isPending: isUpdatingProfile,
   } = useProfileUpdateMutation()
 
   const [imageError, setImageError] = useState('')
@@ -205,7 +187,9 @@ function DialogInner({
       })
       onUpdate?.()
       control.close()
-      Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
+      if (dirty) {
+        Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
+      }
     } catch (e) {
       logger.error('Failed to update user profile', {message: String(e)})
     }
@@ -219,6 +203,7 @@ function DialogInner({
     newUserAvatar,
     newUserBanner,
     setImageError,
+    dirty,
     _,
   ])
 
@@ -238,36 +223,16 @@ function DialogInner({
       contentContainerStyle={[a.px_0, a.pt_0]}
       header={
         <Dialog.Header
-          renderLeft={() => (
+          renderRight={() => (
             <Button
-              label={_(msg`Cancel`)}
-              onPress={onPressCancel}
+              label={_(msg`Done`)}
+              onPress={onPressSave}
               size="small"
               color="primary"
               variant="ghost"
               style={[a.rounded_full]}>
               <ButtonText style={[a.text_md]}>
-                <Trans>Cancel</Trans>
-              </ButtonText>
-            </Button>
-          )}
-          renderRight={() => (
-            <Button
-              label={_(msg`Save`)}
-              onPress={onPressSave}
-              disabled={
-                !dirty ||
-                isUpdatingProfile ||
-                displayNameTooLong ||
-                descriptionTooLong
-              }
-              size="small"
-              color="primary"
-              variant="ghost"
-              style={[a.rounded_full]}>
-              <ButtonText
-                style={[a.text_md, !dirty && t.atoms.text_contrast_low]}>
-                <Trans>Save</Trans>
+                <Trans>Done</Trans>
               </ButtonText>
             </Button>
           )}>
