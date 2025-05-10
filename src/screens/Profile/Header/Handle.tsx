@@ -167,13 +167,13 @@ export function ProfileHeaderHandle({
           {
             alignSelf: 'flex-start',
             borderColor: isPrivateView ? '#999' : rankColor,
-            marginBottom: 6,
+            marginBottom: 12,
             borderWidth: 1,
             backgroundColor: isPrivateView ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
-            gap: 10,
+            gap: 8,
             shadowColor: '#000',
             shadowOffset: {width: 0, height: 1},
             shadowOpacity: 0.2,
@@ -207,7 +207,7 @@ export function ProfileHeaderHandle({
     const socialData = truAnonDetails?.socials || []
 
     return (
-      <View style={{marginTop: 8, marginBottom: 0}}>
+      <View style={{marginTop: 8, marginBottom: 8}}>
         {!isPrivateView && truAnonData?.truAnonUrl && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
@@ -229,7 +229,7 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     marginTop: 8,
-                    marginBottom: 12,
+                    marginBottom: 8,
                   },
                 ]}>
                 {renderLine(locationData, 'location')}
@@ -248,8 +248,8 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     flexWrap: 'wrap',
-                    marginTop: 6,
-                    marginBottom: 10,
+                    marginTop: 10,
+                    marginBottom: 2,
                   },
                 ]}>
                 {socialData.map((s, i) =>
