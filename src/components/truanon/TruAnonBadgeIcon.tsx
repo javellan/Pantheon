@@ -18,14 +18,13 @@ function qualifiesForSpecialBadge(profile: {
   const disallowed = ['Dangerous', 'Cautioned']
   if (disallowed.includes(profile.authorRank)) return false
 
-  const hasBluesky = profile.dataConfigurations.some(
-    d => d.dataPointType === 'bskyapp',
-  )
   const hasTiktok = profile.dataConfigurations.some(
     d => d.dataPointType === 'tiktok',
   )
 
-  return hasBluesky && hasTiktok
+  // I realize you JUST DID verify your BlueSky - RIGHT HERE - duh.
+
+  return hasTiktok
 }
 
 export function TruAnonBadgeIcon({
