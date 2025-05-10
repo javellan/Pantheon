@@ -174,6 +174,7 @@ export function TruAnonVerificationSwitch({
                   </Text>
                   <Switch
                     value={displayPersonalInfo}
+                    disabled={!useVerifiedIdentity}
                     onValueChange={setDisplayPersonalInfo}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
@@ -190,6 +191,7 @@ export function TruAnonVerificationSwitch({
                   </Text>
                   <Switch
                     value={displaySocialLinks}
+                    disabled={!useVerifiedIdentity}
                     onValueChange={setDisplaySocialLinks}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
@@ -206,6 +208,7 @@ export function TruAnonVerificationSwitch({
                   </Text>
                   <Switch
                     value={isPrivateProfile}
+                    disabled={!useVerifiedIdentity}
                     onValueChange={setIsPrivateProfile}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
