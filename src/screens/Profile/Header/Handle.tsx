@@ -141,7 +141,7 @@ export function ProfileHeaderHandle({
           isPrivateView ? undefined : () => Linking.openURL(`http://${value}`)
         }
         activeOpacity={isPrivateView ? undefined : 0.6}
-        style={{marginRight: 12, marginBottom: 6}}>
+        style={{marginRight: 12, marginBottom: 4}}>
         {TextContent}
       </Container>
     )
@@ -228,8 +228,8 @@ export function ProfileHeaderHandle({
                   a.text_sm,
                   t.atoms.text_contrast_medium,
                   {
-                    marginTop: 4,
-                    marginBottom: 16,
+                    marginTop: 8,
+                    marginBottom: 8,
                   },
                 ]}>
                 {renderLine(locationData, 'location')}
@@ -248,7 +248,7 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     flexWrap: 'wrap',
-                    marginTop: 4,
+                    marginTop: 8,
                     marginBottom: 8,
                   },
                 ]}>
