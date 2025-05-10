@@ -107,7 +107,7 @@ export function ProfileHeaderHandle({
 
     if (isPrivateView) {
       return (
-        <View key={key} style={{marginRight: 12, marginBottom: 6}}>
+        <View key={key} style={{marginRight: 12, marginBottom: 4}}>
           {TextContent}
         </View>
       )
@@ -119,7 +119,7 @@ export function ProfileHeaderHandle({
         key={key}
         onPress={() => Linking.openURL(`http://${value}`)}
         activeOpacity={0.6}
-        style={{marginRight: 12, marginBottom: 6}}>
+        style={{marginRight: 12, marginBottom: 4}}>
         {TextContent}
       </TouchableOpacity>
     )
@@ -204,7 +204,7 @@ export function ProfileHeaderHandle({
               <Text
                 style={[
                   {marginTop: 4},
-                  {marginBottom: 8},
+                  {marginBottom: 12},
                   a.text_sm,
                   t.atoms.text_contrast_medium,
                   {
