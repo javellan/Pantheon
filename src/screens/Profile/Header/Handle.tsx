@@ -107,7 +107,7 @@ export function ProfileHeaderHandle({
 
     if (isPrivateView) {
       return (
-        <View key={key} style={{marginRight: 12, marginBottom: 4}}>
+        <View key={key} style={{marginRight: 12, marginBottom: 6}}>
           {TextContent}
         </View>
       )
@@ -119,7 +119,7 @@ export function ProfileHeaderHandle({
         key={key}
         onPress={() => Linking.openURL(`http://${value}`)}
         activeOpacity={0.6}
-        style={{marginRight: 12, marginBottom: 4}}>
+        style={{marginRight: 12, marginBottom: 6}}>
         {TextContent}
       </TouchableOpacity>
     )
@@ -145,7 +145,7 @@ export function ProfileHeaderHandle({
           {
             alignSelf: 'flex-start',
             borderColor: isPrivateView ? '#999' : rankColor,
-            marginBottom: 4,
+            marginBottom: 6,
             borderWidth: 1,
             backgroundColor: isPrivateView ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
@@ -185,31 +185,29 @@ export function ProfileHeaderHandle({
     const socialData = truAnonDetails?.socials || []
 
     return (
-      <View style={{marginTop: 8, marginBottom: 4}}>
+      <View style={{marginTop: 8, marginBottom: 0}}>
         {!isPrivateView && truAnonData?.truAnonUrl && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
             onPress={() => Linking.openURL(`https://${truAnonData.truAnonUrl}`)}
-            style={{marginBottom: 8}}>
+            style={{marginBottom: 12}}>
             {badgePill}
           </TouchableOpacity>
         ) : (
-          <View style={{marginBottom: 8}}>{badgePill}</View>
+          <View style={{marginBottom: 12}}>{badgePill}</View>
         )}
 
         {!isUnknown && (
-          <View style={{marginTop: 0}}>
+          <View>
             {wantsPersonal && (
               <Text
                 style={[
-                  {marginTop: 4},
-                  {marginBottom: 12},
                   a.text_sm,
                   t.atoms.text_contrast_medium,
                   {
-                    flexWrap: 'wrap',
                     lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
+                    marginBottom: 16,
                   },
                 ]}>
                 {renderLine(locationData, 'location')}
@@ -217,33 +215,31 @@ export function ProfileHeaderHandle({
                 {renderLine(birthdayData, 'birthday')}
                 {'   '}
                 {renderLine(genderData, 'gender')}
-                {'   '}
               </Text>
             )}
 
             {wantsSocial && (
-              <View style={{marginTop: 0, marginBottom: 8}}>
-                <Text
-                  style={[
-                    a.text_sm,
-                    a.font_bold,
-                    t.atoms.text_contrast_medium,
-                    {
-                      flexWrap: 'wrap',
-                      lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
-                      marginTop: 8,
-                    },
-                  ]}>
-                  {socialData.map((s, i) =>
-                    renderInlineSocial(
-                      s.dataPointName,
-                      s.displayValue,
-                      s.dataPointIconClass,
-                      `social-${i}`,
-                    ),
-                  )}
-                </Text>
-              </View>
+              <Text
+                style={[
+                  a.text_sm,
+                  a.font_bold,
+                  t.atoms.text_contrast_medium,
+                  {
+                    flexWrap: 'wrap',
+                    lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
+                    marginTop: 4,
+                    marginBottom: 8,
+                  },
+                ]}>
+                {socialData.map((s, i) =>
+                  renderInlineSocial(
+                    s.dataPointName,
+                    s.displayValue,
+                    s.dataPointIconClass,
+                    `social-${i}`,
+                  ),
+                )}
+              </Text>
             )}
           </View>
         )}
