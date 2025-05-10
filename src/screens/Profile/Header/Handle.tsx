@@ -229,7 +229,7 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     marginTop: 8,
-                    marginBottom: 8,
+                    marginBottom: 12,
                   },
                 ]}>
                 {renderLine(locationData, 'location')}
@@ -248,8 +248,8 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     flexWrap: 'wrap',
-                    marginTop: 8,
-                    marginBottom: 8,
+                    marginTop: 6,
+                    marginBottom: 10,
                   },
                 ]}>
                 {socialData.map((s, i) =>
