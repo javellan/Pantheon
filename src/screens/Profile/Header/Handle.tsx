@@ -170,7 +170,7 @@ export function ProfileHeaderHandle({
           <Text style={[a.text_sm, {color: isPrivateView ? '#999' : '#fff'}]}>
             {truAnonData.authorRank}
           </Text>
-          <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#fff'}]}>
+          <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#ccc'}]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
               : `${truAnonData.authorRankScore ?? '–'} of 5`}

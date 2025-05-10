@@ -55,7 +55,7 @@ export function useTruAnonProfile(handle: string) {
       const safeHandle = String(handle).split(':')[0]
       const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
 
-      console.log('[TruAnon] Fetched profile URL:', profileUrl)
+      console.log('[TruAnon] Fetched Profile get_profile URL:', profileUrl)
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
       const text = await res.text()
 
@@ -162,7 +162,7 @@ export async function getVerifyLink(handle: string): Promise<{
 
   try {
     const profileRes = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
-    console.log('[TruAnon] Fetched Verify Link get_profile URL:', profileUrl)
+    console.log('[TruAnon] Fetched Editing get_profile URL:', profileUrl)
 
     const profileJson = await profileRes.json()
 
