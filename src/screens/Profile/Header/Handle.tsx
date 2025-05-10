@@ -23,6 +23,8 @@ export function ProfileHeaderHandle({
   truAnonDetails?: TruAnonDetails
 }) {
   const isPrivateView = false
+  const wantsPersonal = true
+  const wantsSocial = true
   const t = useTheme()
   const {_} = useLingui()
   const invalidHandle = isInvalidHandle(profile.handle)
@@ -195,26 +197,32 @@ export function ProfileHeaderHandle({
         ) : (
           <View style={{marginBottom: 8}}>{badgePill}</View>
         )}
+
         {!isUnknown && (
-          <View style={{marginBottom: 8}}>
-            <Text
-              style={[
-                a.text_sm,
-                t.atoms.text_contrast_medium,
-                {
-                  flexWrap: 'wrap',
-                  lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
-                },
-              ]}>
-              {renderLine(locationData, 'location')}
-              {'   '}
-              {renderLine(birthdayData, 'birthday')}
-              {'   '}
-              {renderLine(genderData, 'gender')}
-              {'   '}
-            </Text>
-            <View style={{marginTop: 16}}>
-              {socialData.length > 0 && (
+          <View style={{marginTop: 0}}>
+            {wantsPersonal && (
+              <Text
+                style={[
+                  {marginTop: 4},
+                  {marginBottom: 8},
+                  a.text_sm,
+                  t.atoms.text_contrast_medium,
+                  {
+                    flexWrap: 'wrap',
+                    lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
+                  },
+                ]}>
+                {renderLine(locationData, 'location')}
+                {'   '}
+                {renderLine(birthdayData, 'birthday')}
+                {'   '}
+                {renderLine(genderData, 'gender')}
+                {'   '}
+              </Text>
+            )}
+
+            {wantsSocial && (
+              <View style={{marginTop: 0, marginBottom: 8}}>
                 <Text
                   style={[
                     a.text_sm,
@@ -223,7 +231,7 @@ export function ProfileHeaderHandle({
                     {
                       flexWrap: 'wrap',
                       lineHeight: StyleSheet.flatten(a.text_sm).fontSize * 1.25,
-                      marginTop: 6,
+                      marginTop: 8,
                     },
                   ]}>
                   {socialData.map((s, i) =>
@@ -235,8 +243,8 @@ export function ProfileHeaderHandle({
                     ),
                   )}
                 </Text>
-              )}
-            </View>
+              </View>
+            )}
           </View>
         )}
       </View>
