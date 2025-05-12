@@ -10,6 +10,7 @@ import {Shadow} from '#/state/cache/types'
 import {atoms as a, useTheme, web} from '#/alf'
 import {NewskieDialog} from '#/components/NewskieDialog'
 import {Text} from '#/components/Typography'
+
 // import {useEffect, useState} from 'react'
 
 export function ProfileHeaderHandle({
@@ -108,9 +109,11 @@ export function ProfileHeaderHandle({
     iconClass: string,
     key: string,
   ) => {
-    const parts = iconClass?.split(' ') || []
     const icon =
-      parts.find(p => p.startsWith('fa-'))?.replace('fa-', '') || 'link'
+      iconClass
+        ?.split(' ')
+        .find(p => p.startsWith('fa-'))
+        ?.replace('fa-', '') || 'question-circle'
 
     const Icon = (
       <FontAwesome5
@@ -141,7 +144,7 @@ export function ProfileHeaderHandle({
           isPrivateView ? undefined : () => Linking.openURL(`http://${value}`)
         }
         activeOpacity={isPrivateView ? undefined : 0.6}
-        style={{marginRight: 12, marginBottom: 4}}>
+        style={{marginRight: 12, marginBottom: 6}}>
         {TextContent}
       </Container>
     )
@@ -248,8 +251,8 @@ export function ProfileHeaderHandle({
                   t.atoms.text_contrast_medium,
                   {
                     flexWrap: 'wrap',
-                    marginTop: 10,
-                    marginBottom: 2,
+                    marginTop: 12,
+                    marginBottom: 0,
                   },
                 ]}>
                 {socialData.map((s, i) =>
