@@ -11,51 +11,32 @@ import {atoms as a, useTheme, web} from '#/alf'
 import {NewskieDialog} from '#/components/NewskieDialog'
 import {Text} from '#/components/Typography'
 
-// import {useEffect, useState} from 'react'
-
 export function ProfileHeaderHandle({
   profile,
   disableTaps,
   truAnonData,
   truAnonDetails,
+  userPrefs,
 }: {
   profile: Shadow<AppBskyActorDefs.ProfileViewDetailed>
   disableTaps?: boolean
   truAnonData?: any
   truAnonDetails?: TruAnonDetails
+  userPrefs?: {
+    wants_verified?: number
+    wants_personal?: number
+    wants_social?: number
+    wants_private?: number
+  }
 }) {
   const t = useTheme()
   const {_} = useLingui()
   const invalidHandle = isInvalidHandle(profile.handle)
   const blockHide = profile.viewer?.blocking || profile.viewer?.blockedBy
 
-  const isPrivateView = false
-  const wantsPersonal = true
-  const wantsSocial = true
-
-  // const testInterface = [
-  //   {isPrivateView: false, wantsPersonal: true, wantsSocial: true},
-  //   {isPrivateView: false, wantsPersonal: true, wantsSocial: false},
-  //   {isPrivateView: false, wantsPersonal: false, wantsSocial: true},
-  //   {isPrivateView: false, wantsPersonal: false, wantsSocial: false},
-  //   {isPrivateView: true, wantsPersonal: true, wantsSocial: true},
-  // ]
-
-  // const [testIndex, setTestIndex] = useState(0)
-  // const [testState, setTestState] = useState(testInterface[0])
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setTestIndex(prev => {
-  //       const next = (prev + 1) % testInterface.length
-  //       setTestState(testInterface[next])
-  //       return next
-  //     })
-  //   }, 3500)
-  //   return () => clearInterval(interval)
-  // }, [])
-
-  // const {isPrivateView, wantsPersonal, wantsSocial} = testState
+  const isPrivateView = !!userPrefs?.wants_private
+  const wantsPersonal = !!userPrefs?.wants_personal
+  const wantsSocial = !!userPrefs?.wants_social
 
   const dataPointsOfTypeKind = (
     type: string,

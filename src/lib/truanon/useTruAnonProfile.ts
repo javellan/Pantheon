@@ -39,44 +39,70 @@ export type TruAnonDetails = {
 }
 
 const baseUrl = 'https://truanon.com/api'
+// const baseUrl = 'http://127.0.0.1:5555/cgi-bin/WebObjects/TruAnon.woa/wa'
 
 export function useTruAnonProfile(handle: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
+  const [prefs, setPrefs] = useState({
+    wants_verified: true,
+    wants_personal: true,
+    wants_social: true,
+    wants_private: false,
+  })
   const [details, setDetails] = useState<TruAnonDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // handle = 'hannab.bsky.social'
-
   const fetchProfile = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-
       const safeHandle = String(handle).split(':')[0]
-      const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
+      const prefsUrl = `https://devhauz.truanon.com/api/prefs/${safeHandle}`
 
-      console.log('[TruAnon] Fetched Profile get_profile URL:', profileUrl)
-      const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
-      const text = await res.text()
-
-      let json: any
+      let loadedPrefs = null
       try {
-        json = JSON.parse(text)
-      } catch (err) {
-        throw new Error('Invalid JSON: ' + text.slice(0, 100))
+        const prefsRes = await fetch(prefsUrl)
+        if (prefsRes.ok) {
+          loadedPrefs = await prefsRes.json()
+          setPrefs({
+            wants_verified: !!loadedPrefs.wants_verified,
+            wants_personal: !!loadedPrefs.wants_personal,
+            wants_social: !!loadedPrefs.wants_social,
+            wants_private: !!loadedPrefs.wants_private,
+          })
+        } else {
+          console.log('[TAO] No prefs found.')
+        }
+      } catch (e) {
+        console.warn('[TAO] Pref fetch failed:', e.message)
       }
-      // console.log('[TruAnon] Fetched profile URL JSON:', json)
 
-      if (!res.ok || json.error || json.type === 'error') {
-        console.log('[TruAnon] API Unknown:', json)
+      if (!loadedPrefs?.wants_verified) {
+        console.log('[TAO] Showing Unknown badge (no verify).')
         setData({authorRank: 'Unknown', dataConfigurations: []})
         setDetails({})
         return
       }
 
-      const truAnonConfig = (json.dataConfigurations || []).find(
-        d => d.dataPointType === 'truanon',
-      )
+      const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
+      const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
+      const text = await res.text()
+
+      let json
+      try {
+        json = JSON.parse(text)
+      } catch (err) {
+        throw new Error('Invalid JSON: ' + text.slice(0, 100))
+      }
+
+      console.log('[TruAnon] Fetched Proflile get_profile URL:', profileUrl)
+
+      if (!res.ok || json.error || json.type === 'error') {
+        console.log('[TruAnon] API Error:', json)
+        setData({authorRank: 'Unknown', dataConfigurations: []})
+        setDetails({})
+        return
+      }
 
       const profile: TruAnonProfile = {
         authorRank: json.authorRank,
@@ -85,25 +111,20 @@ export function useTruAnonProfile(handle: string) {
         authorTitle: json.authorTitle,
         authorAgeBadge: json.authorAgeBadge,
         authorPhoto: json.authorPhoto,
-        truAnonUrl: truAnonConfig?.displayValue || undefined,
+        truAnonUrl: json.dataConfigurations?.find(
+          d => d.dataPointType === 'truanon',
+        )?.displayValue,
         dataConfigurations: json.dataConfigurations || [],
       }
 
-      const extract = (type: string, kind?: string): string | undefined =>
+      const extract = (type: string, kind?: string) =>
         profile.dataConfigurations.find(
           d => d.dataPointType === type && (!kind || d.dataPointKind === kind),
         )?.displayValue
 
-      const profileLink = extract('truanon')
-
-      const iconOverrides: Record<string, string> = {
-        medium: 'fab fa-medium',
-        tiktok: 'fab fa-tiktok',
-      }
-
-      const socialLinks =
+      const socials =
         profile.dataConfigurations
-          ?.filter(
+          .filter(
             d =>
               d.dataPointKind === 'social' &&
               d.displayValue &&
@@ -111,42 +132,42 @@ export function useTruAnonProfile(handle: string) {
                 (d.dataPointType || '').toLowerCase(),
               ),
           )
-          .map(d => {
-            const type = d.dataPointType?.toLowerCase() || ''
-            const fallback = 'fas fa-link'
-            return {
-              dataPointName: d.dataPointName || 'Link',
-              displayValue: d.displayValue,
-              dataPointIconClass:
-                iconOverrides[type] || d.dataPointIconClass || fallback,
-            }
-          }) || []
+          .map(d => ({
+            dataPointName: d.dataPointName || 'Link',
+            displayValue: d.displayValue,
+            dataPointIconClass:
+              {
+                medium: 'fab fa-medium',
+                tiktok: 'fab fa-tiktok',
+              }[d.dataPointType?.toLowerCase() || ''] ||
+              d.dataPointIconClass ||
+              'fas fa-link',
+          })) || []
 
       setData(profile)
       setDetails({
-        truAnonUrl: profileLink,
-        profileLink,
+        truAnonUrl: extract('truanon'),
+        profileLink: extract('truanon'),
         zodiac: extract('birthday', 'personal'),
         location: extract('location', 'personal'),
         ageRange: extract('birthday', 'personal'),
-        socials: socialLinks,
+        socials,
       })
     } catch (err: any) {
       console.warn('[TruAnon] Fetch failed:', err.message)
       setError(err.message)
-      setData(null)
-      setDetails(null)
+      setData({authorRank: 'Unknown', dataConfigurations: []})
+      setDetails({})
     } finally {
       setLoading(false)
     }
   }, [handle])
 
   useEffect(() => {
-    if (!handle) return
-    fetchProfile()
+    if (handle) fetchProfile()
   }, [handle, fetchProfile])
 
-  return {data, details, error, loading, refetch: fetchProfile}
+  return {data, details, prefs, error, loading, refetch: fetchProfile}
 }
 
 export async function getVerifyLink(handle: string): Promise<{

@@ -19,16 +19,26 @@ export function TruAnonVerificationSwitch({
   verifyUrl,
   assignedUrl,
   onVerified,
+  prefs,
+  setPrefs,
 }: {
   verifyUrl?: string
   assignedUrl?: string
+  prefs?: {
+    wants_verified?: number
+    wants_personal?: number
+    wants_social?: number
+    wants_private?: number
+  }
+  setPrefs: (prefs: {
+    wants_verified: number
+    wants_personal: number
+    wants_social: number
+    wants_private: number
+  }) => void
   onVerified?: () => void
 }) {
   const [showWebModal, setShowWebModal] = useState(false)
-  const [useVerifiedIdentity, setUseVerifiedIdentity] = useState(true)
-  const [displayPersonalInfo, setDisplayPersonalInfo] = useState(true)
-  const [displaySocialLinks, setDisplaySocialLinks] = useState(true)
-  const [isPrivateProfile, setIsPrivateProfile] = useState(false)
 
   const t = useTheme()
   const isVerified = Boolean(assignedUrl && assignedUrl.trim())
@@ -154,8 +164,8 @@ export function TruAnonVerificationSwitch({
                     Use Verified Identity
                   </Text>
                   <Switch
-                    value={useVerifiedIdentity}
-                    onValueChange={setUseVerifiedIdentity}
+                    value={prefs?.wants_verified}
+                    onValueChange={v => setPrefs({...prefs, wants_verified: v})}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -173,9 +183,9 @@ export function TruAnonVerificationSwitch({
                     Display Personal Info
                   </Text>
                   <Switch
-                    value={displayPersonalInfo}
-                    disabled={!useVerifiedIdentity}
-                    onValueChange={setDisplayPersonalInfo}
+                    value={prefs?.wants_personal}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => setPrefs({...prefs, wants_personal: v})}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -190,9 +200,9 @@ export function TruAnonVerificationSwitch({
                     Display Social Profiles
                   </Text>
                   <Switch
-                    value={displaySocialLinks}
-                    disabled={!useVerifiedIdentity}
-                    onValueChange={setDisplaySocialLinks}
+                    value={prefs?.wants_social}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => setPrefs({...prefs, wants_social: v})}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -207,9 +217,9 @@ export function TruAnonVerificationSwitch({
                     Private Profile
                   </Text>
                   <Switch
-                    value={isPrivateProfile}
-                    disabled={!useVerifiedIdentity}
-                    onValueChange={setIsPrivateProfile}
+                    value={prefs?.wants_private}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => setPrefs({...prefs, wants_private: v})}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />

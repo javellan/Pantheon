@@ -70,6 +70,7 @@ let ProfileHeaderStandard = ({
     data: truAnonData,
     details: truAnonDetails,
     refetch,
+    prefs,
   } = useTruAnonProfile(profile.handle)
 
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
@@ -194,6 +195,7 @@ let ProfileHeaderStandard = ({
               <EditProfileDialog
                 profile={profile}
                 control={editProfileControl}
+                prefs={prefs}
                 onUpdate={() => {
                   refetch()
                 }}
@@ -262,6 +264,7 @@ let ProfileHeaderStandard = ({
           profile={profile}
           truAnonData={truAnonData}
           truAnonDetails={truAnonDetails}
+          userPrefs={prefs}
         />
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>
