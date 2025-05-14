@@ -1,8 +1,10 @@
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'
 import {StyleSheet, View} from 'react-native'
 import Animated from 'react-native-reanimated'
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {useMediaQuery} from 'react-responsive'
 
+import {useLayoutBreakpoints} from '#/alf'
 import {HITSLOP_20} from '#/lib/constants'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useMinimalShellFabTransform} from '#/lib/hooks/useMinimalShellTransform'
@@ -13,7 +15,6 @@ import {colors} from '#/lib/styles'
 import {isWeb} from '#/platform/detection'
 import {useSession} from '#/state/session'
 import {useShellLayout} from '#/state/shell/shell-layout'
-import {useLayoutBreakpoints} from '#/alf'
 
 export function LoadLatestBtn({
   onPress,
@@ -29,6 +30,7 @@ export function LoadLatestBtn({
   const {isDesktop, isTablet, isMobile, isTabletOrMobile} = useWebMediaQueries()
   const {centerColumnOffset} = useLayoutBreakpoints()
   const fabMinimalShellTransform = useMinimalShellFabTransform()
+  const insets = useSafeAreaInsets()
   const {footerHeight} = useShellLayout()
 
   // move button inline if it starts overlapping the left nav

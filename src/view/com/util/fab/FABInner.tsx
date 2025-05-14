@@ -1,8 +1,10 @@
+import {LinearGradient} from 'expo-linear-gradient'
 import {ComponentProps} from 'react'
 import {StyleSheet, TouchableWithoutFeedback} from 'react-native'
 import Animated from 'react-native-reanimated'
-import {LinearGradient} from 'expo-linear-gradient'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
+import {ios} from '#/alf'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useHaptics} from '#/lib/haptics'
 import {useMinimalShellFabTransform} from '#/lib/hooks/useMinimalShellTransform'
@@ -10,7 +12,6 @@ import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
 import {gradients} from '#/lib/styles'
 import {isWeb} from '#/platform/detection'
 import {useShellLayout} from '#/state/shell/shell-layout'
-import {ios} from '#/alf'
 
 export interface FABProps
   extends ComponentProps<typeof TouchableWithoutFeedback> {
@@ -19,6 +20,7 @@ export interface FABProps
 }
 
 export function FABInner({testID, icon, onPress, ...props}: FABProps) {
+  const insets = useSafeAreaInsets()
   const {isMobile, isTablet} = useWebMediaQueries()
   const playHaptic = useHaptics()
   const fabMinimalShellTransform = useMinimalShellFabTransform()

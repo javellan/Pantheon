@@ -1,26 +1,25 @@
 import {useCallback} from 'react'
-import {Keyboard, Text} from 'react-native'
+import {Keyboard, Platform, Text} from 'react-native'
 import {ImagePickerAsset, ImagePickerSuccessResult} from 'expo-image-picker'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
-import {CameraRoll} from '@react-native-camera-roll/camera-roll'
 
-import {
-  BSKY_SERVICE,
-  SUPPORTED_MIME_TYPES,
-  SupportedMimeTypes,
-} from '#/lib/constants'
+import {SUPPORTED_MIME_TYPES, SupportedMimeTypes} from '#/lib/constants'
+import {BSKY_SERVICE} from '#/lib/constants'
 import {useVideoLibraryPermission} from '#/lib/hooks/usePermissions'
 import {getHostnameFromUrl} from '#/lib/strings/url-helpers'
 import {isNative, isWeb} from '#/platform/detection'
 import {useSession} from '#/state/session'
-import {atoms as a} from '#/alf'
+import {atoms as a, useTheme} from '#/alf'
 import {Button} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {VerifyEmailDialog} from '#/components/dialogs/VerifyEmailDialog'
 import * as Prompt from '#/components/Prompt'
+import { CameraRoll } from '@react-native-camera-roll/camera-roll'
+
 
 const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
+
 
 type Props = {
   onSelectVideo: (video: ImagePickerAsset) => void
@@ -30,22 +29,17 @@ type Props = {
   result: ImagePickerSuccessResult | null
 }
 
-export function ConfirmVideoBtn({
-  onSelectVideo,
-  disabled,
-  setError,
-  videoAsset,
-  result,
-}: Props) {
+export function ConfirmVideoBtn({onSelectVideo, disabled, setError, videoAsset, result}: Props) {
   const {_} = useLingui()
+  const t = useTheme()
   const {requestVideoAccessIfNeeded} = useVideoLibraryPermission()
   const control = Prompt.usePromptControl()
   const {currentAccount} = useSession()
 
   const onPressSelectVideo = useCallback(async () => {
     if (isNative && !(await requestVideoAccessIfNeeded())) {
-      return
-    }
+          return
+        }
 
     if (
       currentAccount &&
@@ -56,15 +50,15 @@ export function ConfirmVideoBtn({
       Keyboard.dismiss()
       control.open()
     } else {
-      if (!result?.assets) {
-        console.log('No video asset selected')
-        setError('No video selected. Please record or pick a video.')
-        return
-      }
-
+        if (!result?.assets) {
+            console.log("No video asset selected");
+            setError("No video selected. Please record or pick a video.");
+            return;
+          }
+    
       if (result?.assets && result.assets.length > 0) {
         const asset = result.assets[0]
-        console.log('Asset in confirmVideo: ', asset)
+        console.log("Asset in confirmVideo: ", asset)
         try {
           if (isWeb) {
             // asset.duration is null for gifs (see the TODO in pickVideo.web.ts)
@@ -89,22 +83,18 @@ export function ConfirmVideoBtn({
           }
 
           // Save video to camera roll and update URI
-          const savedAsset = await CameraRoll.saveAsset(asset.uri, {
-            type: 'video',
-          })
-          console.log('Video saved to camera roll:', savedAsset)
-
+          const savedAsset = await CameraRoll.saveAsset(asset.uri, { type: 'video' });
+          console.log("Video saved to camera roll:", savedAsset);
+          
           // Extract the correct URI from the savedAsset
           //const savedUri = savedAsset?.node?.image?.uri ?? asset.uri;
-          const savedId = savedAsset?.node?.id
-            ? `${savedAsset.node.id}.mp4`
-            : null
+          const savedId = savedAsset?.node?.id ? `${savedAsset.node.id}.mp4`: null;
 
-          const updatedAsset = {...asset, fileName: savedId}
-          console.log('Updated ImagePickerAsset: ', updatedAsset)
-
+          const updatedAsset = {...asset, fileName: savedId};
+          console.log("Updated ImagePickerAsset: ", updatedAsset)
+          
           // Call onSelectVideo with the updated video URI
-          onSelectVideo(updatedAsset)
+          onSelectVideo(updatedAsset);
         } catch (err) {
           if (err instanceof Error) {
             setError(err.message)
@@ -114,7 +104,13 @@ export function ConfirmVideoBtn({
         }
       }
     }
-  }, [currentAccount, control, setError, _, onSelectVideo])
+  }, [
+    currentAccount,
+    control,
+    setError,
+    _,
+    onSelectVideo,
+  ])
 
   return (
     <>
@@ -128,7 +124,9 @@ export function ConfirmVideoBtn({
         shape="round"
         color="primary"
         disabled={disabled}>
-        <Text>Next</Text>
+        <Text>
+          Next
+        </Text>
       </Button>
       <VerifyEmailPrompt control={control} />
     </>

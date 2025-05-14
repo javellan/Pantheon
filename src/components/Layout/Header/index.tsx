@@ -1,14 +1,10 @@
-import {createContext, useCallback, useContext} from 'react'
-import {GestureResponderEvent, Keyboard, View} from 'react-native'
 import {msg} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useNavigation} from '@react-navigation/native'
 import {Menu} from 'lucide-react-native'
+import {createContext, useCallback, useContext} from 'react'
+import {GestureResponderEvent, Keyboard, View} from 'react-native'
 
-import {HITSLOP_30} from '#/lib/constants'
-import {NavigationProp} from '#/lib/routes/types'
-import {isIOS} from '#/platform/detection'
-import {useSetDrawerOpen} from '#/state/shell'
 import {
   atoms as a,
   platform,
@@ -21,6 +17,10 @@ import {
 } from '#/alf'
 import {Button, ButtonIcon, ButtonProps} from '#/components/Button'
 import {ArrowLeft_Stroke2_Corner0_Rounded as ArrowLeft} from '#/components/icons/Arrow'
+import {HITSLOP_30} from '#/lib/constants'
+import {NavigationProp} from '#/lib/routes/types'
+import {isIOS} from '#/platform/detection'
+import {useSetDrawerOpen} from '#/state/shell'
 // import {Menu_Stroke2_Corner0_Rounded as Menu} from '#/components/icons/Menu'
 import {
   BUTTON_VISUAL_ALIGNMENT_OFFSET,

@@ -1,7 +1,7 @@
-import {View} from 'react-native'
 import {ChatBskyActorDefs} from '@atproto/api'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import {View} from 'react-native'
 
 import {atoms as a, useTheme} from '#/alf'
 import {AvatarStack} from '#/components/AvatarStack'
