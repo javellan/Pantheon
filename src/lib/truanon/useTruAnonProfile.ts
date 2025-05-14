@@ -177,8 +177,6 @@ export async function getVerifyLink(handle: string): Promise<{
 }> {
   if (!handle) return {}
 
-  // handle = 'hannab.bsky.social'
-
   const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
 
   try {
