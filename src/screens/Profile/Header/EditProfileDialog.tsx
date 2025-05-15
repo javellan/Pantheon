@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react'
 import {Dimensions, View} from 'react-native'
 import {Image as RNImage} from 'react-native-image-crop-picker'
 import {AppBskyActorDefs} from '@atproto/api'
+import {TRUANON_AUTH_TOKEN} from '@env'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
@@ -28,9 +29,14 @@ const SCREEN_HEIGHT = Dimensions.get('window').height
 
 async function savePrefs(handle: string, prefs: any) {
   const url = `https://devhauz.truanon.com/api/prefs/${handle}`
+  const TRUANON_AUTH_HEADER = `Bearer ${TRUANON_AUTH_TOKEN}`
+
   await fetch(url, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: TRUANON_AUTH_HEADER,
+    },
     body: JSON.stringify(prefs),
   })
 }

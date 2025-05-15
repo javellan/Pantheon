@@ -61,7 +61,8 @@ export function useTruAnonProfile(handle: string) {
 
       let loadedPrefs = null
       try {
-        const prefsRes = await fetch(prefsUrl)
+        const prefsRes = await fetch(prefsUrl, {headers: TRUANON_AUTH_HEADER})
+
         if (prefsRes.ok) {
           loadedPrefs = await prefsRes.json()
           setPrefs({
