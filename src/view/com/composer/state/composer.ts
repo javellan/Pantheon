@@ -614,6 +614,6 @@ export function createComposerState({
   }
 }
 
-function getShortenedLength(rt: RichText) {
+export function getShortenedLength(rt: RichText) {
   return shortenLinks(rt).graphemeLength
 }
