@@ -1,231 +1,121 @@
-import {memo, useCallback, useMemo, useState} from 'react'
+import {
+  AppBskyEmbedVideo,
+  AppBskyFeedDefs,
+  ModerationDecision,
+} from '@atproto/api'
+import {Trans} from '@lingui/macro'
+import {VideoPlayer} from 'expo-video'
+import {memo, useEffect} from 'react'
 import {View} from 'react-native'
-import {
-  Gesture,
-  GestureDetector,
-  NativeGesture,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler'
-import Animated, {
-  runOnJS,
-  SharedValue,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context'
-import {VideoPlayer as IVideoPlayer} from 'expo-video'
+import {NativeGesture} from 'react-native-gesture-handler'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-import {useSetMinimalShellMode} from '#/state/shell'
-import {atoms as a, ios, useTheme} from '#/alf'
-import {VideoData} from './ClearlightFeed'
-import Comments from './comments'
-import VideoPlayer from './player/VideoPlayer'
-import {useFullHeight} from './useFullHeight'
+import {atoms as a, ios} from '#/alf'
+import {Text} from '#/components/Typography'
+import {POST_TOMBSTONE, usePostShadow} from '#/state/cache/post-shadow'
+import {useFeedFeedbackContext} from '#/state/feed-feedback'
+import {FeedPostSlice} from '#/state/queries/post-feed'
+import {Overlay} from './Overlay'
+import {VideoItemInner} from './VideoItemInner'
+import {VideoItemPlaceholder} from './VideoItemPlaceholder'
 
-const SNAP_SCALE = 0.25
-const ANIM_DURATION = 200
+type VideoItem = {
+  moderation: ModerationDecision
+  post: AppBskyFeedDefs.PostView
+  video: AppBskyEmbedVideo.View
+  feedContext: string | undefined
+  reason: FeedPostSlice['reason']
+}
 
-export default memo(function VideoItem({
-  data,
+let VideoItem = ({
   player,
+  post,
+  embed,
+  reason,
   active,
   adjacent,
   scrollGesture,
-  scrollValue,
+  isScrolling,
+  moderation,
+  feedContext,
 }: {
-  data: VideoData
-  player?: IVideoPlayer
+  player?: VideoPlayer
+  post: AppBskyFeedDefs.PostView
+  embed: AppBskyEmbedVideo.View
+  reason: FeedPostSlice['reason']
   active: boolean
   adjacent: boolean
   scrollGesture: NativeGesture
-  scrollValue: SharedValue<boolean>
-}) {
-  const {width} = useSafeAreaFrame()
-  const height = useFullHeight()
-  const insets = useSafeAreaInsets()
-  const t = useTheme()
-  const [isOpen, setIsOpen] = useState(false)
-  const setMinimalShellMode = useSetMinimalShellMode()
+  isScrolling: boolean
+  moderation?: ModerationDecision
+  feedContext: string | undefined
+}): React.ReactNode => {
+  const postShadow = usePostShadow(post)
+  const {width, height} = useSafeAreaFrame()
+  const {sendInteraction} = useFeedFeedbackContext()
 
-  // Shared Animation Values
-  const multiplyer = useSharedValue(1)
-  const duration = useSharedValue(ANIM_DURATION)
-  const currentDrawerTransY = useSharedValue<number | null>(null)
-
-  // Open/Close the Comments
-  const open = useCallback(() => {
-    multiplyer.set(SNAP_SCALE)
-    setMinimalShellMode(true)
-    setIsOpen(true)
-  }, [multiplyer, setMinimalShellMode, setIsOpen])
-  const close = useCallback(() => {
-    setMinimalShellMode(false)
-    duration.set(ANIM_DURATION)
-    multiplyer.set(1)
-    setTimeout(() => setIsOpen(false), ANIM_DURATION)
-  }, [multiplyer, duration, setMinimalShellMode, setIsOpen])
-
-  // Reusable Drag Shelf Gesture
-  const dragGesture = useMemo(() => {
-    return Gesture.Pan()
-      .blocksExternalGesture(scrollGesture)
-      .onStart(() => {
-        'worklet'
-        duration.set(0)
-        currentDrawerTransY.set(-height * (1 - multiplyer.get()) + insets.top)
+  useEffect(() => {
+    if (active) {
+      sendInteraction({
+        item: post.uri,
+        event: 'app.bsky.feed.defs#interactionSeen',
+        feedContext,
       })
-      .onUpdate(e => {
-        'worklet'
-        multiplyer.set(() => {
-          const drawerTransYMoveTo = currentDrawerTransY.get()! + e.translationY
-          return 1 - (drawerTransYMoveTo - insets.top) / -height
-        })
-      })
-      .onEnd(() => {
-        'worklet'
-        duration.set(ANIM_DURATION)
-        currentDrawerTransY.set(null)
-        if (multiplyer.get() > 0.6) {
-          runOnJS(close)()
-        } else if (multiplyer.get() < 0.15) {
-          multiplyer.set(0)
-        } else {
-          multiplyer.set(SNAP_SCALE)
-        }
-      })
-  }, [
-    scrollGesture,
-    multiplyer,
-    height,
-    close,
-    insets,
-    currentDrawerTransY,
-    duration,
-  ])
+    }
+  }, [active, post.uri, feedContext, sendInteraction])
 
-  // Video Player Animated Styles
-  const contentAreaStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateY: withTiming(multiplyer.get() === 1 ? 0 : insets.top, {
-            duration: duration.get(),
-          }),
-        },
-        {
-          scale: withTiming(multiplyer.get(), {
-            duration: duration.get(),
-          }),
-        },
-      ],
-    }
-  })
-  const pressableAreaStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateY: withTiming(multiplyer.get() === 1 ? 0 : insets.top, {
-            duration: duration.get(),
-          }),
-        },
-        {
-          scaleY: withTiming(multiplyer.get(), {
-            duration: duration.get(),
-          }),
-        },
-      ],
-      display: multiplyer.get() === 1 ? 'none' : 'flex',
-    }
-  })
-
-  // Video Player Composed Gesture
-  const videoPlayerGesture = useMemo(() => {
-    if (isOpen) {
-      return dragGesture
-    }
-    return Gesture.Native().simultaneousWithExternalGesture(scrollGesture)
-  }, [isOpen, dragGesture, scrollGesture])
-
-  // Comments Shelf Animated Style
-  const shelfContainerStyle = useAnimatedStyle(() => {
-    return {
-      height: withTiming(
-        height * (1 - Math.min(SNAP_SCALE, multiplyer.get())) - insets.top,
-        {duration: duration.get()},
-      ),
-      transform: [
-        {
-          translateY: withTiming(height * multiplyer.get() + insets.top, {
-            duration: duration.get(),
-          }),
-        },
-      ],
-    }
-  })
+  // TODO: high-performance android phones should also
+  // be capable of rendering 3 video players, but currently
+  // we can't distinguish between them
+  const shouldRenderVideo = active || ios(adjacent)
 
   return (
-    <View
-      style={[
-        {width, height, flexGrow: 0, backgroundColor: 'black'},
-        a.overflow_hidden,
-        a.relative,
-      ]}>
-      <GestureDetector gesture={videoPlayerGesture}>
-        <View style={[a.absolute, a.inset_0]}>
-          <Animated.View
+    <View style={[a.relative, {height, width}]}>
+      {postShadow === POST_TOMBSTONE ? (
+        <View
+          style={[
+            a.absolute,
+            a.inset_0,
+            a.z_20,
+            a.align_center,
+            a.justify_center,
+            {backgroundColor: 'rgba(0, 0, 0, 0.8)'},
+          ]}>
+          <Text
             style={[
-              a.absolute,
-              a.inset_0,
-              a.z_10,
-              {transformOrigin: 'top'},
-              pressableAreaStyle,
+              a.text_2xl,
+              a.font_heavy,
+              a.text_center,
+              a.leading_tight,
+              a.mx_xl,
             ]}>
-            <TouchableWithoutFeedback
-              accessibilityRole="button"
-              style={[{width: '100%', height: '100%'}]}
-              onPress={close}
-            />
-          </Animated.View>
-          <Animated.View
-            style={[
-              a.absolute,
-              a.inset_0,
-              {transformOrigin: 'top'},
-              contentAreaStyle,
-            ]}>
-            <VideoPlayer
-              data={data}
-              player={player}
-              active={active}
-              shouldRender={active || ios(adjacent)}
-              scrollValue={scrollValue}
-              multiplyer={multiplyer}
-              duration={duration}
-              scrollGesture={scrollGesture}
-              onPressReply={open}
-            />
-          </Animated.View>
+            <Trans>Post has been deleted</Trans>
+          </Text>
         </View>
-      </GestureDetector>
-      <Animated.View
-        style={[
-          a.absolute,
-          t.atoms.bg,
-          a.top_0,
-          {width, transform: [{translateY: height}]},
-          shelfContainerStyle,
-        ]}>
-        <Comments
-          data={data}
-          active={active && isOpen}
-          dragGesture={dragGesture}
-          scrollGesture={scrollGesture}
-        />
-      </Animated.View>
+      ) : (
+        <>
+          <VideoItemPlaceholder embed={embed} />
+          {shouldRenderVideo && player && (
+            <VideoItemInner player={player} embed={embed} />
+          )}
+          {moderation && (
+            <Overlay
+              player={player}
+              post={postShadow}
+              embed={embed}
+              reason={reason}
+              active={active}
+              scrollGesture={scrollGesture}
+              isScrolling={isScrolling}
+              moderation={moderation}
+              feedContext={feedContext}
+            />
+          )}
+        </>
+      )}
     </View>
   )
-})
+}
+VideoItem = memo(VideoItem)
+
+export {VideoItem}

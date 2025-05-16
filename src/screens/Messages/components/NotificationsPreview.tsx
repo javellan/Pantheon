@@ -1,13 +1,13 @@
-import {View} from 'react-native'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import {View} from 'react-native'
 
-import {useUnreadNotifications} from '#/state/queries/notifications/unread'
 import {atoms as a, useTheme} from '#/alf'
 import {ButtonIcon, ButtonText} from '#/components/Button'
 import {ArrowRight_Stroke2_Corner0_Rounded as ArrowRightIcon} from '#/components/icons/Arrow'
 import {Bell_Stroke2_Corner0_Rounded as BellIcon} from '#/components/icons/Bell'
 import {Link} from '#/components/Link'
+import {useUnreadNotifications} from '#/state/queries/notifications/unread'
 
 export function NotificationsPreview() {
   const {_} = useLingui()

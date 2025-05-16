@@ -13,6 +13,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   LayoutChangeEvent,
+  Platform,
   ScrollView,
   StyleProp,
   StyleSheet,
@@ -21,6 +22,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
+// @ts-expect-error no type definition
 import ProgressCircle from 'react-native-progress/Circle'
 import Animated, {
   AnimatedRef,
@@ -49,7 +51,6 @@ import {
   BskyAgent,
   RichText,
 } from '@atproto/api'
-import {MaterialIcons} from '@expo/vector-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
@@ -59,6 +60,7 @@ import * as apilib from '#/lib/api/index'
 import {EmbeddingDisabledError} from '#/lib/api/resolve'
 import {until} from '#/lib/async/until'
 import {
+  BSKY_SERVICE,
   MAX_GRAPHEME_LENGTH,
   SUPPORTED_MIME_TYPES,
   SupportedMimeTypes,
@@ -69,8 +71,6 @@ import {useIsKeyboardVisible} from '#/lib/hooks/useIsKeyboardVisible'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
-//import { CameraView, CameraType, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
-import {CompressedVideo} from '#/lib/media/video/types'
 import {mimeToExt} from '#/lib/media/video/util'
 import {logEvent} from '#/lib/statsig/statsig'
 import {cleanError} from '#/lib/strings/errors'
@@ -91,7 +91,8 @@ import {usePreferencesQuery} from '#/state/queries/preferences'
 import {useProfileQuery} from '#/state/queries/profile'
 import {Gif} from '#/state/queries/tenor'
 import {useAgent, useSession} from '#/state/session'
-import {ComposerOpts, useComposerControls} from '#/state/shell/composer'
+import {useComposerControls} from '#/state/shell/composer'
+import {ComposerOpts} from '#/state/shell/composer'
 import {CharProgress} from '#/view/com/composer/char-progress/CharProgress'
 import {ComposerReplyTo} from '#/view/com/composer/ComposerReplyTo'
 import {
@@ -109,15 +110,17 @@ import {SelectLangBtn} from '#/view/com/composer/select-language/SelectLangBtn'
 import {SuggestedLanguage} from '#/view/com/composer/select-language/SuggestedLanguage'
 // TODO: Prevent naming components that coincide with RN primitives
 // due to linting false positives
-import {TextInputRef} from '#/view/com/composer/text-input/TextInput'
+import {TextInput, TextInputRef} from '#/view/com/composer/text-input/TextInput'
 import {ThreadgateBtn} from '#/view/com/composer/threadgate/ThreadgateBtn'
 import {SelectVideoBtn} from '#/view/com/composer/videos/SelectVideoBtn'
+import { ConfirmVideoBtn } from './videos/confirmVideo'
 import {SubtitleDialogBtn} from '#/view/com/composer/videos/SubtitleDialog'
 import {VideoPreview} from '#/view/com/composer/videos/VideoPreview'
 import {VideoTranscodeProgress} from '#/view/com/composer/videos/VideoTranscodeProgress'
 import {LazyQuoteEmbed, QuoteX} from '#/view/com/util/post-embeds/QuoteEmbed'
-import * as Toast from '#/view/com/util/Toast'
 //import {Text} from '#/view/com/util/text/Text'
+import * as Toast from '#/view/com/util/Toast'
+import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, native, useTheme} from '#/alf'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
@@ -128,7 +131,6 @@ import {TimesLarge_Stroke2_Corner0_Rounded as X} from '#/components/icons/Times'
 import * as Prompt from '#/components/Prompt'
 import {Text as NewText} from '#/components/Typography'
 import {BottomSheetPortalProvider} from '../../../../modules/bottom-sheet'
-import CameraWrapper from './CameraWrapper'
 import {
   ComposerAction,
   composerReducer,
@@ -140,9 +142,15 @@ import {
   ThreadDraft,
 } from './state/composer'
 import {NO_VIDEO, NoVideoState, processVideo, VideoState} from './state/video'
-import {ConfirmVideoBtn} from './videos/confirmVideo'
 import {getVideoMetadata} from './videos/pickVideo'
 import {clearThumbnailCache} from './videos/VideoTranscodeBackdrop'
+//import { CameraView, CameraType, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
+import {Audio, ResizeMode, Video} from 'expo-av'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import CameraWrapper from './CameraWrapper';
+import { CompressedVideo } from '#/lib/media/video/types'
+import { MaterialIcons } from '@expo/vector-icons'
+import { getHostnameFromUrl } from '#/lib/strings/url-helpers'
 
 type CancelRef = {
   onPressCancel: () => void
@@ -211,6 +219,7 @@ export const ComposePost = ({
 
   const selectVideo = React.useCallback(
     (postId: string, asset: ImagePickerAsset) => {
+      
       const abortController = new AbortController()
       composerDispatch({
         type: 'update_post',
@@ -616,7 +625,7 @@ export const ComposePost = ({
 
   const isWebFooterSticky = !isNative && thread.posts.length > 1
 
-  //------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------
   return (
     <BottomSheetPortalProvider>
       <VerifyEmailDialog
@@ -706,7 +715,8 @@ export const ComposePost = ({
       </KeyboardAvoidingView>
     </BottomSheetPortalProvider>
   )
-}
+  
+};
 
 //--------------------------------------------------------------------------------------------------------------------------------
 let ComposerPost = React.memo(function ComposerPost({
@@ -801,24 +811,22 @@ let ComposerPost = React.memo(function ComposerPost({
     },
     [post.id, onSelectVideo, onImageAdd, _],
   )
-  //---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
   //const [compressedVideo, setCompressedVideo] = useState<CompressedVideo | null>(null);
-  const [videoAsset, setVideoAsset] = useState<ImagePickerAsset | null>(null)
-  const [recordedVideo, setRecordedVideo] = useState<CompressedVideo | null>(
-    null,
-  )
-  const [result, setResult] = useState<ImagePickerSuccessResult | null>(null)
+  const [videoAsset, setVideoAsset] = useState<ImagePickerAsset | null>(null);
+  const [recordedVideo, setRecordedVideo] = useState<CompressedVideo | null>(null);
+  const [result, setResult] = useState<ImagePickerSuccessResult | null>(null);
   const control = Prompt.usePromptControl()
   const VIDEO_MAX_DURATION = 60 * 1000 // 60s in milliseconds
   const media = post.embed.media
 
   return (
     <View style={[styles.post, !isActive && styles.inactivePost]}>
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {/* Conditionally render the video preview or camera */}
         {!recordedVideo ? (
           <CameraWrapper
-            onVideoRecorded={({videoAsset, recordedVideo, result}) => {
+            onVideoRecorded={({ videoAsset, recordedVideo, result }) => {
               setVideoAsset(videoAsset) // Set videoAsset
               //setCompressedVideo(compressedVideo) // Set compressedVideo
               setRecordedVideo(recordedVideo)
@@ -826,25 +834,18 @@ let ComposerPost = React.memo(function ComposerPost({
             }}
           />
         ) : videoAsset ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-            }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
             {/* Render the VideoPreviewWithButtons inside the container */}
             <VideoPreview
-              asset={videoAsset} // Pass videoAsset here
+              asset={videoAsset}  // Pass videoAsset here
               video={recordedVideo}
-              clear={() => setRecordedVideo(null)} // Clear the video preview
+              clear={() => setRecordedVideo(null)}  // Clear the video preview
               isActivePost={true} // Set according to your state
             />
-
+            
             {/* Overlay Buttons */}
             {/* Close Button */}
             <TouchableOpacity
-              accessibilityRole="button"
               style={{
                 position: 'absolute',
                 top: 100,
@@ -869,7 +870,8 @@ let ComposerPost = React.memo(function ComposerPost({
           <Text>No video selected</Text> // Fallback message when no video is available
         )}
       </View>
-
+  
+  
       {canRemovePost && isActive && (
         <>
           <Button
@@ -895,7 +897,7 @@ let ComposerPost = React.memo(function ComposerPost({
               }
             }}>
             <ButtonIcon icon={X} />
-          </Button>
+          </Button> 
           <Prompt.Basic
             control={discardPromptControl}
             title={_(msg`Discard post?`)}
@@ -921,7 +923,7 @@ let ComposerPost = React.memo(function ComposerPost({
       />
     </View>
   )
-})
+}) 
 //----------------------------------------------------------------------------------------
 
 function ComposerTopBar({
@@ -1463,7 +1465,7 @@ function useKeyboardVerticalOffset() {
   return top + 10
 }
 
-export async function whenAppViewReady(
+async function whenAppViewReady(
   agent: BskyAgent,
   uri: string,
   fn: (res: AppBskyFeedGetPostThread.Response) => boolean,

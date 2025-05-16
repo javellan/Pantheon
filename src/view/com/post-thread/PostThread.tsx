@@ -1,6 +1,7 @@
 import React, {memo, useRef, useState} from 'react'
 import {StyleSheet, useWindowDimensions, View} from 'react-native'
-import Animated, {runOnJS} from 'react-native-reanimated'
+import {runOnJS} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {
   AppBskyFeedDefs,
@@ -31,10 +32,8 @@ import {
   ThreadPost,
   usePostThreadQuery,
 } from '#/state/queries/post-thread'
-import {
-  usePreferencesQuery,
-  useSetThreadViewPreferencesMutation,
-} from '#/state/queries/preferences'
+import {useSetThreadViewPreferencesMutation} from '#/state/queries/preferences'
+import {usePreferencesQuery} from '#/state/queries/preferences'
 import {useSession} from '#/state/session'
 import {useComposerControls} from '#/state/shell'
 import {useMergedThreadgateHiddenReplies} from '#/state/threadgate-hidden-replies'
@@ -727,7 +726,7 @@ function MobileComposePrompt({onPressReply}: {onPressReply: () => unknown}) {
   )
 }
 
-export function isThreadPost(v: unknown): v is ThreadPost {
+function isThreadPost(v: unknown): v is ThreadPost {
   return !!v && typeof v === 'object' && 'type' in v && v.type === 'post'
 }
 
@@ -739,7 +738,7 @@ function isThreadBlocked(v: unknown): v is ThreadBlocked {
   return !!v && typeof v === 'object' && 'type' in v && v.type === 'blocked'
 }
 
-export function createThreadSkeleton(
+function createThreadSkeleton(
   node: ThreadNode,
   currentDid: string | undefined,
   treeView: boolean,

@@ -1,8 +1,12 @@
-import React from 'react'
-import {GestureResponderEvent} from 'react-native'
 import {sanitizeUrl} from '@braintree/sanitize-url'
 import {StackActions, useLinkProps} from '@react-navigation/native'
+import React from 'react'
+import {GestureResponderEvent} from 'react-native'
 
+import {atoms as a, flatten, TextStyleProp, useTheme, web} from '#/alf'
+import {Button, ButtonProps} from '#/components/Button'
+import {useInteractionState} from '#/components/hooks/useInteractionState'
+import {Text, TextProps} from '#/components/Typography'
 import {BSKY_DOWNLOAD_URL} from '#/lib/constants'
 import {useNavigationDeduped} from '#/lib/hooks/useNavigationDeduped'
 import {useOpenLink} from '#/lib/hooks/useOpenLink'
@@ -15,12 +19,8 @@ import {
   linkRequiresWarning,
 } from '#/lib/strings/url-helpers'
 import {isNative, isWeb} from '#/platform/detection'
-import {useModalControls} from '#/state/modals'
-import {atoms as a, flatten, TextStyleProp, useTheme, web} from '#/alf'
-import {Button, ButtonProps} from '#/components/Button'
-import {useInteractionState} from '#/components/hooks/useInteractionState'
-import {Text, TextProps} from '#/components/Typography'
 import {router} from '#/routes'
+import {useModalControls} from '#/state/modals'
 
 /**
  * Only available within a `Link`, since that inherits from `Button`.
