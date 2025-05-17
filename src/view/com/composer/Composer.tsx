@@ -1465,7 +1465,7 @@ function useKeyboardVerticalOffset() {
   return top + 10
 }
 
-async function whenAppViewReady(
+export async function whenAppViewReady(
   agent: BskyAgent,
   uri: string,
   fn: (res: AppBskyFeedGetPostThread.Response) => boolean,

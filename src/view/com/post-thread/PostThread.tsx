@@ -894,3 +894,5 @@ const styles = StyleSheet.create({
     right: 0,
   },
 })
+
+export { createThreadSkeleton, isThreadPost }

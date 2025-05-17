@@ -398,7 +398,6 @@ export function AlgorithmTweaksScreen({}: Props) {
           renderItem={InterestRenderer}
           keyExtractor={item => item.id}
           style={{
-            paddingTop: 15,
             height: screenHeight - headerHeight - aboveInterestHeight - 140,
           }}
         />
