@@ -525,6 +525,11 @@ msgstr ""
 msgid "Add App Password"
 msgstr ""
 
+#: src/screens/Settings/AlgorithmTweaks.tsx:390
+#: src/screens/Settings/components/InterestFinder.tsx:127
+msgid "Add interest"
+msgstr ""
+
 #: src/components/moderation/ReportDialog/index.tsx:392
 #: src/components/moderation/ReportDialog/index.tsx:396
 msgid "Add more details (optional)"
@@ -1281,6 +1286,7 @@ msgstr ""
 #: src/view/com/modals/VerifyEmail.tsx:261
 #: src/view/com/util/post-ctrls/RepostButton.tsx:213
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:219
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:212
 #: src/view/screens/Search/Search.tsx:890
 #: src/view/shell/desktop/LeftNav.tsx:208
 msgid "Cancel"
@@ -1308,6 +1314,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/RepostButton.tsx:207
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:213
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:206
 msgid "Cancel quote post"
 msgstr ""
 
@@ -1331,6 +1338,9 @@ msgstr ""
 #: src/view/com/video/components/post-ctrls/Like.tsx:50
 #: src/view/com/video/components/post-ctrls/Repost.tsx:42
 #: src/view/com/video/components/post-ctrls/Repost.tsx:78
+#: src/view/com/video/player/post-ctrls/Like.tsx:50
+#: src/view/com/video/player/post-ctrls/Repost.tsx:42
+#: src/view/com/video/player/post-ctrls/Repost.tsx:78
 msgid "Cannot interact with a blocked user"
 msgstr ""
 
@@ -1652,6 +1662,18 @@ msgstr ""
 #: src/screens/Onboarding/index.tsx:24
 #: src/screens/Onboarding/state.ts:98
 msgid "Comics"
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:28
+msgid "Comment Display Settings"
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:22
+msgid "Comment options"
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:36
+msgid "Comment sorting"
 msgstr ""
 
 #: src/Navigation.tsx:303
@@ -2404,6 +2426,7 @@ msgid "Double tap to close the dialog"
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:1047
+#: src/view/com/video/player/PlayPauseTapArea.tsx:182
 #: src/view/com/video/PlayPauseTapArea.tsx:183
 msgid "Double tap to like"
 msgstr ""
@@ -3068,7 +3091,7 @@ msgid "Feedback sent!"
 msgstr ""
 
 #: src/Navigation.tsx:443
-#: src/screens/Settings/AlgorithmTweaks.tsx:173
+#: src/screens/Settings/AlgorithmTweaks.tsx:355
 #: src/screens/StarterPack/StarterPackScreen.tsx:185
 #: src/view/screens/Feeds.tsx:612
 #: src/view/screens/Profile.tsx:224
@@ -3182,6 +3205,7 @@ msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:806
 #: src/view/com/video/components/post-ctrls/Author.tsx:131
+#: src/view/com/video/player/post-ctrls/Author.tsx:131
 msgid "Follow {handle}"
 msgstr ""
 
@@ -3262,11 +3286,13 @@ msgstr ""
 #: src/components/ProfileCard.tsx:322
 #: src/screens/Profile/Header/ProfileHeaderStandard.tsx:98
 #: src/view/com/video/components/post-ctrls/Author.tsx:104
+#: src/view/com/video/player/post-ctrls/Author.tsx:104
 msgid "Following {0}"
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:805
 #: src/view/com/video/components/post-ctrls/Author.tsx:130
+#: src/view/com/video/player/post-ctrls/Author.tsx:130
 msgid "Following {handle}"
 msgstr ""
 
@@ -3515,6 +3541,7 @@ msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:607
 #: src/view/com/video/ModerationOverlay.tsx:48
+#: src/view/com/video/player/ModerationOverlay.tsx:48
 msgid "Hidden by your moderation settings."
 msgstr ""
 
@@ -3642,6 +3669,11 @@ msgstr ""
 #: src/screens/Login/ForgotPasswordForm.tsx:83
 #: src/screens/Login/LoginForm.tsx:184
 msgid "Hosting provider"
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:40
+#: src/view/com/video/comments/ThreadMenu.tsx:45
+msgid "Hot comments first"
 msgstr ""
 
 #: src/screens/Settings/ThreadPreferences.tsx:67
@@ -4019,6 +4051,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:315
 #: src/view/com/video/components/post-ctrls/Like.tsx:114
+#: src/view/com/video/player/post-ctrls/Like.tsx:115
 msgid "Like ({0, plural, one {# like} other {# likes}})"
 msgstr ""
 
@@ -4389,6 +4422,11 @@ msgstr ""
 msgid "More options"
 msgstr ""
 
+#: src/view/com/video/comments/ThreadMenu.tsx:70
+#: src/view/com/video/comments/ThreadMenu.tsx:75
+msgid "Most-liked comments first"
+msgstr ""
+
 #: src/screens/Settings/ThreadPreferences.tsx:94
 msgid "Most-liked first"
 msgstr ""
@@ -4627,6 +4665,11 @@ msgstr ""
 msgid "New User List"
 msgstr ""
 
+#: src/view/com/video/comments/ThreadMenu.tsx:60
+#: src/view/com/video/comments/ThreadMenu.tsx:65
+msgid "Newest comments first"
+msgstr ""
+
 #: src/screens/Settings/ThreadPreferences.tsx:83
 #: src/screens/Settings/ThreadPreferences.tsx:86
 #: src/view/com/post-thread/PostThread.tsx:676
@@ -4686,6 +4729,7 @@ msgstr ""
 #: src/components/ProfileCard.tsx:344
 #: src/screens/Profile/Header/ProfileHeaderStandard.tsx:119
 #: src/view/com/video/components/post-ctrls/Author.tsx:95
+#: src/view/com/video/player/post-ctrls/Author.tsx:95
 msgid "No longer following {0}"
 msgstr ""
 
@@ -4800,6 +4844,7 @@ msgstr ""
 #: src/view/com/util/forms/PostDropdownBtnMenuItems.tsx:774
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:361
 #: src/view/com/video/components/post-ctrls/Share.tsx:101
+#: src/view/com/video/player/post-ctrls/Share.tsx:101
 msgid "Note about sharing"
 msgstr ""
 
@@ -4881,6 +4926,11 @@ msgstr ""
 #: src/screens/Login/PasswordUpdatedForm.tsx:37
 #: src/view/com/post-thread/PostThreadItem.tsx:875
 msgid "Okay"
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:50
+#: src/view/com/video/comments/ThreadMenu.tsx:55
+msgid "Oldest comments first"
 msgstr ""
 
 #: src/screens/Settings/ThreadPreferences.tsx:75
@@ -5447,6 +5497,7 @@ msgid "Post failed to upload. Please check your Internet connection and try agai
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:512
+#: src/view/com/video/player/VideoPlayer.tsx:71
 #: src/view/com/video/VideoItem.tsx:92
 msgid "Post has been deleted"
 msgstr ""
@@ -5632,6 +5683,8 @@ msgstr ""
 #: src/view/com/util/post-ctrls/RepostButton.web.tsx:92
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:184
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:207
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:177
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:200
 msgid "Quote post"
 msgstr ""
 
@@ -5649,6 +5702,8 @@ msgstr ""
 #: src/view/com/util/post-ctrls/RepostButton.web.tsx:91
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:183
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:205
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:176
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:198
 msgid "Quote posts disabled"
 msgstr ""
 
@@ -5668,6 +5723,8 @@ msgstr ""
 #: src/screens/Settings/ThreadPreferences.tsx:102
 #: src/view/com/post-thread/PostThread.tsx:696
 #: src/view/com/post-thread/PostThread.tsx:701
+#: src/view/com/video/comments/ThreadMenu.tsx:80
+#: src/view/com/video/comments/ThreadMenu.tsx:85
 msgid "Random (aka \"Poster's Roulette\")"
 msgstr ""
 
@@ -5686,11 +5743,13 @@ msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:942
 #: src/view/com/video/ExpandableRichTextView.tsx:85
+#: src/view/com/video/player/ExpandableRichTextView.tsx:85
 msgid "Read less"
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:942
 #: src/view/com/video/ExpandableRichTextView.tsx:85
+#: src/view/com/video/player/ExpandableRichTextView.tsx:85
 msgid "Read more"
 msgstr ""
 
@@ -5839,6 +5898,8 @@ msgstr ""
 #: src/view/com/util/post-ctrls/RepostButton.tsx:165
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:161
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:171
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:154
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:164
 msgid "Remove repost"
 msgstr ""
 
@@ -5909,6 +5970,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:267
 #: src/view/com/video/components/post-ctrls/Comment.tsx:60
+#: src/view/com/video/player/post-ctrls/Comment.tsx:58
 msgid "Reply ({0, plural, one {# reply} other {# replies}})"
 msgstr ""
 
@@ -6057,6 +6119,8 @@ msgstr ""
 #: src/view/com/util/post-ctrls/RepostButton.tsx:167
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:162
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:173
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:155
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:166
 msgctxt "action"
 msgid "Repost"
 msgstr ""
@@ -6068,6 +6132,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/RepostButton.tsx:74
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:75
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:73
 msgid "Repost ({0, plural, one {# repost} other {# reposts}})"
 msgstr ""
 
@@ -6076,6 +6141,7 @@ msgstr ""
 #: src/view/com/util/post-ctrls/RepostButton.web.tsx:49
 #: src/view/com/util/post-ctrls/RepostButton.web.tsx:104
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:154
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:147
 msgid "Repost or quote post"
 msgstr ""
 
@@ -6220,7 +6286,7 @@ msgstr ""
 #: src/components/StarterPack/QrCodeDialog.tsx:191
 #: src/screens/Profile/Header/EditProfileDialog.tsx:238
 #: src/screens/Profile/Header/EditProfileDialog.tsx:252
-#: src/screens/Settings/AlgorithmTweaks.tsx:184
+#: src/screens/Settings/AlgorithmTweaks.tsx:366
 #: src/screens/Settings/components/ChangeHandleDialog.tsx:243
 #: src/view/com/composer/GifAltText.tsx:190
 #: src/view/com/composer/GifAltText.tsx:199
@@ -6647,6 +6713,7 @@ msgstr ""
 #: src/view/com/util/forms/PostDropdownBtnMenuItems.tsx:490
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:350
 #: src/view/com/video/components/post-ctrls/Share.tsx:89
+#: src/view/com/video/player/post-ctrls/Share.tsx:89
 #: src/view/screens/ProfileList.tsx:506
 msgid "Share"
 msgstr ""
@@ -6668,6 +6735,7 @@ msgstr ""
 #: src/view/com/util/forms/PostDropdownBtnMenuItems.tsx:779
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:366
 #: src/view/com/video/components/post-ctrls/Share.tsx:106
+#: src/view/com/video/player/post-ctrls/Share.tsx:106
 msgid "Share anyway"
 msgstr ""
 
@@ -6732,6 +6800,8 @@ msgstr ""
 #: src/screens/VideoFeed/index.tsx:616
 #: src/view/com/video/ModerationOverlay.tsx:51
 #: src/view/com/video/ModerationOverlay.tsx:57
+#: src/view/com/video/player/ModerationOverlay.tsx:51
+#: src/view/com/video/player/ModerationOverlay.tsx:57
 msgid "Show anyway"
 msgstr ""
 
@@ -7198,7 +7268,12 @@ msgid "Tap to dismiss"
 msgstr ""
 
 #: src/view/com/video/ExpandableRichTextView.tsx:84
+#: src/view/com/video/player/ExpandableRichTextView.tsx:84
 msgid "Tap to expand or collapse post text."
+msgstr ""
+
+#: src/view/com/video/comments/ThreadMenu.tsx:29
+msgid "Tap to set comment display settings"
 msgstr ""
 
 #: src/state/shell/progress-guide.tsx:233
@@ -7636,6 +7711,7 @@ msgid "This post has been deleted."
 msgstr ""
 
 #: src/view/com/video/components/post-ctrls/Share.tsx:103
+#: src/view/com/video/player/post-ctrls/Share.tsx:103
 msgid "This post is only visible to logged-in users. It won't be visible to people who aren't logged in."
 msgstr ""
 
@@ -7649,6 +7725,7 @@ msgid "This post will be hidden from feeds and threads. This cannot be undone."
 msgstr ""
 
 #: src/view/com/composer/Composer.tsx:442
+#: src/view/com/video/comments/CommentsProvider.tsx:286
 msgid "This post's author has disabled quote posts."
 msgstr ""
 
@@ -7896,6 +7973,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/RepostButton.tsx:68
 #: src/view/com/video/components/post-ctrls/RepostButton.tsx:69
+#: src/view/com/video/player/post-ctrls/RepostButton.tsx:67
 msgid "Undo repost ({0, plural, one {# repost} other {# reposts}})"
 msgstr ""
 
@@ -7914,6 +7992,7 @@ msgid "Unfollow account"
 msgstr ""
 
 #: src/view/com/video/components/post-ctrls/Author.tsx:134
+#: src/view/com/video/player/post-ctrls/Author.tsx:134
 msgid "Unfollow user"
 msgstr ""
 
@@ -7931,6 +8010,7 @@ msgstr ""
 
 #: src/view/com/util/post-ctrls/PostCtrls.tsx:309
 #: src/view/com/video/components/post-ctrls/Like.tsx:108
+#: src/view/com/video/player/post-ctrls/Like.tsx:109
 msgid "Unlike ({0, plural, one {# like} other {# likes}})"
 msgstr ""
 
@@ -8285,11 +8365,13 @@ msgid "Video Games"
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:1039
+#: src/view/com/video/player/PlayPauseTapArea.tsx:174
 #: src/view/com/video/PlayPauseTapArea.tsx:175
 msgid "Video is paused"
 msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:1039
+#: src/view/com/video/player/PlayPauseTapArea.tsx:174
 #: src/view/com/video/PlayPauseTapArea.tsx:175
 msgid "Video is playing"
 msgstr ""
@@ -8333,6 +8415,7 @@ msgstr ""
 #: src/screens/VideoFeed/index.tsx:769
 #: src/view/com/notifications/NotificationFeedItem.tsx:413
 #: src/view/com/video/components/post-ctrls/Author.tsx:115
+#: src/view/com/video/player/post-ctrls/Author.tsx:115
 msgid "View {0}'s profile"
 msgstr ""
 
@@ -8357,6 +8440,8 @@ msgstr ""
 #: src/screens/VideoFeed/index.tsx:656
 #: src/view/com/video/ModerationOverlay.tsx:79
 #: src/view/com/video/ModerationOverlay.tsx:97
+#: src/view/com/video/player/ModerationOverlay.tsx:79
+#: src/view/com/video/player/ModerationOverlay.tsx:97
 msgid "View details"
 msgstr ""
 
@@ -8533,6 +8618,7 @@ msgid "We're sorry, but your search could not be completed. Please try again in 
 msgstr ""
 
 #: src/view/com/composer/Composer.tsx:439
+#: src/view/com/video/comments/CommentsProvider.tsx:283
 msgid "We're sorry! The post you are replying to has been deleted."
 msgstr ""
 
@@ -9060,7 +9146,7 @@ msgstr ""
 msgid "Your full username will be <0>@{0}</0>"
 msgstr ""
 
-#: src/screens/Settings/AlgorithmTweaks.tsx:193
+#: src/screens/Settings/AlgorithmTweaks.tsx:382
 msgid "Your Interests"
 msgstr ""
 
