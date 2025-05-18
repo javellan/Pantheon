@@ -5498,7 +5498,6 @@ msgstr ""
 
 #: src/screens/VideoFeed/index.tsx:512
 #: src/view/com/video/player/VideoPlayer.tsx:71
-#: src/view/com/video/VideoItem.tsx:92
 msgid "Post has been deleted"
 msgstr ""
 
