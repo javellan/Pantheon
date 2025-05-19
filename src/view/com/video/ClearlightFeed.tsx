@@ -39,7 +39,6 @@ import {
   viewabilityConfig,
 } from './utils'
 import VideoItem from './VideoItem'
-import { useEnableKeyboardControllerScreen } from '#/lib/hooks/useEnableKeyboardController'
 
 export type VideoData = {
   _reactKey: string
