@@ -5,23 +5,27 @@ import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
 import {Shadow} from '#/state/cache/types'
 import {atoms as a, useBreakpoints, useTheme} from '#/alf'
+import {TruAnonBadgeIcon} from '#/components/truanon/TruAnonBadgeIcon'
 import {Text} from '#/components/Typography'
 
 export function ProfileHeaderDisplayName({
   profile,
   moderation,
+  truAnonData,
 }: {
   profile: Shadow<AppBskyActorDefs.ProfileViewDetailed>
   moderation: ModerationDecision
+  truAnonData?: any
 }) {
   const t = useTheme()
   const {gtMobile} = useBreakpoints()
 
   return (
-    <View pointerEvents="none">
+    <View style={[a.flex_row, a.align_center]}>
       <Text
         emoji
         testID="profileHeaderDisplayName"
+        pointerEvents="none"
         style={[
           t.atoms.text,
           gtMobile ? a.text_4xl : a.text_3xl,
@@ -33,6 +37,9 @@ export function ProfileHeaderDisplayName({
           moderation.ui('displayName'),
         )}
       </Text>
+      <View style={{marginLeft: 0}}>
+        <TruAnonBadgeIcon profile={truAnonData} />
+      </View>
     </View>
   )
 }

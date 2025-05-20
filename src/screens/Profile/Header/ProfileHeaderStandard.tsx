@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react'
+import React, {memo, useCallback, useMemo} from 'react'
 import {View} from 'react-native'
 import {
   AppBskyActorDefs,
@@ -10,6 +10,7 @@ import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
+import {useTruAnonProfile} from '#/lib/truanon/useTruAnonProfile'
 import {logger} from '#/logger'
 import {isIOS, isWeb} from '#/platform/detection'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
@@ -59,10 +60,19 @@ let ProfileHeaderStandard = ({
     useProfileShadow(profileUnshadowed)
   const {currentAccount, hasSession} = useSession()
   const {_} = useLingui()
+
   const moderation = useMemo(
     () => moderateProfile(profile, moderationOpts),
     [profile, moderationOpts],
   )
+
+  const {
+    data: truAnonData,
+    details: truAnonDetails,
+    refetch,
+    prefs,
+  } = useTruAnonProfile(profile.handle)
+
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
     profile,
     'ProfileHeader',
@@ -77,9 +87,9 @@ let ProfileHeaderStandard = ({
 
   const {openModal} = useModalControls()
   const editProfileControl = useDialogControl()
-  const onPressEditProfile = React.useCallback(() => {
+
+  const onPressEditProfile = useCallback(() => {
     if (isWeb) {
-      // temp, while we figure out the nested dialog bug
       openModal({
         name: 'edit-profile',
         profile,
@@ -131,7 +141,7 @@ let ProfileHeaderStandard = ({
     })
   }
 
-  const unblockAccount = React.useCallback(async () => {
+  const unblockAccount = useCallback(async () => {
     try {
       await queueUnblock()
       Toast.show(_(msg({message: 'Account unblocked', context: 'toast'})))
@@ -185,6 +195,10 @@ let ProfileHeaderStandard = ({
               <EditProfileDialog
                 profile={profile}
                 control={editProfileControl}
+                prefs={prefs}
+                onUpdate={() => {
+                  refetch()
+                }}
               />
             </>
           ) : profile.viewer?.blocking ? (
@@ -239,10 +253,19 @@ let ProfileHeaderStandard = ({
           ) : null}
           <ProfileMenu profile={profile} />
         </View>
-        <View style={[a.flex_col, a.gap_2xs, a.pt_2xs, a.pb_sm]}>
-          <ProfileHeaderDisplayName profile={profile} moderation={moderation} />
-          <ProfileHeaderHandle profile={profile} />
+        <View style={[a.flex_row, a.align_center, a.gap_xs]}>
+          <ProfileHeaderDisplayName
+            truAnonData={truAnonData}
+            profile={profile}
+            moderation={moderation}
+          />
         </View>
+        <ProfileHeaderHandle
+          profile={profile}
+          truAnonData={truAnonData}
+          truAnonDetails={truAnonDetails}
+          userPrefs={prefs}
+        />
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>
             <ProfileHeaderMetrics profile={profile} />

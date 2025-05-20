@@ -23,6 +23,7 @@ import {Check_Stroke2_Corner0_Rounded as Check} from '#/components/icons/Check'
 import {PlusLarge_Stroke2_Corner0_Rounded as Plus} from '#/components/icons/Plus'
 import {Link as InternalLink, LinkProps} from '#/components/Link'
 import {RichText} from '#/components/RichText'
+import {TruAnonBadgeIcon} from '#/components/truanon/TruAnonBadgeIcon' // <- this is new
 import {Text} from '#/components/Typography'
 import * as bsky from '#/types/bsky'
 
@@ -174,12 +175,15 @@ export function NameAndHandle({
 
   return (
     <View style={[a.flex_1]}>
-      <Text
-        emoji
-        style={[a.text_md, a.font_bold, a.leading_snug, a.self_start]}
-        numberOfLines={1}>
-        {name}
-      </Text>
+      <View style={[a.flex_row, a.align_center]}>
+        <Text
+          emoji
+          style={[a.text_md, a.font_bold, a.leading_snug]}
+          numberOfLines={1}>
+          {name}
+        </Text>
+        <TruAnonBadgeIcon handle={profile.handle} />
+      </View>
       <Text
         emoji
         style={[a.leading_snug, t.atoms.text_contrast_medium]}
