@@ -140,7 +140,7 @@ export function useTruanonPrefs(did: string) {
         // console.log('[TruAnon] getRecord result for', did, ':', res)
 
         if (!res?.data?.value) {
-          console.warn('[TruAnon] No prefs found for DID:', did)
+          console.log('[TruAnon] No truanon prefs found for DID:', did)
           return {
             wants_verified: false,
             wants_personal: true,
@@ -151,7 +151,7 @@ export function useTruanonPrefs(did: string) {
 
         return res.data.value as Record<string, any>
       } catch (err) {
-        console.warn('[TruAnon] Failed to read prefs for DID:', did, err)
+        console.warn('[TruAnon] Error from truanon prefs for DID:', did)
         return {
           wants_verified: false,
           wants_personal: true,

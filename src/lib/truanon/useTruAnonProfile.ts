@@ -62,13 +62,13 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   const fetchProfile = useCallback(async () => {
     if (!shouldFetchProfile) {
-      console.log('[TAO] Skipping fetch: wants_verified is false or undefined')
+      // console.log('[TAO] Skipping fetch: wants_verified is false or undefined')
       setData({authorRank: 'Unknown', dataConfigurations: []})
       setDetails({})
       return
     }
 
-    console.log('[TAO] Fetching profile data for handle:', handle)
+    // console.log('[TAO] Fetching profile data for handle:', handle)
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
@@ -153,7 +153,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   useEffect(() => {
     if (handle) {
-      console.log('[TAO] Triggering fetchProfile()')
+      // console.log('[TAO] Triggering fetchProfile()')
       fetchProfile()
     }
   }, [handle, shouldFetchProfile, fetchProfile])
