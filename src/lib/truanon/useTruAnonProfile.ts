@@ -1,6 +1,8 @@
 import {useCallback, useEffect, useState} from 'react'
 import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
 
+import {useTruanonPrefs} from '#/state/queries/profile'
+
 const TRUANON_AUTH_HEADER = {
   Authorization: `Bearer ${TRUANON_AUTH_TOKEN}`,
 }
@@ -39,52 +41,37 @@ export type TruAnonDetails = {
 }
 
 const baseUrl = 'https://truanon.com/api'
-// const baseUrl = 'http://127.0.0.1:5555/cgi-bin/WebObjects/TruAnon.woa/wa'
 
-export function useTruAnonProfile(handle: string) {
+export function useTruAnonProfile(handle: string, did?: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
-  const [prefs, setPrefs] = useState({
-    wants_verified: true,
-    wants_personal: true,
-    wants_social: true,
-    wants_private: false,
-  })
   const [details, setDetails] = useState<TruAnonDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const {data: loadedPrefs} = useTruanonPrefs(did || '')
+
+  const mergedPrefs = {
+    wants_verified: false,
+    wants_personal: true,
+    wants_social: true,
+    wants_private: false,
+    ...loadedPrefs,
+  }
+
+  const shouldFetchProfile = mergedPrefs.wants_verified === true
+
   const fetchProfile = useCallback(async () => {
+    if (!shouldFetchProfile) {
+      console.log('[TAO] Skipping fetch: wants_verified is false or undefined')
+      setData({authorRank: 'Unknown', dataConfigurations: []})
+      setDetails({})
+      return
+    }
+
+    console.log('[TAO] Fetching profile data for handle:', handle)
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
-      const prefsUrl = `https://devhauz.truanon.com/api/prefs/${safeHandle}`
-
-      let loadedPrefs = null
-      try {
-        const prefsRes = await fetch(prefsUrl, {headers: TRUANON_AUTH_HEADER})
-
-        if (prefsRes.ok) {
-          loadedPrefs = await prefsRes.json()
-          setPrefs({
-            wants_verified: !!loadedPrefs.wants_verified,
-            wants_personal: !!loadedPrefs.wants_personal,
-            wants_social: !!loadedPrefs.wants_social,
-            wants_private: !!loadedPrefs.wants_private,
-          })
-        } else {
-          console.log('[TAO] No prefs found.')
-        }
-      } catch (e) {
-        console.warn('[TAO] Pref fetch failed:', e.message)
-      }
-
-      if (!loadedPrefs?.wants_verified) {
-        console.log('[TAO] Showing Unknown badge (no verify).')
-        setData({authorRank: 'Unknown', dataConfigurations: []})
-        setDetails({})
-        return
-      }
-
       const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
       const text = await res.text()
@@ -96,7 +83,7 @@ export function useTruAnonProfile(handle: string) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
 
-      console.log('[TruAnon] Fetched Proflile get_profile URL:', profileUrl)
+      console.log('[TruAnon] Fetched get_profile URL:', profileUrl)
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Error:', json)
@@ -162,13 +149,23 @@ export function useTruAnonProfile(handle: string) {
     } finally {
       setLoading(false)
     }
-  }, [handle])
+  }, [handle, shouldFetchProfile])
 
   useEffect(() => {
-    if (handle) fetchProfile()
-  }, [handle, fetchProfile])
+    if (handle) {
+      console.log('[TAO] Triggering fetchProfile()')
+      fetchProfile()
+    }
+  }, [handle, shouldFetchProfile, fetchProfile])
 
-  return {data, details, prefs, error, loading, refetch: fetchProfile}
+  return {
+    data,
+    details,
+    prefs: mergedPrefs,
+    error,
+    loading,
+    refetch: fetchProfile,
+  }
 }
 
 export async function getVerifyLink(handle: string): Promise<{

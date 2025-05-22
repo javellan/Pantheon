@@ -71,7 +71,7 @@ let ProfileHeaderStandard = ({
     details: truAnonDetails,
     refetch,
     prefs,
-  } = useTruAnonProfile(profile.handle)
+  } = useTruAnonProfile(profile.handle, profile.did)
 
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
     profile,
@@ -197,6 +197,7 @@ let ProfileHeaderStandard = ({
                 control={editProfileControl}
                 prefs={prefs}
                 onUpdate={() => {
+                  console.log('[TAO] onUpdate: triggering profile refetch')
                   refetch()
                 }}
               />

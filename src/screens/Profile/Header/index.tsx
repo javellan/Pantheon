@@ -58,15 +58,35 @@ interface Props {
 }
 
 let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
+  const [refreshCount, setRefreshCount] = useState(0)
+
+  const onUpdateWrapped = () => {
+    setRefreshCount(c => c + 1)
+    props.onUpdate?.()
+  }
+
   let content
   if (props.profile.associated?.labeler) {
     if (!props.labeler) {
       content = <ProfileHeaderLoading />
     } else {
-      content = <ProfileHeaderLabeler {...props} labeler={props.labeler} />
+      content = (
+        <ProfileHeaderLabeler
+          key={refreshCount}
+          {...props}
+          labeler={props.labeler}
+          onUpdate={onUpdateWrapped}
+        />
+      )
     }
   } else {
-    content = <ProfileHeaderStandard {...props} />
+    content = (
+      <ProfileHeaderStandard
+        key={refreshCount}
+        {...props}
+        onUpdate={onUpdateWrapped}
+      />
+    )
   }
 
   return (
@@ -82,6 +102,7 @@ let ProfileHeader = ({setMinimumHeight, ...props}: Props): React.ReactNode => {
     </>
   )
 }
+
 ProfileHeader = memo(ProfileHeader)
 export {ProfileHeader}
 
@@ -102,11 +123,8 @@ const MinimalHeader = React.memo(function MinimalHeader({
   const {scrollY, headerHeight} = ctx
 
   const animatedStyle = useAnimatedStyle(() => {
-    // if we don't yet have the min header height in JS, hide
     if (!_WORKLET || minimalHeaderHeight === 0) {
-      return {
-        opacity: 0,
-      }
+      return {opacity: 0}
     }
     const pastThreshold = scrollY.get() > 100
     return {

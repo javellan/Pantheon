@@ -2,7 +2,6 @@ import {useCallback, useEffect, useState} from 'react'
 import {Dimensions, View} from 'react-native'
 import {Image as RNImage} from 'react-native-image-crop-picker'
 import {AppBskyActorDefs} from '@atproto/api'
-import {TRUANON_AUTH_TOKEN} from '@env'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
@@ -11,7 +10,11 @@ import {useWarnMaxGraphemeCount} from '#/lib/strings/helpers'
 import {getVerifyLink} from '#/lib/truanon/useTruAnonProfile'
 import {logger} from '#/logger'
 import {isWeb} from '#/platform/detection'
-import {useProfileUpdateMutation} from '#/state/queries/profile'
+import {
+  useProfileUpdateMutation,
+  useTruanonPrefs,
+  useTruanonPrefsMutation,
+} from '#/state/queries/profile'
 import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
 import * as Toast from '#/view/com/util/Toast'
 import {EditableUserAvatar} from '#/view/com/util/UserAvatar'
@@ -26,20 +29,6 @@ import {TruAnonVerificationSwitch} from '#/components/truanon/TruAnonVerificatio
 const DISPLAY_NAME_MAX_GRAPHEMES = 64
 const DESCRIPTION_MAX_GRAPHEMES = 256
 const SCREEN_HEIGHT = Dimensions.get('window').height
-
-async function savePrefs(handle: string, prefs: any) {
-  const url = `https://devhauz.truanon.com/api/prefs/${handle}`
-  const TRUANON_AUTH_HEADER = `Bearer ${TRUANON_AUTH_TOKEN}`
-
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: TRUANON_AUTH_HEADER,
-    },
-    body: JSON.stringify(prefs),
-  })
-}
 
 export function EditProfileDialog({
   profile,
@@ -127,9 +116,14 @@ function DialogInner({
     isError: isUpdateProfileError,
   } = useProfileUpdateMutation()
 
+  const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
   const [imageError, setImageError] = useState('')
   const [verifyUrl, setVerifyUrl] = useState<string | undefined>()
   const [assignedUrl, setAssignedUrl] = useState<string | undefined>()
+
+  const {data: fetchedPrefs, refetch: refetchPrefs} = useTruanonPrefs(
+    profile.did,
+  )
 
   const [prefs, setPrefs] = useState(() => ({
     wants_verified: !!initialPrefs?.wants_verified,
@@ -137,6 +131,18 @@ function DialogInner({
     wants_social: !!initialPrefs?.wants_social,
     wants_private: !!initialPrefs?.wants_private,
   }))
+
+  useEffect(() => {
+    if (fetchedPrefs) {
+      setPrefs({
+        wants_verified: !!fetchedPrefs.wants_verified,
+        wants_personal: !!fetchedPrefs.wants_personal,
+        wants_social: !!fetchedPrefs.wants_social,
+        wants_private: !!fetchedPrefs.wants_private,
+      })
+      console.log('[TAO] Loaded prefs:', fetchedPrefs)
+    }
+  }, [fetchedPrefs])
 
   const initialDisplayName = profile.displayName || ''
   const [displayName, setDisplayName] = useState(initialDisplayName)
@@ -161,28 +167,13 @@ function DialogInner({
 
   const fetchVerify = useCallback(async () => {
     const result = await getVerifyLink(profile.handle)
-
     setVerifyUrl(result?.verifyUrl)
     setAssignedUrl(result?.assignedUrl)
-
-    const fetchedPrefs = result?.prefs
-    if (fetchedPrefs) {
-      setPrefs({
-        wants_verified: !!fetchedPrefs.wants_verified,
-        wants_personal: !!fetchedPrefs.wants_personal,
-        wants_social: !!fetchedPrefs.wants_social,
-        wants_private: !!fetchedPrefs.wants_private,
-      })
-      console.log('[TAO] Loaded prefs:', fetchedPrefs)
-    }
   }, [profile.handle])
 
   useEffect(() => {
     fetchVerify()
   }, [fetchVerify])
-  // console.log('verifyUrl:', verifyUrl)
-  // console.log('assignedUrl:', assignedUrl)
-  // console.log('truAnonDetails:', truAnonDetails)
 
   const onSelectNewAvatar = useCallback(async (img: RNImage | null) => {
     setImageError('')
@@ -219,15 +210,7 @@ function DialogInner({
   const onPressSave = useCallback(async () => {
     setImageError('')
     try {
-      await savePrefs(profile.handle, {
-        ...prefs,
-        last_rank_color: '#1d9bf0',
-        last_badge_icon: 'fa-star',
-        wants_verified: prefs.wants_verified ? 1 : 0,
-        wants_personal: prefs.wants_personal ? 1 : 0,
-        wants_social: prefs.wants_social ? 1 : 0,
-        wants_private: prefs.wants_private ? 1 : 0,
-      })
+      await updateTruanonPrefs({did: profile.did, prefs})
 
       await updateProfileMutation({
         profile,
@@ -239,6 +222,8 @@ function DialogInner({
         newUserBanner,
       })
 
+      await refetchPrefs()
+
       onUpdate?.()
       control.close()
 
@@ -249,13 +234,15 @@ function DialogInner({
       logger.error('Failed to update user profile', {message: String(e)})
     }
   }, [
-    profile,
+    updateTruanonPrefs,
     updateProfileMutation,
+    profile,
     displayName,
     description,
     newUserAvatar,
     newUserBanner,
     prefs,
+    refetchPrefs,
     control,
     onUpdate,
     dirty,

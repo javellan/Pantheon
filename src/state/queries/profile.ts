@@ -123,6 +123,67 @@ export function usePrefetchProfileQuery() {
   return prefetchProfileQuery
 }
 
+export function useTruanonPrefs(did: string) {
+  const agent = useAgent()
+  // console.log('[TruAnon] Ask To Read prefs for DID:', did)
+
+  return useQuery({
+    queryKey: ['truanonPrefs', did],
+    queryFn: async () => {
+      try {
+        const res = await agent.com.atproto.repo.getRecord({
+          repo: did,
+          collection: 'app.truanon.prefs',
+          rkey: 'self',
+        })
+
+        // console.log('[TruAnon] getRecord result for', did, ':', res)
+
+        if (!res?.data?.value) {
+          console.warn('[TruAnon] No prefs found for DID:', did)
+          return {
+            wants_verified: false,
+            wants_personal: true,
+            wants_social: true,
+            wants_private: false,
+          }
+        }
+
+        return res.data.value as Record<string, any>
+      } catch (err) {
+        console.warn('[TruAnon] Failed to read prefs for DID:', did, err)
+        return {
+          wants_verified: false,
+          wants_personal: true,
+          wants_social: true,
+          wants_private: false,
+        }
+      }
+    },
+    enabled: !!did,
+  })
+}
+
+export function useTruanonPrefsMutation() {
+  const agent = useAgent()
+  // console.log('[TruAnon] Ask To Write:')
+
+  return useMutation<void, Error, {did: string; prefs: Record<string, any>}>({
+    mutationFn: async ({did, prefs}) => {
+      // console.log('[TruAnon] Writing prefs:', prefs)
+
+      await agent.com.atproto.repo.putRecord({
+        repo: did,
+        collection: 'app.truanon.prefs',
+        rkey: 'self',
+        record: prefs,
+      })
+
+      console.log('[TruAnon] Prefs write successful')
+    },
+  })
+}
+
 interface ProfileUpdateParams {
   profile: AppBskyActorDefs.ProfileViewDetailed
   updates:
