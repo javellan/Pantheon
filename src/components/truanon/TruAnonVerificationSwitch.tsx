@@ -48,6 +48,19 @@ export function TruAnonVerificationSwitch({
     onVerified?.()
   }
 
+  const handleSwitchChange = (key: string, value: boolean) => {
+    if (!prefs) return // Prevent updating if prefs is undefined
+    const updatedPrefs = {
+      wants_verified: prefs?.wants_verified ?? 0,
+      wants_personal: prefs?.wants_personal ?? 0,
+      wants_social: prefs?.wants_social ?? 0,
+      wants_private: prefs?.wants_private ?? 0,
+      [key]: value ? 1 : 0, // Store 1 for true and 0 for false
+    }
+    console.log('Switch changed:', key, value, updatedPrefs)
+    setPrefs(updatedPrefs) // Update prefs state
+  }
+
   return (
     <>
       <Modal
@@ -164,8 +177,8 @@ export function TruAnonVerificationSwitch({
                     Use Verified Identity
                   </Text>
                   <Switch
-                    value={prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_verified: v})}
+                    value={prefs?.wants_verified === 1} // Check for value as 1 for true
+                    onValueChange={v => handleSwitchChange('wants_verified', v)} // Handle switch change
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -183,9 +196,9 @@ export function TruAnonVerificationSwitch({
                     Display Personal Info
                   </Text>
                   <Switch
-                    value={prefs?.wants_personal}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_personal: v})}
+                    value={prefs?.wants_personal === 1} // Check for value as 1 for true
+                    disabled={!prefs?.wants_verified} // Disable if not verified
+                    onValueChange={v => handleSwitchChange('wants_personal', v)} // Handle switch change
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -200,9 +213,9 @@ export function TruAnonVerificationSwitch({
                     Display Social Profiles
                   </Text>
                   <Switch
-                    value={prefs?.wants_social}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_social: v})}
+                    value={prefs?.wants_social === 1} // Check for value as 1 for true
+                    disabled={!prefs?.wants_verified} // Disable if not verified
+                    onValueChange={v => handleSwitchChange('wants_social', v)} // Handle switch change
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -217,9 +230,9 @@ export function TruAnonVerificationSwitch({
                     Private Profile
                   </Text>
                   <Switch
-                    value={prefs?.wants_private}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_private: v})}
+                    value={prefs?.wants_private === 1} // Check for value as 1 for true
+                    disabled={!prefs?.wants_verified} // Disable if not verified
+                    onValueChange={v => handleSwitchChange('wants_private', v)} // Handle switch change
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -231,6 +244,7 @@ export function TruAnonVerificationSwitch({
             </View>
           </View>
         )}
+
         <View style={([a.mt_lg, a.mb_lg], {paddingBottom: 44, paddingTop: 16})}>
           <Text style={[a.text_sm, a.text_contrast_low]}>
             {isVerified ? (

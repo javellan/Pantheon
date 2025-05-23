@@ -57,18 +57,21 @@ export function useTruAnonProfile(handle: string, did?: string) {
     wants_private: false,
     ...loadedPrefs,
   }
+  // console.log('[TruAnon] mergedPrefs', mergedPrefs)
 
-  const shouldFetchProfile = mergedPrefs.wants_verified === true
+  const shouldFetchProfile = Boolean(loadedPrefs?.wants_verified)
 
   const fetchProfile = useCallback(async () => {
     if (!shouldFetchProfile) {
-      // console.log('[TAO] Skipping fetch: wants_verified is false or undefined')
+      console.log(
+        '[TruAnon] Skipping fetch: wants_verified is false or undefined',
+      )
       setData({authorRank: 'Unknown', dataConfigurations: []})
       setDetails({})
       return
     }
 
-    // console.log('[TAO] Fetching profile data for handle:', handle)
+    console.log('[TruAnon] Fetching profile data for handle:', handle)
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
@@ -153,7 +156,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   useEffect(() => {
     if (handle) {
-      // console.log('[TAO] Triggering fetchProfile()')
+      console.log('[TruAnon] Triggering fetchProfile()')
       fetchProfile()
     }
   }, [handle, shouldFetchProfile, fetchProfile])

@@ -34,14 +34,27 @@ export function ProfileHeaderHandle({
   const invalidHandle = isInvalidHandle(profile.handle)
   const blockHide = profile.viewer?.blocking || profile.viewer?.blockedBy
 
-  const isPrivateView = !!userPrefs?.wants_private
-  const wantsPersonal = !!userPrefs?.wants_personal
-  const wantsSocial = !!userPrefs?.wants_social
+  console.log('profile.handle = ', profile.handle)
 
+  const cleanPrefs = userPrefs
+    ? {
+        wants_verified: Number(userPrefs.wants_verified),
+        wants_personal: Number(userPrefs.wants_personal),
+        wants_social: Number(userPrefs.wants_social),
+        wants_private: Number(userPrefs.wants_private),
+      }
+    : undefined
+
+  const isPrivateView = !!cleanPrefs?.wants_private
+  const wantsPersonal = !!cleanPrefs?.wants_personal
+  const wantsSocial = !!cleanPrefs?.wants_social
+  console.log('userPrefs = ', userPrefs)
   const dataPointsOfTypeKind = (
     type: string,
     kind?: string,
   ): {value: string; dataPointIconClass: string}[] => {
+    // console.log('truAnonData = ', truAnonData)
+
     if (!truAnonData?.dataConfigurations) return []
     return truAnonData.dataConfigurations
       .filter(

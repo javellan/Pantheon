@@ -12,7 +12,6 @@ import {logger} from '#/logger'
 import {isWeb} from '#/platform/detection'
 import {
   useProfileUpdateMutation,
-  useTruanonPrefs,
   useTruanonPrefsMutation,
 } from '#/state/queries/profile'
 import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
@@ -36,17 +35,19 @@ export function EditProfileDialog({
   onClose,
   onUpdate,
   prefs,
+  setPrefs,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   control: Dialog.DialogControlProps
   onClose?: () => void
   onUpdate?: () => void
-  prefs?: {
-    wants_verified?: number
-    wants_personal?: number
-    wants_social?: number
-    wants_private?: number
+  prefs: {
+    wants_verified: number
+    wants_personal: number
+    wants_social: number
+    wants_private: number
   }
+  setPrefs: React.Dispatch<React.SetStateAction<any>>
 }) {
   const {_} = useLingui()
   const cancelControl = Dialog.useDialogControl()
@@ -73,6 +74,7 @@ export function EditProfileDialog({
         onUpdate={onUpdate}
         setDirty={setDirty}
         prefs={prefs}
+        setPrefs={setPrefs}
       />
       <Prompt.Basic
         control={cancelControl}
@@ -94,17 +96,19 @@ function DialogInner({
   profile,
   onUpdate,
   setDirty,
-  prefs: initialPrefs,
+  prefs,
+  setPrefs,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   onUpdate?: () => void
   setDirty: (dirty: boolean) => void
-  prefs?: {
-    wants_verified?: number
-    wants_personal?: number
-    wants_social?: number
-    wants_private?: number
+  prefs: {
+    wants_verified: number
+    wants_personal: number
+    wants_social: number
+    wants_private: number
   }
+  setPrefs: React.Dispatch<React.SetStateAction<any>>
 }) {
   const {_} = useLingui()
   const t = useTheme()
@@ -116,34 +120,12 @@ function DialogInner({
     isError: isUpdateProfileError,
   } = useProfileUpdateMutation()
 
+  // FIX: Hook must be here, not inside a callback!
   const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
+
   const [imageError, setImageError] = useState('')
   const [verifyUrl, setVerifyUrl] = useState<string | undefined>()
   const [assignedUrl, setAssignedUrl] = useState<string | undefined>()
-
-  const {data: fetchedPrefs, refetch: refetchPrefs} = useTruanonPrefs(
-    profile.did,
-  )
-
-  const [prefs, setPrefs] = useState(() => ({
-    wants_verified: !!initialPrefs?.wants_verified,
-    wants_personal: !!initialPrefs?.wants_personal,
-    wants_social: !!initialPrefs?.wants_social,
-    wants_private: !!initialPrefs?.wants_private,
-  }))
-
-  useEffect(() => {
-    if (fetchedPrefs) {
-      setPrefs({
-        wants_verified: !!fetchedPrefs.wants_verified,
-        wants_personal: !!fetchedPrefs.wants_personal,
-        wants_social: !!fetchedPrefs.wants_social,
-        wants_private: !!fetchedPrefs.wants_private,
-      })
-      console.log('[TAO] Loaded prefs:', fetchedPrefs)
-    }
-  }, [fetchedPrefs])
-
   const initialDisplayName = profile.displayName || ''
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const initialDescription = profile.description || ''
@@ -210,8 +192,10 @@ function DialogInner({
   const onPressSave = useCallback(async () => {
     setImageError('')
     try {
+      // Save TruAnon prefs FIRST
       await updateTruanonPrefs({did: profile.did, prefs})
 
+      // Now save the profile
       await updateProfileMutation({
         profile,
         updates: {
@@ -221,10 +205,8 @@ function DialogInner({
         newUserAvatar,
         newUserBanner,
       })
-
-      await refetchPrefs()
-
-      onUpdate?.()
+      console.log('prefs = ', prefs)
+      onUpdate?.(prefs)
       control.close()
 
       if (dirty) {
@@ -234,7 +216,6 @@ function DialogInner({
       logger.error('Failed to update user profile', {message: String(e)})
     }
   }, [
-    updateTruanonPrefs,
     updateProfileMutation,
     profile,
     displayName,
@@ -242,11 +223,11 @@ function DialogInner({
     newUserAvatar,
     newUserBanner,
     prefs,
-    refetchPrefs,
     control,
     onUpdate,
     dirty,
     _,
+    updateTruanonPrefs, // add this for completeness
   ])
 
   const displayNameTooLong = useWarnMaxGraphemeCount({

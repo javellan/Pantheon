@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useMemo} from 'react'
+import React, {memo, useCallback, useEffect,useMemo, useState} from 'react'
 import {View} from 'react-native'
 import {
   AppBskyActorDefs,
@@ -20,6 +20,7 @@ import {
   useProfileBlockMutationQueue,
   useProfileFollowMutationQueue,
 } from '#/state/queries/profile'
+import {useTruanonPrefs} from '#/state/queries/profile'
 import {useRequireAuth, useSession} from '#/state/session'
 import {ProfileMenu} from '#/view/com/profile/ProfileMenu'
 import * as Toast from '#/view/com/util/Toast'
@@ -55,6 +56,7 @@ let ProfileHeaderStandard = ({
   moderationOpts,
   hideBackButton = false,
   isPlaceholderProfile,
+  prefs, // receiving prefs prop
 }: Props): React.ReactNode => {
   const profile: Shadow<AppBskyActorDefs.ProfileViewDetailed> =
     useProfileShadow(profileUnshadowed)
@@ -66,12 +68,31 @@ let ProfileHeaderStandard = ({
     [profile, moderationOpts],
   )
 
+  const [currentPrefs, setCurrentPrefs] = useState(prefs)
+
+  const {data: loadedPrefs} = useTruanonPrefs(profile.did)
+
+  useEffect(() => {
+    if (loadedPrefs) {
+      setCurrentPrefs(loadedPrefs)
+    }
+  }, [loadedPrefs])
+
+  useEffect(() => {
+    if (prefs) {
+      setCurrentPrefs(prefs)
+    }
+  }, [prefs])
+
   const {
     data: truAnonData,
     details: truAnonDetails,
     refetch,
-    prefs,
   } = useTruAnonProfile(profile.handle, profile.did)
+  // console.log('Profile handle:', profile.handle)
+  // console.log('Profile DID:', profile.did)
+  // console.log('TruAnon data:', truAnonData)
+  // console.log('TruAnon details:', truAnonDetails)
 
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
     profile,
@@ -195,9 +216,10 @@ let ProfileHeaderStandard = ({
               <EditProfileDialog
                 profile={profile}
                 control={editProfileControl}
-                prefs={prefs}
-                onUpdate={() => {
-                  console.log('[TAO] onUpdate: triggering profile refetch')
+                prefs={currentPrefs}
+                setPrefs={setCurrentPrefs}
+                onUpdate={newPrefs => {
+                  setCurrentPrefs(newPrefs)
                   refetch()
                 }}
               />
@@ -265,7 +287,7 @@ let ProfileHeaderStandard = ({
           profile={profile}
           truAnonData={truAnonData}
           truAnonDetails={truAnonDetails}
-          userPrefs={prefs}
+          userPrefs={currentPrefs}
         />
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>
