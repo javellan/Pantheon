@@ -46,7 +46,7 @@ export function ProfileHeaderHandle({
     : undefined
 
   const wants_verified = !!cleanPrefs?.wants_verified
-  const isPrivateView = !!cleanPrefs?.wants_private
+  const wants_private = !!cleanPrefs?.wants_private
   const wantsPersonal = !!cleanPrefs?.wants_personal
   const wantsSocial = !!cleanPrefs?.wants_social
   console.log('userPrefs = ', userPrefs)
@@ -98,7 +98,7 @@ export function ProfileHeaderHandle({
         <FontAwesome5
           name={name as any}
           size={StyleSheet.flatten(a.text_sm).fontSize}
-          color="#fff"
+          color="#f4f4f4"
         />{' '}
         {values}
       </Text>
@@ -121,7 +121,7 @@ export function ProfileHeaderHandle({
       <FontAwesome5
         name={icon as any}
         size={StyleSheet.flatten(a.text_sm).fontSize}
-        color={isPrivateView ? '#999' : '#fff'}
+        color={wants_private ? '#cfc9bb' : '#fff'}
       />
     )
 
@@ -129,23 +129,23 @@ export function ProfileHeaderHandle({
       <Text
         style={[
           a.text_sm,
-          !isPrivateView && a.font_bold,
+          !wants_private && a.font_bold,
           t.atoms.text_contrast_medium,
         ]}>
         {Icon} {name}
       </Text>
     )
 
-    const Container = isPrivateView ? View : TouchableOpacity
+    const Container = wants_private ? View : TouchableOpacity
 
     return (
       <Container
         key={key}
-        accessibilityRole={isPrivateView ? undefined : 'button'}
+        accessibilityRole={wants_private ? undefined : 'button'}
         onPress={
-          isPrivateView ? undefined : () => Linking.openURL(`http://${value}`)
+          wants_private ? undefined : () => Linking.openURL(`http://${value}`)
         }
-        activeOpacity={isPrivateView ? undefined : 0.6}
+        activeOpacity={wants_private ? undefined : 0.6}
         style={{marginRight: 12, marginBottom: 6}}>
         {TextContent}
       </Container>
@@ -171,10 +171,15 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: isPrivateView ? '#999' : rankColor,
+            borderColor: wants_verified
+              ? wants_private
+                ? '#cfc9bb'
+                : rankColor
+              : rankColor,
             marginBottom: 12,
             borderWidth: 1,
-            backgroundColor: isPrivateView ? '#2c2c33' : '#000',
+            backgroundColor:
+              wants_verified && wants_private ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
@@ -186,18 +191,25 @@ export function ProfileHeaderHandle({
             elevation: 2,
           },
         ]}>
-        <Text style={[{color: isPrivateView ? '#999' : rankColor}]}>
+        <Text style={[{color: rankColor}]}>
           <FontAwesome
             name="check-circle"
             size={StyleSheet.flatten(a.text_sm).fontSize * 2.25}
-            color={rankColor}
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text style={[a.text_sm, {color: isPrivateView ? '#999' : '#fff'}]}>
+          <Text
+            style={[
+              a.text_sm,
+              {color: wants_verified && wants_private ? '#cfc9bb' : '#fff'},
+            ]}>
             {truAnonData.authorRank}
           </Text>
-          <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#ccc'}]}>
+          <Text
+            style={[
+              a.text_xs,
+              {color: wants_verified && wants_private ? '#cfc9bb' : '#ede8df'},
+            ]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
               : `${truAnonData.authorRankScore ?? '–'} of 5`}
@@ -213,7 +225,7 @@ export function ProfileHeaderHandle({
 
     return (
       <View style={{marginTop: 8, marginBottom: 8}}>
-        {!isPrivateView && truAnonData?.truAnonUrl && !isUnknown ? (
+        {!wants_private && truAnonData?.truAnonUrl && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
