@@ -142,7 +142,7 @@ export function useTruanonPrefs(did: string) {
         if (!res?.data?.value) {
           console.log('[TruAnon] No truanon prefs found for DID:', did)
           return {
-            wants_verified: false,
+            wants_verified: true,
             wants_personal: true,
             wants_social: true,
             wants_private: false,

@@ -45,6 +45,7 @@ export function ProfileHeaderHandle({
       }
     : undefined
 
+  const wants_verified = !!cleanPrefs?.wants_verified
   const isPrivateView = !!cleanPrefs?.wants_private
   const wantsPersonal = !!cleanPrefs?.wants_personal
   const wantsSocial = !!cleanPrefs?.wants_social
@@ -53,7 +54,14 @@ export function ProfileHeaderHandle({
     type: string,
     kind?: string,
   ): {value: string; dataPointIconClass: string}[] => {
+    console.log('wants_verified = ', wants_verified)
     // console.log('truAnonData = ', truAnonData)
+
+    if (!userPrefs || !truAnonData?.dataConfigurations) {
+      console.log('bailing out = ', wants_verified)
+      return
+    }
+    console.log('not bailing out = ', wants_verified)
 
     if (!truAnonData?.dataConfigurations) return []
     return truAnonData.dataConfigurations
@@ -149,7 +157,7 @@ export function ProfileHeaderHandle({
     const rankColors: Record<string, string> = {
       Dangerous: '#e0245e',
       Cautioned: '#ffad1f',
-      Credible: '#fff',
+      Credible: '#e0e0e0',
       Reliable: '#17bf63',
       Genuine: '#1d9bf0',
     }

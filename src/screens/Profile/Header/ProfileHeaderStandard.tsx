@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect,useMemo, useState} from 'react'
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react'
 import {View} from 'react-native'
 import {
   AppBskyActorDefs,
@@ -279,6 +279,7 @@ let ProfileHeaderStandard = ({
         <View style={[a.flex_row, a.align_center, a.gap_xs]}>
           <ProfileHeaderDisplayName
             truAnonData={truAnonData}
+            prefs={currentPrefs}
             profile={profile}
             moderation={moderation}
           />

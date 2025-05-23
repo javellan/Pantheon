@@ -10,10 +10,17 @@ import {Text} from '#/components/Typography'
 
 export function ProfileHeaderDisplayName({
   profile,
+  prefs,
   moderation,
   truAnonData,
 }: {
   profile: Shadow<AppBskyActorDefs.ProfileViewDetailed>
+  prefs?: {
+    wants_verified?: number
+    wants_personal?: number
+    wants_social?: number
+    wants_private?: number
+  }
   moderation: ModerationDecision
   truAnonData?: any
 }) {
@@ -38,7 +45,7 @@ export function ProfileHeaderDisplayName({
         )}
       </Text>
       <View style={{marginLeft: 0}}>
-        <TruAnonBadgeIcon profile={truAnonData} />
+        <TruAnonBadgeIcon profile={truAnonData} prefs={prefs} />
       </View>
     </View>
   )

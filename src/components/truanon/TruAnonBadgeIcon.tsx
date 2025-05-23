@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import {Linking,Modal, TouchableOpacity, View} from 'react-native'
+import {Linking, Modal, TouchableOpacity, View} from 'react-native'
 import {FontAwesome, FontAwesome5} from '@expo/vector-icons'
 import {useTheme} from '@react-navigation/native'
 
@@ -9,7 +9,7 @@ import {Text} from '#/components/Typography'
 const rankColors: Record<string, string> = {
   Dangerous: '#e0245e',
   Cautioned: '#ffad1f',
-  Credible: '#ccc',
+  Credible: '#cfc9bb',
   Reliable: '#17bf63',
   Genuine: '#1d9bf0',
 }
@@ -25,17 +25,23 @@ function qualifiesForSpecialBadge(profile: {
 }
 
 export function TruAnonBadgeIcon({
+  prefs,
   profile,
   color,
 }: {
   profile: {authorRank: string; dataConfigurations: any[]} | null
+  prefs?: {
+    wants_verified?: number
+    wants_personal?: number
+    wants_social?: number
+    wants_private?: number
+  }
   color?: string
 }) {
   const [isModalVisible, setModalVisible] = useState(false)
   const {colors} = useTheme()
 
   if (!profile || profile.authorRank === 'Unknown') return null
-
   const iconColor = color || rankColors[profile.authorRank] || '#999'
   const useRibbon = qualifiesForSpecialBadge(profile)
   const ribbonText = useRibbon ? 'TikTok Verified' : 'No Ribbon'
@@ -48,7 +54,7 @@ export function TruAnonBadgeIcon({
     Cautioned:
       'Cautioned shows partial validation and limited public exposure.',
     Credible:
-      'Credible reflects ID-level confidence backed with continuous public accountability.',
+      'Credible means ID-level confidence backed with continuous public validation.',
     Reliable:
       'Reliable represents ongoing visible consistency and extensive public oversight.',
     Genuine:
@@ -182,6 +188,9 @@ export function TruAnonBadgeIcon({
                   color: '#181B1F',
                   marginBottom: a.text_xl.fontSize * 2,
                 }}>
+                {prefs?.wants_private
+                  ? 'This profile is private, there are no active identity links. '
+                  : ''}
                 {rankExplanations[profile.authorRank] || ''} A Ribbon denotes a
                 Credible+ rank with a validated TikTok account.
               </Text>
@@ -191,7 +200,8 @@ export function TruAnonBadgeIcon({
                   flexDirection: 'row',
                   justifyContent: 'flex-end',
                 }}>
-                <TouchableOpacity accessibilityRole="button"
+                <TouchableOpacity
+                  accessibilityRole="button"
                   onPress={() => Linking.openURL('https://truanon.com/about')}
                   style={{
                     backgroundColor: colors.primary,
@@ -210,7 +220,8 @@ export function TruAnonBadgeIcon({
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity accessibilityRole="button"
+                <TouchableOpacity
+                  accessibilityRole="button"
                   onPress={toggleModal}
                   style={{
                     borderColor: colors.primary,
