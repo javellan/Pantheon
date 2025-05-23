@@ -40,8 +40,7 @@ export type TruAnonDetails = {
   }[]
 }
 
-//const baseUrl = 'https://truanon.com/api'
-const baseUrl = 'http://127.0.0.1:5555/cgi-bin/WebObjects/TruAnon.woa/wa'
+const baseUrl = 'https://truanon.com/api'
 
 export function useTruAnonProfile(handle: string, did?: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
