@@ -218,7 +218,7 @@ export function ProfileHeaderHandle({
 
     return (
       <View style={{marginTop: 8, marginBottom: 8}}>
-        {truAnonData?.truAnonUrl && !showPrivate ? (
+        {truAnonData?.truAnonUrl && !showPrivate && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
