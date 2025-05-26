@@ -208,7 +208,7 @@ export function TruAnonBadgeIcon({
                 }}>
                 <TouchableOpacity
                   accessibilityRole="button"
-                  onPress={() => Linking.openURL('https://truanon.com/about')}
+                  onPress={() => Linking.openURL('https://tao.social/verify')}
                   style={{
                     backgroundColor: colors.primary,
                     paddingVertical: 6,
