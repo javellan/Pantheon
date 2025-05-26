@@ -165,6 +165,7 @@ export function ProfileHeaderHandle({
 
     const isUnknown = authorRank === 'Unknown'
     const rankColor = rankColors[authorRank] || '#666'
+    const showPrivate = wants_private && !isUnknown
 
     console.log('wantsVerify:', wantsVerify)
     console.log('hasTruAnon:', hasTruAnon)
@@ -183,10 +184,10 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: wants_private ? '#cfc9bb' : rankColor,
+            borderColor: showPrivate ? '#cfc9bb' : rankColor,
             marginBottom: 12,
             borderWidth: 1,
-            backgroundColor: wants_private ? '#2c2c33' : '#000',
+            backgroundColor: showPrivate ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
@@ -205,12 +206,11 @@ export function ProfileHeaderHandle({
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text
-            style={[a.text_sm, {color: wants_private ? '#cfc9bb' : '#fff'}]}>
+          <Text style={[a.text_sm, {color: showPrivate ? '#cfc9bb' : '#fff'}]}>
             {authorRank}
           </Text>
           <Text
-            style={[a.text_xs, {color: wants_private ? '#cfc9bb' : '#ede8df'}]}>
+            style={[a.text_xs, {color: showPrivate ? '#cfc9bb' : '#ede8df'}]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
               : `${truAnonData?.authorRankScore ?? '–'} of 5`}
@@ -226,7 +226,7 @@ export function ProfileHeaderHandle({
 
     return (
       <View style={{marginTop: 8, marginBottom: 8}}>
-        {truAnonData?.truAnonUrl && !isUnknown ? (
+        {truAnonData?.truAnonUrl && !showPrivate ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
