@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react'
 import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
 
-import {useTruanonPrefs,useTruanonPrefsMutation} from '#/state/queries/profile'
+import {useTruanonPrefs, useTruanonPrefsMutation} from '#/state/queries/profile'
 
 const TRUANON_AUTH_HEADER = {
   Authorization: `Bearer ${TRUANON_AUTH_TOKEN}`,
@@ -60,7 +60,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
   }
   // console.log('[TruAnon] mergedPrefs', mergedPrefs)
 
-  const shouldFetchProfile = Boolean(loadedPrefs?.wants_verified)
+  const shouldFetchProfile = Boolean(mergedPrefs?.wants_verified)
 
   const fetchProfile = useCallback(async () => {
     if (!shouldFetchProfile) {
