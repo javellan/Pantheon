@@ -1,15 +1,9 @@
-import {useEffect, useState} from 'react'
-import {View} from 'react-native'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useNavigation} from '@react-navigation/core'
+import {useEffect, useState} from 'react'
+import {View} from 'react-native'
 
-import {FEEDBACK_FORM_URL, HELP_DESK_URL} from '#/lib/constants'
-import {useKawaiiMode} from '#/state/preferences/kawaii'
-import {useSession} from '#/state/session'
-import {DesktopFeeds} from '#/view/shell/desktop/Feeds'
-import {DesktopSearch} from '#/view/shell/desktop/Search'
-import {SidebarTrendingTopics} from '#/view/shell/desktop/SidebarTrendingTopics'
 import {
   atoms as a,
   useGutters,
@@ -22,6 +16,12 @@ import {Divider} from '#/components/Divider'
 import {InlineLinkText} from '#/components/Link'
 import {ProgressGuideList} from '#/components/ProgressGuide/List'
 import {Text} from '#/components/Typography'
+import {FEEDBACK_FORM_URL, HELP_DESK_URL} from '#/lib/constants'
+import {useKawaiiMode} from '#/state/preferences/kawaii'
+import {useSession} from '#/state/session'
+import {DesktopFeeds} from '#/view/shell/desktop/Feeds'
+import {DesktopSearch} from '#/view/shell/desktop/Search'
+import {SidebarTrendingTopics} from '#/view/shell/desktop/SidebarTrendingTopics'
 
 function useWebQueryParams() {
   const navigation = useNavigation()
@@ -101,13 +101,13 @@ export function DesktopRightNav({routeName}: {routeName: string}) {
           </>
         )}
         <InlineLinkText
-          to="https://bsky.social/about/support/privacy-policy"
+          to="https://tao.social/privacy-policy"
           label={_(msg`Privacy`)}>
           {_(msg`Privacy`)}
         </InlineLinkText>
         {' • '}
         <InlineLinkText
-          to="https://bsky.social/about/support/tos"
+          to="https://tao.social/terms-of-service"
           label={_(msg`Terms`)}>
           {_(msg`Terms`)}
         </InlineLinkText>

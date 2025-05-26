@@ -1,3 +1,4 @@
+import {nanoid} from 'nanoid/non-secure'
 import {StyleSheet, TextProps} from 'react-native'
 import type {PathProps, SvgProps} from 'react-native-svg'
 import {
@@ -5,9 +6,9 @@ import {
   FeDropShadow,
   Filter,
   LinearGradient,
+  RadialGradient,
   Stop,
 } from 'react-native-svg'
-import {nanoid} from 'nanoid/non-secure'
 
 import {tokens, useTheme} from '#/alf'
 
@@ -16,6 +17,7 @@ export type Props = {
   style?: TextProps['style']
   size?: keyof typeof sizes
   gradient?: keyof typeof tokens.gradients
+  radialGradient?: keyof typeof tokens.radialGradients
   shadow?: string
 } & Omit<SvgProps, 'style' | 'size'>
 
@@ -27,15 +29,18 @@ export const sizes = {
   xl: 28,
   '2xl': 32,
   feckinhuge: 64,
+  logo: 128,
+  logo2x: 256,
 }
 
 export function useCommonSVGProps(props: Props) {
   const t = useTheme()
-  const {fill, size, gradient, shadow, ...rest} = props
+  const {fill, size, gradient, radialGradient, shadow, ...rest} = props
   const style = StyleSheet.flatten(rest.style)
   const _size = Number(size ? sizes[size] : rest.width || sizes.md)
   let _fill = fill || style?.color || t.palette.primary_500
   let gradientDef = null
+  let radialGradientDef = null
   let shadowDef = null
 
   if (gradient && tokens.gradients[gradient]) {
@@ -55,6 +60,21 @@ export function useCommonSVGProps(props: Props) {
             <Stop key={stop} offset={stop} stopColor={fill} />
           ))}
         </LinearGradient>
+      </Defs>
+    )
+  }
+
+  if (radialGradient && tokens.radialGradients[radialGradient]) {
+    const id = radialGradient + '_' + nanoid()
+    const config = tokens.radialGradients[radialGradient]
+    _fill = `url(#${id})`
+    radialGradientDef = (
+      <Defs>
+        <RadialGradient id={id} cx="50%" cy="50%" r="50%">
+          {config.values.map(([stop, fill]) => (
+            <Stop key={stop} offset={stop} stopColor={fill} />
+          ))}
+        </RadialGradient>
       </Defs>
     )
   }
@@ -80,6 +100,7 @@ export function useCommonSVGProps(props: Props) {
     size: _size,
     style,
     gradient: gradientDef,
+    radialGradient: radialGradientDef,
     shadow: shadowDef,
     ...rest,
   }

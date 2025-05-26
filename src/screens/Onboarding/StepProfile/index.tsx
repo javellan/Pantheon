@@ -1,14 +1,23 @@
-import React from 'react'
-import {View} from 'react-native'
+import {msg, Trans} from '@lingui/macro'
+import {useLingui} from '@lingui/react'
 import {Image as ExpoImage} from 'expo-image'
 import {
   ImagePickerOptions,
   launchImageLibraryAsync,
   MediaTypeOptions,
 } from 'expo-image-picker'
-import {msg, Trans} from '@lingui/macro'
-import {useLingui} from '@lingui/react'
+import React from 'react'
+import {View} from 'react-native'
 
+import {atoms as a, useBreakpoints, useTheme} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import * as Dialog from '#/components/Dialog'
+import {useSheetWrapper} from '#/components/Dialog/sheet-wrapper'
+import {IconCircle} from '#/components/IconCircle'
+import {ChevronRight_Stroke2_Corner0_Rounded as ChevronRight} from '#/components/icons/Chevron'
+import {CircleInfo_Stroke2_Corner0_Rounded} from '#/components/icons/CircleInfo'
+import {StreamingLive_Stroke2_Corner0_Rounded as StreamingLive} from '#/components/icons/StreamingLive'
+import {Text} from '#/components/Typography'
 import {usePhotoLibraryPermission} from '#/lib/hooks/usePermissions'
 import {compressIfNeeded} from '#/lib/media/manip'
 import {openCropper} from '#/lib/media/picker'
@@ -29,15 +38,6 @@ import {
   PlaceholderCanvas,
   PlaceholderCanvasRef,
 } from '#/screens/Onboarding/StepProfile/PlaceholderCanvas'
-import {atoms as a, useBreakpoints, useTheme} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
-import * as Dialog from '#/components/Dialog'
-import {useSheetWrapper} from '#/components/Dialog/sheet-wrapper'
-import {IconCircle} from '#/components/IconCircle'
-import {ChevronRight_Stroke2_Corner0_Rounded as ChevronRight} from '#/components/icons/Chevron'
-import {CircleInfo_Stroke2_Corner0_Rounded} from '#/components/icons/CircleInfo'
-import {StreamingLive_Stroke2_Corner0_Rounded as StreamingLive} from '#/components/icons/StreamingLive'
-import {Text} from '#/components/Typography'
 import {AvatarColor, avatarColors, Emoji, emojiItems} from './types'
 
 export interface Avatar {
@@ -269,8 +269,8 @@ export function StepProfile() {
         <OnboardingControls.Portal>
           <View style={[a.gap_md, gtMobile && {flexDirection: 'row-reverse'}]}>
             <Button
-              variant="gradient"
-              color="gradient_sky"
+              variant="solid"
+              color="primary"
               size="large"
               label={_(msg`Continue to next step`)}
               onPress={onContinue}>

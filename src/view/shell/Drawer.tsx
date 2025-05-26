@@ -1,11 +1,33 @@
-import React, {ComponentProps} from 'react'
-import {Linking, ScrollView, TouchableOpacity, View} from 'react-native'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {msg, Plural, plural, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {StackActions, useNavigation} from '@react-navigation/native'
+import React, {ComponentProps} from 'react'
+import {ScrollView, TouchableOpacity, View} from 'react-native'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
-import {FEEDBACK_FORM_URL, HELP_DESK_URL} from '#/lib/constants'
+import {atoms as a, tokens, useTheme, web} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import {Divider} from '#/components/Divider'
+import {
+  Bell_Stroke2_Corner0_Rounded as Bell,
+  Bell_Filled_Corner0_Rounded as BellFilled,
+} from '#/components/icons/Bell'
+import {BulletList_Stroke2_Corner0_Rounded as List} from '#/components/icons/BulletList'
+import {Message_Stroke2_Corner0_Rounded as Message} from '#/components/icons/Message'
+import {
+  UserCircle_Stroke2_Corner0_Rounded as UserCircle,
+  UserCircle_Filled_Corner0_Rounded as UserCircleFilled,
+} from '#/components/icons/UserCircle'
+import {InlineLinkText} from '#/components/Link'
+import {HashSolidIcon} from '#/components/tao-icons/HashSolid'
+import {HomeIcon} from '#/components/tao-icons/Home'
+import {HomeSolidIcon} from '#/components/tao-icons/HomeSolid'
+import {MessageIcon} from '#/components/tao-icons/Message'
+import {MessageSolidIcon} from '#/components/tao-icons/MessageSolid'
+import {SearchIcon} from '#/components/tao-icons/Search'
+import {SearchSolidIcon} from '#/components/tao-icons/SearchSolid'
+import {SettingsIcon} from '#/components/tao-icons/Settings'
+import {Text} from '#/components/Typography'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {useNavigationTabState} from '#/lib/hooks/useNavigationTabState'
 import {getTabState, TabState} from '#/lib/routes/helpers'
@@ -22,35 +44,7 @@ import {useSetDrawerOpen} from '#/state/shell'
 import {formatCount} from '#/view/com/util/numeric/format'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {NavSignupCard} from '#/view/shell/NavSignupCard'
-import {atoms as a, tokens, useTheme, web} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
-import {Divider} from '#/components/Divider'
-import {
-  Bell_Filled_Corner0_Rounded as BellFilled,
-  Bell_Stroke2_Corner0_Rounded as Bell,
-} from '#/components/icons/Bell'
-import {BulletList_Stroke2_Corner0_Rounded as List} from '#/components/icons/BulletList'
-import {
-  Hashtag_Filled_Corner0_Rounded as HashtagFilled,
-  Hashtag_Stroke2_Corner0_Rounded as Hashtag,
-} from '#/components/icons/Hashtag'
-import {
-  HomeOpen_Filled_Corner0_Rounded as HomeFilled,
-  HomeOpen_Stoke2_Corner0_Rounded as Home,
-} from '#/components/icons/HomeOpen'
-import {MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled} from '#/components/icons/MagnifyingGlass'
-import {MagnifyingGlass2_Stroke2_Corner0_Rounded as MagnifyingGlass} from '#/components/icons/MagnifyingGlass2'
-import {
-  Message_Stroke2_Corner0_Rounded as Message,
-  Message_Stroke2_Corner0_Rounded_Filled as MessageFilled,
-} from '#/components/icons/Message'
-import {SettingsGear2_Stroke2_Corner0_Rounded as Settings} from '#/components/icons/SettingsGear2'
-import {
-  UserCircle_Filled_Corner0_Rounded as UserCircleFilled,
-  UserCircle_Stroke2_Corner0_Rounded as UserCircle,
-} from '#/components/icons/UserCircle'
-import {InlineLinkText} from '#/components/Link'
-import {Text} from '#/components/Typography'
+import {Hash} from 'lucide-react-native'
 
 const iconWidth = 26
 
@@ -203,18 +197,18 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
     setDrawerOpen(false)
   }, [navigation, setDrawerOpen])
 
-  const onPressFeedback = React.useCallback(() => {
-    Linking.openURL(
-      FEEDBACK_FORM_URL({
-        email: currentAccount?.email,
-        handle: currentAccount?.handle,
-      }),
-    )
-  }, [currentAccount])
+  // const onPressFeedback = React.useCallback(() => {
+  //   Linking.openURL(
+  //     FEEDBACK_FORM_URL({
+  //       email: currentAccount?.email,
+  //       handle: currentAccount?.handle,
+  //     }),
+  //   )
+  // }, [currentAccount])
 
-  const onPressHelp = React.useCallback(() => {
-    Linking.openURL(HELP_DESK_URL)
-  }, [])
+  // const onPressHelp = React.useCallback(() => {
+  //   Linking.openURL(HELP_DESK_URL)
+  // }, [])
 
   // rendering
   // =
@@ -253,12 +247,14 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
             <SearchMenuItem isActive={isAtSearch} onPress={onPressSearch} />
             <HomeMenuItem isActive={isAtHome} onPress={onPressHome} />
             <ChatMenuItem isActive={isAtMessages} onPress={onPressMessages} />
-            <NotificationsMenuItem
+            {/* Hiding for now */}
+            {/* <NotificationsMenuItem
               isActive={isAtNotifications}
               onPress={onPressNotifications}
-            />
+            /> */}
             <FeedsMenuItem isActive={isAtFeeds} onPress={onPressMyFeeds} />
-            <ListsMenuItem onPress={onPressLists} />
+            {/* Hiding for now */}
+            {/* <ListsMenuItem onPress={onPressLists} /> */}
             <ProfileMenuItem
               isActive={isAtMyProfile}
               onPress={onPressProfile}
@@ -279,10 +275,11 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
         </View>
       </ScrollView>
 
-      <DrawerFooter
+      {/* Hiding Bluesky Help and Feedback buttons */}
+      {/* <DrawerFooter
         onPressFeedback={onPressFeedback}
         onPressHelp={onPressHelp}
-      />
+      /> */}
     </View>
   )
 }
@@ -362,9 +359,9 @@ let SearchMenuItem = ({
     <MenuItem
       icon={
         isActive ? (
-          <MagnifyingGlassFilled style={[t.atoms.text]} width={iconWidth} />
+          <SearchSolidIcon style={[t.atoms.text]} width={iconWidth} />
         ) : (
-          <MagnifyingGlass style={[t.atoms.text]} width={iconWidth} />
+          <SearchIcon style={[t.atoms.text]} width={iconWidth} />
         )
       }
       label={_(msg`Search`)}
@@ -388,9 +385,9 @@ let HomeMenuItem = ({
     <MenuItem
       icon={
         isActive ? (
-          <HomeFilled style={[t.atoms.text]} width={iconWidth} />
+          <HomeSolidIcon style={[t.atoms.text]} width={iconWidth} />
         ) : (
-          <Home style={[t.atoms.text]} width={iconWidth} />
+          <HomeIcon style={[t.atoms.text]} width={iconWidth} />
         )
       }
       label={_(msg`Home`)}
@@ -414,12 +411,12 @@ let ChatMenuItem = ({
     <MenuItem
       icon={
         isActive ? (
-          <MessageFilled style={[t.atoms.text]} width={iconWidth} />
+          <MessageSolidIcon style={[t.atoms.text]} width={iconWidth} />
         ) : (
-          <Message style={[t.atoms.text]} width={iconWidth} />
+          <MessageIcon style={[t.atoms.text]} width={iconWidth} />
         )
       }
-      label={_(msg`Chat`)}
+      label={_(msg`Inbox`)}
       bold={isActive}
       onPress={onPress}
     />
@@ -478,9 +475,9 @@ let FeedsMenuItem = ({
     <MenuItem
       icon={
         isActive ? (
-          <HashtagFilled width={iconWidth} style={[t.atoms.text]} />
+          <HashSolidIcon width={iconWidth} style={[t.atoms.text]} />
         ) : (
-          <Hashtag width={iconWidth} style={[t.atoms.text]} />
+          <Hash size={iconWidth} color={t.atoms.text.color} />
         )
       }
       label={_(msg`Feeds`)}
@@ -535,7 +532,7 @@ let SettingsMenuItem = ({onPress}: {onPress: () => void}): React.ReactNode => {
   const t = useTheme()
   return (
     <MenuItem
-      icon={<Settings style={[t.atoms.text]} width={iconWidth} />}
+      icon={<SettingsIcon style={[t.atoms.text]} width={iconWidth} />}
       label={_(msg`Settings`)}
       onPress={onPress}
     />
@@ -625,12 +622,12 @@ function ExtraLinks() {
       <InlineLinkText
         style={[a.text_md]}
         label={_(msg`Terms of Service`)}
-        to="https://bsky.social/about/support/tos">
+        to="https://tao.social/terms-of-service">
         <Trans>Terms of Service</Trans>
       </InlineLinkText>
       <InlineLinkText
         style={[a.text_md]}
-        to="https://bsky.social/about/support/privacy-policy"
+        to="https://tao.social/privacy-policy"
         label={_(msg`Privacy Policy`)}>
         <Trans>Privacy Policy</Trans>
       </InlineLinkText>

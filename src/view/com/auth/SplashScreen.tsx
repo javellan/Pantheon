@@ -1,15 +1,14 @@
-import {View} from 'react-native'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import {View} from 'react-native'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
-import {ErrorBoundary} from '#/view/com/util/ErrorBoundary'
-import {Logo} from '#/view/icons/Logo'
-import {Logotype} from '#/view/icons/Logotype'
 import {atoms as a, useTheme} from '#/alf'
 import {AppLanguageDropdown} from '#/components/AppLanguageDropdown'
 import {Button, ButtonText} from '#/components/Button'
+import {LogoIcon} from '#/components/tao-icons/Logo'
 import {Text} from '#/components/Typography'
+import {ErrorBoundary} from '#/view/com/util/ErrorBoundary'
 import {CenteredView} from '../util/Views'
 
 export const SplashScreen = ({
@@ -28,14 +27,15 @@ export const SplashScreen = ({
     <CenteredView style={[a.h_full, a.flex_1]}>
       <ErrorBoundary>
         <View style={[{flex: 1}, a.justify_center, a.align_center]}>
-          <Logo width={92} fill="sky" />
+          <LogoIcon size="logo2x" radialGradient="logo" />
 
           <View style={[a.pb_sm, a.pt_5xl]}>
-            <Logotype width={161} fill={t.atoms.text.color} />
+            {/* <Logotype width={161} fill={t.atoms.text.color} /> */}
+            <Text style={[a.text_5xl, a.font_heavy]}>TAO Social</Text>
           </View>
 
           <Text style={[a.text_md, a.font_bold, t.atoms.text_contrast_medium]}>
-            <Trans>What's up?</Trans>
+            <Trans>People First</Trans>
           </Text>
         </View>
         <View
