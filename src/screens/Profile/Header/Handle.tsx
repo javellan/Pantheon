@@ -165,10 +165,6 @@ export function ProfileHeaderHandle({
     const rankColor = rankColors[authorRank] || '#666'
     const showPrivate = wants_private && !isUnknown
 
-    if (shouldWaitForData) {
-      return null
-    }
-
     const badgePill = (
       <View
         style={[
