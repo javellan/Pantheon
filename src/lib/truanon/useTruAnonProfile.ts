@@ -66,7 +66,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
       console.log(
         '[TruAnon] Skipping fetch: wants_verified is false or undefined',
       )
-      setData({authorRank: 'Unknown', dataConfigurations: []})
+      setData({})
       setDetails({})
       return
     }
@@ -90,7 +90,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Error:', json)
-        setData({authorRank: 'Unknown', dataConfigurations: []})
+        setData({})
         setDetails({})
         return
       }

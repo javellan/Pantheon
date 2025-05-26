@@ -177,8 +177,8 @@ export function TruAnonVerificationSwitch({
                     Use Verified Identity
                   </Text>
                   <Switch
-                    value={prefs?.wants_verified === 1} // Check for value as 1 for true
-                    onValueChange={v => handleSwitchChange('wants_verified', v)} // Handle switch change
+                    value={prefs?.wants_verified === 1}
+                    onValueChange={v => handleSwitchChange('wants_verified', v)}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -196,9 +196,9 @@ export function TruAnonVerificationSwitch({
                     Display Personal Info
                   </Text>
                   <Switch
-                    value={prefs?.wants_personal === 1} // Check for value as 1 for true
-                    disabled={!prefs?.wants_verified} // Disable if not verified
-                    onValueChange={v => handleSwitchChange('wants_personal', v)} // Handle switch change
+                    value={prefs?.wants_personal === 1}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => handleSwitchChange('wants_personal', v)}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -213,9 +213,9 @@ export function TruAnonVerificationSwitch({
                     Display Social Profiles
                   </Text>
                   <Switch
-                    value={prefs?.wants_social === 1} // Check for value as 1 for true
-                    disabled={!prefs?.wants_verified} // Disable if not verified
-                    onValueChange={v => handleSwitchChange('wants_social', v)} // Handle switch change
+                    value={prefs?.wants_social === 1}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => handleSwitchChange('wants_social', v)}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />
@@ -230,9 +230,9 @@ export function TruAnonVerificationSwitch({
                     Private Profile
                   </Text>
                   <Switch
-                    value={prefs?.wants_private === 1} // Check for value as 1 for true
-                    disabled={!prefs?.wants_verified} // Disable if not verified
-                    onValueChange={v => handleSwitchChange('wants_private', v)} // Handle switch change
+                    value={prefs?.wants_private === 1}
+                    disabled={!prefs?.wants_verified}
+                    onValueChange={v => handleSwitchChange('wants_private', v)}
                     trackColor={{false: '#444', true: '#1d9bf0'}}
                     thumbColor="#fff"
                   />

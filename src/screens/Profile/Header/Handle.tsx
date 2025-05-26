@@ -34,8 +34,6 @@ export function ProfileHeaderHandle({
   const invalidHandle = isInvalidHandle(profile.handle)
   const blockHide = profile.viewer?.blocking || profile.viewer?.blockedBy
 
-  console.log('profile.handle = ', profile.handle)
-
   const cleanPrefs = userPrefs
     ? {
         wants_verified: Number(userPrefs.wants_verified),
@@ -45,24 +43,14 @@ export function ProfileHeaderHandle({
       }
     : undefined
 
-  const wants_verified = !!cleanPrefs?.wants_verified
   const wants_private = !!cleanPrefs?.wants_private
   const wantsPersonal = !!cleanPrefs?.wants_personal
   const wantsSocial = !!cleanPrefs?.wants_social
-  console.log('userPrefs = ', userPrefs)
+
   const dataPointsOfTypeKind = (
     type: string,
     kind?: string,
   ): {value: string; dataPointIconClass: string}[] => {
-    console.log('wants_verified = ', wants_verified)
-    // console.log('truAnonData = ', truAnonData)
-
-    if (!userPrefs || !truAnonData?.dataConfigurations) {
-      console.log('bailing out = ', wants_verified)
-      return
-    }
-    console.log('not bailing out = ', wants_verified)
-
     if (!truAnonData?.dataConfigurations) return []
     return truAnonData.dataConfigurations
       .filter(
@@ -153,16 +141,40 @@ export function ProfileHeaderHandle({
   }
 
   const renderTruAnon = () => {
-    if (!truAnonData) return null
     const rankColors: Record<string, string> = {
       Dangerous: '#e0245e',
       Cautioned: '#ffad1f',
       Credible: '#e0e0e0',
       Reliable: '#17bf63',
       Genuine: '#1d9bf0',
+      Unknown: '#666',
     }
-    const rankColor = rankColors[truAnonData.authorRank] || '#666'
-    const isUnknown = truAnonData.authorRank === 'Unknown'
+
+    const wantsVerify = userPrefs?.wants_verified === 1
+    const hasTruAnon = truAnonData != null
+    const shouldWaitForData = wantsVerify && !hasTruAnon
+
+    // Bail early to avoid showing incorrect rank during load
+    if (shouldWaitForData) return null
+
+    // Determine author rank only when we're sure it's safe
+    const authorRank =
+      wantsVerify && hasTruAnon
+        ? truAnonData.authorRank ?? 'Unknown'
+        : 'Unknown'
+
+    const isUnknown = authorRank === 'Unknown'
+    const rankColor = rankColors[authorRank] || '#666'
+
+    console.log('wantsVerify:', wantsVerify)
+    console.log('hasTruAnon:', hasTruAnon)
+    console.log('shouldWaitForData:', shouldWaitForData)
+
+    if (shouldWaitForData) {
+      console.log('⏳ SKIPPING render: waiting for TruAnon data...')
+      return null
+    }
+    console.log('Computed authorRank:', authorRank)
 
     const badgePill = (
       <View
@@ -171,15 +183,10 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: wants_verified
-              ? wants_private
-                ? '#cfc9bb'
-                : rankColor
-              : rankColor,
+            borderColor: wants_private ? '#cfc9bb' : rankColor,
             marginBottom: 12,
             borderWidth: 1,
-            backgroundColor:
-              wants_verified && wants_private ? '#2c2c33' : '#000',
+            backgroundColor: wants_private ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
@@ -199,20 +206,14 @@ export function ProfileHeaderHandle({
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
           <Text
-            style={[
-              a.text_sm,
-              {color: wants_verified && wants_private ? '#cfc9bb' : '#fff'},
-            ]}>
-            {truAnonData.authorRank}
+            style={[a.text_sm, {color: wants_private ? '#cfc9bb' : '#fff'}]}>
+            {authorRank}
           </Text>
           <Text
-            style={[
-              a.text_xs,
-              {color: wants_verified && wants_private ? '#cfc9bb' : '#ede8df'},
-            ]}>
+            style={[a.text_xs, {color: wants_private ? '#cfc9bb' : '#ede8df'}]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
-              : `${truAnonData.authorRankScore ?? '–'} of 5`}
+              : `${truAnonData?.authorRankScore ?? '–'} of 5`}
           </Text>
         </View>
       </View>
@@ -225,7 +226,7 @@ export function ProfileHeaderHandle({
 
     return (
       <View style={{marginTop: 8, marginBottom: 8}}>
-        {!wants_private && truAnonData?.truAnonUrl && !isUnknown ? (
+        {truAnonData?.truAnonUrl && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
@@ -234,7 +235,7 @@ export function ProfileHeaderHandle({
             {badgePill}
           </TouchableOpacity>
         ) : (
-          <View>{badgePill}</View>
+          badgePill
         )}
 
         {!isUnknown && (
@@ -244,10 +245,7 @@ export function ProfileHeaderHandle({
                 style={[
                   a.text_sm,
                   t.atoms.text_contrast_medium,
-                  {
-                    marginTop: 8,
-                    marginBottom: 8,
-                  },
+                  {marginTop: 8, marginBottom: 8},
                 ]}>
                 {renderLine(locationData, 'location')}
                 {'   '}

@@ -18,6 +18,9 @@ function qualifiesForSpecialBadge(profile: {
   authorRank: string
   dataConfigurations: any[]
 }) {
+  if (!profile.dataConfigurations) {
+    return null
+  }
   const disallowed = ['Dangerous', 'Cautioned']
   if (disallowed.includes(profile.authorRank)) return false
 
@@ -41,8 +44,11 @@ export function TruAnonBadgeIcon({
   const [isModalVisible, setModalVisible] = useState(false)
   const {colors} = useTheme()
 
-  if (!profile || profile.authorRank === 'Unknown') return null
-  const iconColor = color || rankColors[profile.authorRank] || '#999'
+  if (!profile || Object.keys(profile).length === 0) return null
+  // console.log('profile == ', profile)
+
+  const authorRank = profile.authorRank ?? 'Unknown'
+  const iconColor = color || rankColors[authorRank] || '#999'
   const useRibbon = qualifiesForSpecialBadge(profile)
   const ribbonText = useRibbon ? 'TikTok Verified' : 'No Ribbon'
 
