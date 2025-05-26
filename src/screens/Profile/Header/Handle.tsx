@@ -154,10 +154,8 @@ export function ProfileHeaderHandle({
     const hasTruAnon = truAnonData != null
     const shouldWaitForData = wantsVerify && !hasTruAnon
 
-    // Bail early to avoid showing incorrect rank during load
     if (shouldWaitForData) return null
 
-    // Determine author rank only when we're sure it's safe
     const authorRank =
       wantsVerify && hasTruAnon
         ? truAnonData.authorRank ?? 'Unknown'
@@ -167,15 +165,9 @@ export function ProfileHeaderHandle({
     const rankColor = rankColors[authorRank] || '#666'
     const showPrivate = wants_private && !isUnknown
 
-    console.log('wantsVerify:', wantsVerify)
-    console.log('hasTruAnon:', hasTruAnon)
-    console.log('shouldWaitForData:', shouldWaitForData)
-
     if (shouldWaitForData) {
-      console.log('⏳ SKIPPING render: waiting for TruAnon data...')
       return null
     }
-    console.log('Computed authorRank:', authorRank)
 
     const badgePill = (
       <View
