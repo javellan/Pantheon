@@ -45,6 +45,7 @@ export function TruAnonBadgeIcon({
   const {colors} = useTheme()
 
   if (!profile || Object.keys(profile).length === 0) return null
+  if (!prefs || !prefs.wants_verified) return null
   // console.log('profile == ', profile)
 
   const authorRank = profile.authorRank ?? 'Unknown'
