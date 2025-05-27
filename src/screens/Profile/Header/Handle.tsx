@@ -155,7 +155,7 @@ export function ProfileHeaderHandle({
     const shouldWaitForData = wantsVerify && !hasTruAnon
 
     if (userPrefs === undefined) return null
-    console.log('userPrefs == ', userPrefs)
+    // console.log('userPrefs == ', userPrefs)
     if (shouldWaitForData) return null
 
     let authorRank = null

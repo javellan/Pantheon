@@ -205,7 +205,7 @@ function DialogInner({
         newUserAvatar,
         newUserBanner,
       })
-      console.log('prefs = ', prefs)
+      // console.log('prefs = ', prefs)
       onUpdate?.(prefs)
       control.close()
 

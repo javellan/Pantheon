@@ -64,15 +64,16 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   const fetchProfile = useCallback(async () => {
     if (!shouldFetchProfile) {
-      console.log(
-        '[TruAnon] Skipping fetch: wants_verified is false or undefined',
-      )
+      console
+        .log
+        // '[TruAnon] Skipping fetch: wants_verified is false or undefined',
+        ()
       setData({})
       setDetails({})
       return
     }
 
-    console.log('[TruAnon] Fetching profile data for handle:', handle)
+    // console.log('[TruAnon] Fetching profile API data for handle:', handle)
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
@@ -162,7 +163,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   useEffect(() => {
     if (handle) {
-      console.log('[TruAnon] Triggering fetchProfile()')
+      // console.log('[TruAnon] Triggering fetchProfile()')
       fetchProfile()
     }
   }, [handle, shouldFetchProfile, fetchProfile])
@@ -224,7 +225,7 @@ export async function getVerifyLink(handle: string): Promise<{
       console.warn('[TruAnon] No token received for unknown profile')
     }
   } catch (err) {
-    console.error('[TruAnon] Error fetching verification info:', err)
+    console.error('[TruAnon] Error verification info:', err)
   }
 
   return {}

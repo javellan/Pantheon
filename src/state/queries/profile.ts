@@ -137,16 +137,12 @@ export function useTruanonPrefs(did: string) {
           rkey: 'self',
         })
 
-        // console.log('[TruAnon] getRecord result for', did, ':', res)
-
         if (!res?.data?.value) {
-          console.log('[TruAnon] No truanon prefs found for DID:', did)
           return null
         }
 
         return res.data.value as Record<string, any>
       } catch (err) {
-        console.log('[TruAnon] Error from truanon prefs for DID:', did)
         return null
       }
     },
@@ -160,8 +156,6 @@ export function useTruanonPrefsMutation() {
 
   return useMutation<void, Error, {did: string; prefs: Record<string, any>}>({
     mutationFn: async ({did, prefs}) => {
-      // console.log('[TruAnon] Writing prefs:', prefs)
-
       await agent.com.atproto.repo.putRecord({
         repo: did,
         collection: 'app.truanon.prefs',

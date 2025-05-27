@@ -98,7 +98,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       self.didImpact = false
 
       if sv.contentOffset.y <= -130 {
-        //self.rctRefreshCtrl?.forwarderBeginRefreshing()
+        self.rctRefreshCtrl?.forwarderBeginRefreshing()
         return
       }
 
