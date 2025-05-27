@@ -1,22 +1,22 @@
-import {useMemo} from 'react'
-import {Platform} from 'react-native'
-import {setStringAsync} from 'expo-clipboard'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {NativeStackScreenProps} from '@react-navigation/native-stack'
+import {setStringAsync} from 'expo-clipboard'
+import {useMemo} from 'react'
+import {Platform} from 'react-native'
 import {Statsig} from 'statsig-react-native-expo'
 
-import {appVersion, BUNDLE_DATE, bundleInfo} from '#/lib/app-info'
-import {STATUS_PAGE_URL} from '#/lib/constants'
-import {CommonNavigatorParams} from '#/lib/routes/types'
-import {useDevModeEnabled} from '#/state/preferences/dev-mode'
-import * as Toast from '#/view/com/util/Toast'
-import * as SettingsList from '#/screens/Settings/components/SettingsList'
 import {CodeLines_Stroke2_Corner2_Rounded as CodeLinesIcon} from '#/components/icons/CodeLines'
 import {Globe_Stroke2_Corner0_Rounded as GlobeIcon} from '#/components/icons/Globe'
 import {Newspaper_Stroke2_Corner2_Rounded as NewspaperIcon} from '#/components/icons/Newspaper'
 import {Wrench_Stroke2_Corner2_Rounded as WrenchIcon} from '#/components/icons/Wrench'
 import * as Layout from '#/components/Layout'
+import {appVersion, BUNDLE_DATE, bundleInfo} from '#/lib/app-info'
+import {STATUS_PAGE_URL} from '#/lib/constants'
+import {CommonNavigatorParams} from '#/lib/routes/types'
+import * as SettingsList from '#/screens/Settings/components/SettingsList'
+import {useDevModeEnabled} from '#/state/preferences/dev-mode'
+import * as Toast from '#/view/com/util/Toast'
 import {OTAInfo} from './components/OTAInfo'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AboutSettings'>
@@ -39,7 +39,7 @@ export function AboutSettingsScreen({}: Props) {
       <Layout.Content>
         <SettingsList.Container>
           <SettingsList.LinkItem
-            to="https://bsky.social/about/support/tos"
+            to="https://tao.social/terms-of-service"
             label={_(msg`Terms of Service`)}>
             <SettingsList.ItemIcon icon={NewspaperIcon} />
             <SettingsList.ItemText>
@@ -47,7 +47,7 @@ export function AboutSettingsScreen({}: Props) {
             </SettingsList.ItemText>
           </SettingsList.LinkItem>
           <SettingsList.LinkItem
-            to="https://bsky.social/about/support/privacy-policy"
+            to="https://tao.social/privacy-policy"
             label={_(msg`Privacy Policy`)}>
             <SettingsList.ItemIcon icon={NewspaperIcon} />
             <SettingsList.ItemText>

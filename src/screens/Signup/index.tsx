@@ -1,15 +1,15 @@
-import React from 'react'
-import {View} from 'react-native'
-import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated'
 import {AppBskyGraphStarterpack} from '@atproto/api'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import React from 'react'
+import {View} from 'react-native'
+import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated'
 
-import {FEEDBACK_FORM_URL} from '#/lib/constants'
-import {useServiceQuery} from '#/state/queries/service'
-import {useStarterPackQuery} from '#/state/queries/starter-packs'
-import {useActiveStarterPack} from '#/state/shell/starter-pack'
-import {LoggedOutLayout} from '#/view/com/util/layouts/LoggedOutLayout'
+import {atoms as a, useBreakpoints, useTheme} from '#/alf'
+import {AppLanguageDropdown} from '#/components/AppLanguageDropdown'
+import {Divider} from '#/components/Divider'
+import {LinearGradientBackground} from '#/components/LinearGradientBackground'
+import {Text} from '#/components/Typography'
 import {
   initialState,
   reducer,
@@ -20,13 +20,11 @@ import {
 import {StepCaptcha} from '#/screens/Signup/StepCaptcha'
 import {StepHandle} from '#/screens/Signup/StepHandle'
 import {StepInfo} from '#/screens/Signup/StepInfo'
-import {atoms as a, useBreakpoints, useTheme} from '#/alf'
-import {AppLanguageDropdown} from '#/components/AppLanguageDropdown'
-import {Divider} from '#/components/Divider'
-import {LinearGradientBackground} from '#/components/LinearGradientBackground'
-import {InlineLinkText} from '#/components/Link'
-import {Text} from '#/components/Typography'
+import {useServiceQuery} from '#/state/queries/service'
+import {useStarterPackQuery} from '#/state/queries/starter-packs'
+import {useActiveStarterPack} from '#/state/shell/starter-pack'
 import * as bsky from '#/types/bsky'
+import {LoggedOutLayout} from '#/view/com/util/layouts/LoggedOutLayout'
 
 export function Signup({onPressBack}: {onPressBack: () => void}) {
   const {_} = useLingui()
@@ -73,6 +71,10 @@ export function Signup({onPressBack}: {onPressBack: () => void}) {
         ),
       })
     } else if (serviceInfo) {
+      if (serviceInfo.links) {
+        serviceInfo.links.termsOfService = 'https://tao.social/terms-of-service'
+        serviceInfo.links.privacyPolicy = 'https://tao.social/privacy-policy'
+      }
       dispatch({type: 'setServiceDescription', value: serviceInfo})
       dispatch({type: 'setError', value: ''})
     }
@@ -172,7 +174,8 @@ export function Signup({onPressBack}: {onPressBack: () => void}) {
             <View
               style={[a.w_full, a.py_lg, a.flex_row, a.gap_lg, a.align_center]}>
               <AppLanguageDropdown />
-              <Text
+              {/* Hiding Bluesky Support Link */}
+              {/* <Text
                 style={[t.atoms.text_contrast_medium, !gtMobile && a.text_md]}>
                 <Trans>Having trouble?</Trans>{' '}
                 <InlineLinkText
@@ -181,7 +184,7 @@ export function Signup({onPressBack}: {onPressBack: () => void}) {
                   style={[!gtMobile && a.text_md]}>
                   <Trans>Contact support</Trans>
                 </InlineLinkText>
-              </Text>
+              </Text> */}
             </View>
           </View>
         </View>

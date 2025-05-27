@@ -1,14 +1,22 @@
-import React from 'react'
-import {View} from 'react-native'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useQuery} from '@tanstack/react-query'
+import React from 'react'
+import {View} from 'react-native'
 
+import {atoms as a, useBreakpoints, useTheme} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import * as Toggle from '#/components/forms/Toggle'
+import {IconCircle} from '#/components/IconCircle'
+import {ArrowRotateCounterClockwise_Stroke2_Corner0_Rounded as ArrowRotateCounterClockwise} from '#/components/icons/ArrowRotateCounterClockwise'
+import {ChevronRight_Stroke2_Corner0_Rounded as ChevronRight} from '#/components/icons/Chevron'
+import {EmojiSad_Stroke2_Corner0_Rounded as EmojiSad} from '#/components/icons/Emoji'
+import {Hashtag_Stroke2_Corner0_Rounded as Hashtag} from '#/components/icons/Hashtag'
+import {Loader} from '#/components/Loader'
+import {Text} from '#/components/Typography'
 import {logEvent} from '#/lib/statsig/statsig'
 import {capitalize} from '#/lib/strings/capitalize'
 import {logger} from '#/logger'
-import {useAgent} from '#/state/session'
-import {useOnboardingDispatch} from '#/state/shell'
 import {
   DescriptionText,
   OnboardingControls,
@@ -20,16 +28,8 @@ import {
   useInterestsDisplayNames,
 } from '#/screens/Onboarding/state'
 import {InterestButton} from '#/screens/Onboarding/StepInterests/InterestButton'
-import {atoms as a, useBreakpoints, useTheme} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
-import * as Toggle from '#/components/forms/Toggle'
-import {IconCircle} from '#/components/IconCircle'
-import {ArrowRotateCounterClockwise_Stroke2_Corner0_Rounded as ArrowRotateCounterClockwise} from '#/components/icons/ArrowRotateCounterClockwise'
-import {ChevronRight_Stroke2_Corner0_Rounded as ChevronRight} from '#/components/icons/Chevron'
-import {EmojiSad_Stroke2_Corner0_Rounded as EmojiSad} from '#/components/icons/Emoji'
-import {Hashtag_Stroke2_Corner0_Rounded as Hashtag} from '#/components/icons/Hashtag'
-import {Loader} from '#/components/Loader'
-import {Text} from '#/components/Typography'
+import {useAgent} from '#/state/session'
+import {useOnboardingDispatch} from '#/state/shell'
 
 export function StepInterests() {
   const {_} = useLingui()
@@ -235,8 +235,8 @@ export function StepInterests() {
         ) : (
           <Button
             disabled={saving || !data}
-            variant="gradient"
-            color="gradient_sky"
+            variant="solid"
+            color="primary"
             size="large"
             label={_(msg`Continue to next step`)}
             onPress={saveInterests}>

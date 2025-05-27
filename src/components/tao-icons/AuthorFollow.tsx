@@ -13,7 +13,7 @@ export const AuthorFollowIcon = React.forwardRef<Svg, Props>(function LogoImpl(
     <Svg fill="none" ref={ref} viewBox="0 0 32 32" width={size} height={size}>
       {shadow}
       <G filter={shadow ? 'url(#DropShadow)' : undefined}>
-        <Circle cx="16" cy="15" r="12" fill="#1083FE" />
+        <Circle cx="16" cy="15" r="12" fill="#6e5ce5" />
       </G>
       <Path
         d="M11.3334 15H20.6667M16 10.3333V19.6667"

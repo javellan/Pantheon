@@ -1,5 +1,3 @@
-import React from 'react'
-import {View} from 'react-native'
 import {
   AppBskyActorProfile,
   AppBskyGraphDefs,
@@ -11,7 +9,18 @@ import {TID} from '@atproto/common-web'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useQueryClient} from '@tanstack/react-query'
+import React from 'react'
+import {View} from 'react-native'
 
+import {atoms as a, useTheme} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import {IconCircle} from '#/components/IconCircle'
+import {Check_Stroke2_Corner0_Rounded as Check} from '#/components/icons/Check'
+import {Growth_Stroke2_Corner0_Rounded as Growth} from '#/components/icons/Growth'
+import {News2_Stroke2_Corner0_Rounded as News} from '#/components/icons/News2'
+import {Trending2_Stroke2_Corner2_Rounded as Trending} from '#/components/icons/Trending2'
+import {Loader} from '#/components/Loader'
+import {Text} from '#/components/Typography'
 import {uploadBlob} from '#/lib/api'
 import {
   BSKY_APP_ACCOUNT_DID,
@@ -22,6 +31,13 @@ import {
 import {useRequestNotificationsPermission} from '#/lib/notifications/notifications'
 import {logEvent, useGate} from '#/lib/statsig/statsig'
 import {logger} from '#/logger'
+import {
+  DescriptionText,
+  OnboardingControls,
+  TitleText,
+} from '#/screens/Onboarding/Layout'
+import {Context} from '#/screens/Onboarding/state'
+import {bulkWriteFollows} from '#/screens/Onboarding/util'
 import {useSetHasCheckedForStarterPack} from '#/state/preferences/used-starter-packs'
 import {getAllListMembers} from '#/state/queries/list-members'
 import {preferencesQueryKey} from '#/state/queries/preferences'
@@ -33,22 +49,6 @@ import {
   useActiveStarterPack,
   useSetActiveStarterPack,
 } from '#/state/shell/starter-pack'
-import {
-  DescriptionText,
-  OnboardingControls,
-  TitleText,
-} from '#/screens/Onboarding/Layout'
-import {Context} from '#/screens/Onboarding/state'
-import {bulkWriteFollows} from '#/screens/Onboarding/util'
-import {atoms as a, useTheme} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
-import {IconCircle} from '#/components/IconCircle'
-import {Check_Stroke2_Corner0_Rounded as Check} from '#/components/icons/Check'
-import {Growth_Stroke2_Corner0_Rounded as Growth} from '#/components/icons/Growth'
-import {News2_Stroke2_Corner0_Rounded as News} from '#/components/icons/News2'
-import {Trending2_Stroke2_Corner2_Rounded as Trending} from '#/components/icons/Trending2'
-import {Loader} from '#/components/Loader'
-import {Text} from '#/components/Typography'
 import * as bsky from '#/types/bsky'
 
 export function StepFinished() {
@@ -305,8 +305,8 @@ export function StepFinished() {
         <Button
           disabled={saving}
           key={state.activeStep} // remove focus state on nav
-          variant="gradient"
-          color="gradient_sky"
+          variant="solid"
+          color="primary"
           size="large"
           label={_(msg`Complete onboarding and start using your account`)}
           onPress={finishOnboarding}>

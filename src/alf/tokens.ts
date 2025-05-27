@@ -122,3 +122,12 @@ export const gradients = {
     hover_value: '#755B62',
   },
 } as const
+
+export const radialGradients = {
+  logo: {
+    values: [
+      [0.4, '#0cf9a2'],
+      [1, '#6e5ce5'],
+    ],
+  },
+} as const

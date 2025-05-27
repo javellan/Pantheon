@@ -1,3 +1,5 @@
+import {Image} from 'expo-image'
+import * as SplashScreen from 'expo-splash-screen'
 import React, {useCallback, useEffect} from 'react'
 import {
   AccessibilityInfo,
@@ -16,14 +18,13 @@ import Animated, {
 } from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import Svg, {Path, SvgProps} from 'react-native-svg'
-import {Image} from 'expo-image'
-import * as SplashScreen from 'expo-splash-screen'
 
 import {Logotype} from '#/view/icons/Logotype'
 // @ts-ignore
-import splashImagePointer from '../assets/splash.png'
+import splashImagePointer from '../assets/_tao/bg_splash.png'
 // @ts-ignore
-import darkSplashImagePointer from '../assets/splash-dark.png'
+import darkSplashImagePointer from '../assets/_tao/bg_splash.png'
+import {LogoIcon} from './components/tao-icons/Logo'
 const splashImageUri = RNImage.resolveAssetSource(splashImagePointer).uri
 const darkSplashImageUri = RNImage.resolveAssetSource(
   darkSplashImagePointer,
@@ -234,7 +235,7 @@ export function Splash(props: React.PropsWithChildren<Props>) {
                 },
               ]}>
               <Animated.View style={[logoAnimations]}>
-                <Logo fill={logoBg} />
+                <LogoIcon fill={logoBg} size="feckinhuge" />
               </Animated.View>
             </Animated.View>
           )}

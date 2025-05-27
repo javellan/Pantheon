@@ -1,6 +1,6 @@
 const pkg = require('./package.json')
 
-const DARK_SPLASH_ANDROID_BACKGROUND = '#0f141b'
+const DARK_SPLASH_ANDROID_BACKGROUND = '#0e0e1e'
 
 module.exports = function (config) {
   /**
@@ -20,10 +20,10 @@ module.exports = function (config) {
   const IS_DEV = !IS_TESTFLIGHT || !IS_PRODUCTION
 
   const ASSOCIATED_DOMAINS = [
-    'applinks:bsky.app',
-    'applinks:staging.bsky.app',
-    'appclips:bsky.app',
-    'appclips:go.bsky.app', // Allows App Clip to work when scanning QR codes
+    // 'applinks:bsky.app',
+    // 'applinks:staging.bsky.app',
+    // 'appclips:bsky.app',
+    // 'appclips:go.bsky.app', // Allows App Clip to work when scanning QR codes
     // When testing local services, enter an ngrok (et al) domain here. It must use a standard HTTP/HTTPS port.
     ...(IS_DEV || IS_TESTFLIGHT ? [] : []),
   ]
@@ -43,19 +43,19 @@ module.exports = function (config) {
   return {
     expo: {
       version: VERSION,
-      name: 'Bluesky',
-      slug: 'bluesky',
-      scheme: 'bluesky',
-      owner: 'blueskysocial',
+      name: 'TAO Social',
+      slug: 'tao-social',
+      scheme: 'tao-social',
+      owner: 'tao-llc',
       runtimeVersion: {
         policy: 'appVersion',
       },
-      icon: './assets/app-icons/ios_icon_default_light.png',
+      icon: './assets/_tao/logo.png',
       userInterfaceStyle: 'automatic',
-      primaryColor: '#1083fe',
+      primaryColor: '#6e5ce5',
       ios: {
         supportsTablet: false,
-        bundleIdentifier: 'xyz.blueskyweb.app',
+        bundleIdentifier: 'com.taollc.taosocial',
         config: {
           usesNonExemptEncryption: false,
         },
@@ -69,7 +69,7 @@ module.exports = function (config) {
             'Used to save images to your library.',
           NSPhotoLibraryUsageDescription:
             'Used for profile pictures, posts, and other kinds of content',
-          CFBundleSpokenName: 'Blue Sky',
+          CFBundleSpokenName: 'TAO Social',
           CFBundleLocalizations: [
             'en',
             'an',
@@ -115,7 +115,7 @@ module.exports = function (config) {
         entitlements: {
           'com.apple.developer.kernel.increased-memory-limit': true,
           'com.apple.developer.kernel.extended-virtual-addressing': true,
-          'com.apple.security.application-groups': 'group.app.bsky',
+          // 'com.apple.security.application-groups': 'group.app.bsky',
         },
         privacyManifests: {
           NSPrivacyAccessedAPITypes: [
@@ -153,50 +153,50 @@ module.exports = function (config) {
       android: {
         icon: './assets/app-icons/android_icon_default_light.png',
         adaptiveIcon: {
-          foregroundImage: './assets/icon-android-foreground.png',
-          monochromeImage: './assets/icon-android-foreground.png',
-          backgroundImage: './assets/icon-android-background.png',
+          foregroundImage: './assets/_tao/logo_white.png',
+          monochromeImage: './assets/_tao/logo_white.png',
+          backgroundImage: './assets/_tao/bg_square.png',
           backgroundColor: '#1185FE',
         },
         googleServicesFile: './google-services.json',
-        package: 'xyz.blueskyweb.app',
-        intentFilters: [
-          {
-            action: 'VIEW',
-            autoVerify: true,
-            data: [
-              {
-                scheme: 'https',
-                host: 'bsky.app',
-              },
-              IS_DEV && {
-                scheme: 'http',
-                host: 'localhost:19006',
-              },
-            ],
-            category: ['BROWSABLE', 'DEFAULT'],
-          },
-        ],
+        package: 'com.taollc.taosocial',
+        // intentFilters: [
+        //   {
+        //     action: 'VIEW',
+        //     autoVerify: true,
+        //     data: [
+        //       {
+        //         scheme: 'https',
+        //         host: 'bsky.app',
+        //       },
+        //       IS_DEV && {
+        //         scheme: 'http',
+        //         host: 'localhost:19006',
+        //       },
+        //     ],
+        //     category: ['BROWSABLE', 'DEFAULT'],
+        //   },
+        // ],
       },
       web: {
-        favicon: './assets/favicon.png',
+        favicon: './assets/_tao/favicon.ico',
       },
-      updates: {
-        url: 'https://updates.bsky.app/manifest',
-        enabled: UPDATES_ENABLED,
-        fallbackToCacheTimeout: 30000,
-        codeSigningCertificate: UPDATES_ENABLED
-          ? './code-signing/certificate.pem'
-          : undefined,
-        codeSigningMetadata: UPDATES_ENABLED
-          ? {
-              keyid: 'main',
-              alg: 'rsa-v1_5-sha256',
-            }
-          : undefined,
-        checkAutomatically: 'NEVER',
-        channel: UPDATES_CHANNEL,
-      },
+      // updates: {
+      //   url: 'https://updates.bsky.app/manifest',
+      //   enabled: UPDATES_ENABLED,
+      //   fallbackToCacheTimeout: 30000,
+      //   codeSigningCertificate: UPDATES_ENABLED
+      //     ? './code-signing/certificate.pem'
+      //     : undefined,
+      //   codeSigningMetadata: UPDATES_ENABLED
+      //     ? {
+      //         keyid: 'main',
+      //         alg: 'rsa-v1_5-sha256',
+      //       }
+      //     : undefined,
+      //   checkAutomatically: 'NEVER',
+      //   channel: UPDATES_CHANNEL,
+      // },
       plugins: [
         [
           'expo-av',
@@ -215,15 +215,15 @@ module.exports = function (config) {
         ],
         'expo-video',
         'expo-localization',
-        USE_SENTRY && [
-          '@sentry/react-native/expo',
-          {
-            organization: 'blueskyweb',
-            project: 'react-native',
-            release: VERSION,
-            dist: SENTRY_DIST,
-          },
-        ],
+        // USE_SENTRY && [
+        //   '@sentry/react-native/expo',
+        //   {
+        //     organization: 'blueskyweb',
+        //     project: 'react-native',
+        //     release: VERSION,
+        //     dist: SENTRY_DIST,
+        //   },
+        // ],
         [
           'expo-build-properties',
           {
@@ -243,8 +243,8 @@ module.exports = function (config) {
         [
           'expo-notifications',
           {
-            icon: './assets/icon-android-notification.png',
-            color: '#1185fe',
+            icon: './assets/_tao/logo_white.png',
+            color: '#6e5ce5',
             sounds: PLATFORM === 'ios' ? ['assets/dm.aiff'] : ['assets/dm.mp3'],
           },
         ],
@@ -255,7 +255,7 @@ module.exports = function (config) {
             networkInstrumentation: true,
           },
         ],
-        './plugins/starterPackAppClipExtension/withStarterPackAppClip.js',
+        // './plugins/starterPackAppClipExtension/withStarterPackAppClip.js',
         './plugins/withGradleJVMHeapSizeIncrease.js',
         './plugins/withAndroidManifestPlugin.js',
         './plugins/withAndroidManifestFCMIconPlugin.js',
@@ -287,23 +287,23 @@ module.exports = function (config) {
           {
             ios: {
               enableFullScreenImage_legacy: true,
-              backgroundColor: '#ffffff',
-              image: './assets/splash.png',
+              backgroundColor: '#0e0e1e',
+              image: './assets/_tao/bg_splash.png',
               resizeMode: 'cover',
               dark: {
                 enableFullScreenImage_legacy: true,
-                backgroundColor: '#001429',
-                image: './assets/splash-dark.png',
+                backgroundColor: '#0e0e1e',
+                image: './assets/_tao/bg_splash.png',
                 resizeMode: 'cover',
               },
             },
             android: {
-              backgroundColor: '#0c7cff',
-              image: './assets/splash-android-icon.png',
+              backgroundColor: '#0e0e1e',
+              image: './assets/_tao/logo_nobg.png',
               imageWidth: 150,
               dark: {
-                backgroundColor: '#0c2a49',
-                image: './assets/splash-android-icon-dark.png',
+                backgroundColor: '#0e0e1e',
+                image: './assets/_tao/logo_nobg.png',
                 imageWidth: 150,
               },
             },
@@ -396,30 +396,30 @@ module.exports = function (config) {
           build: {
             experimental: {
               ios: {
-                appExtensions: [
-                  {
-                    targetName: 'Share-with-Bluesky',
-                    bundleIdentifier: 'xyz.blueskyweb.app.Share-with-Bluesky',
-                    entitlements: {
-                      'com.apple.security.application-groups': [
-                        'group.app.bsky',
-                      ],
-                    },
-                  },
-                  {
-                    targetName: 'BlueskyNSE',
-                    bundleIdentifier: 'xyz.blueskyweb.app.BlueskyNSE',
-                    entitlements: {
-                      'com.apple.security.application-groups': [
-                        'group.app.bsky',
-                      ],
-                    },
-                  },
-                  {
-                    targetName: 'BlueskyClip',
-                    bundleIdentifier: 'xyz.blueskyweb.app.AppClip',
-                  },
-                ],
+                // appExtensions: [
+                //   {
+                //     targetName: 'Share-with-Bluesky',
+                //     bundleIdentifier: 'xyz.blueskyweb.app.Share-with-Bluesky',
+                //     entitlements: {
+                //       'com.apple.security.application-groups': [
+                //         'group.app.bsky',
+                //       ],
+                //     },
+                //   },
+                //   {
+                //     targetName: 'BlueskyNSE',
+                //     bundleIdentifier: 'xyz.blueskyweb.app.BlueskyNSE',
+                //     entitlements: {
+                //       'com.apple.security.application-groups': [
+                //         'group.app.bsky',
+                //       ],
+                //     },
+                //   },
+                //   {
+                //     targetName: 'BlueskyClip',
+                //     bundleIdentifier: 'xyz.blueskyweb.app.AppClip',
+                //   },
+                // ],
               },
             },
           },
@@ -427,20 +427,20 @@ module.exports = function (config) {
         },
       },
       hooks: {
-        postPublish: [
-          /*
-           * @see https://docs.expo.dev/guides/using-sentry/#app-configuration
-           */
-          {
-            file: './postHooks/uploadSentrySourcemapsPostHook',
-            config: {
-              organization: 'blueskyweb',
-              project: 'react-native',
-              release: VERSION,
-              dist: SENTRY_DIST,
-            },
-          },
-        ],
+        // postPublish: [
+        //   /*
+        //    * @see https://docs.expo.dev/guides/using-sentry/#app-configuration
+        //    */
+        //   {
+        //     file: './postHooks/uploadSentrySourcemapsPostHook',
+        //     config: {
+        //       organization: 'blueskyweb',
+        //       project: 'react-native',
+        //       release: VERSION,
+        //       dist: SENTRY_DIST,
+        //     },
+        //   },
+        // ],
       },
     },
   }

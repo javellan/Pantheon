@@ -1,18 +1,18 @@
-import React from 'react'
-import {View} from 'react-native'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
+import React from 'react'
+import {View} from 'react-native'
 
-import {isNative} from '#/platform/detection'
-import {useLoggedOutViewControls} from '#/state/shell/logged-out'
-import {useCloseAllActiveElements} from '#/state/util'
-import {Logo} from '#/view/icons/Logo'
-import {Logotype} from '#/view/icons/Logotype'
 import {atoms as a, useBreakpoints, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import * as Dialog from '#/components/Dialog'
 import {useGlobalDialogsControlContext} from '#/components/dialogs/Context'
 import {Text} from '#/components/Typography'
+import {isNative} from '#/platform/detection'
+import {useLoggedOutViewControls} from '#/state/shell/logged-out'
+import {useCloseAllActiveElements} from '#/state/util'
+import {Logotype} from '#/view/icons/Logotype'
+import {LogoIcon} from '../tao-icons/Logo'
 
 export function SigninDialog() {
   const {signinDialogControl: control} = useGlobalDialogsControlContext()
@@ -54,9 +54,11 @@ function SigninDialogInner({}: {control: Dialog.DialogOuterProps['control']}) {
             a.gap_sm,
             a.pb_lg,
           ]}>
-          <Logo width={36} />
+          <LogoIcon radialGradient="logo" size="feckinhuge" width={36} />
           <View style={{paddingTop: 6}}>
-            <Logotype width={120} fill={t.atoms.text.color} />
+            {Date.now() < 0 && (
+              <Logotype width={120} fill={t.atoms.text.color} />
+            )}
           </View>
         </View>
 
