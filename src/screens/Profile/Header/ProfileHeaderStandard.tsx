@@ -73,7 +73,7 @@ let ProfileHeaderStandard = ({
   const {data: loadedPrefs} = useTruanonPrefs(profile.did)
 
   useEffect(() => {
-    if (loadedPrefs) {
+    if (loadedPrefs !== undefined) {
       setCurrentPrefs(loadedPrefs)
     }
   }, [loadedPrefs])

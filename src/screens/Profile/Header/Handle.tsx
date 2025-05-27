@@ -154,12 +154,23 @@ export function ProfileHeaderHandle({
     const hasTruAnon = truAnonData != null
     const shouldWaitForData = wantsVerify && !hasTruAnon
 
+    if (userPrefs === undefined) return null
+    console.log('userPrefs == ', userPrefs)
     if (shouldWaitForData) return null
 
-    const authorRank =
-      wantsVerify && hasTruAnon
-        ? truAnonData.authorRank ?? 'Unknown'
-        : 'Unknown'
+    let authorRank = null
+
+    if (wantsVerify) {
+      if (truAnonData?.authorRank !== undefined) {
+        authorRank = truAnonData.authorRank
+      } else {
+        // still loading — bail before render
+        return null
+      }
+    } else {
+      // not verifying — treat as implicitly "Unknown" for now
+      authorRank = 'Unknown'
+    }
 
     const isUnknown = authorRank === 'Unknown'
     const rankColor = rankColors[authorRank] || '#666'
