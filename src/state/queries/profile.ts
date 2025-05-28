@@ -138,11 +138,17 @@ export function getTruAnonBadgeColor(
   return truAnonRankColors[rank] ?? '#999'
 }
 
+export type TruAnonBadge = {
+  rank: 'Dangerous' | 'Cautioned' | 'Credible' | 'Reliable' | 'Genuine'
+  style: 'Checkmark' | 'Ribbon'
+}
+
 const LABEL_COLLECTION = 'app.truanon.label'
 
-export function useTruAnonBadgeRank(did) {
+export function useTruAnonBadgeRank(did: string) {
   const agent = useAgent()
-  return useQuery({
+
+  return useQuery<TruAnonBadge | null>({
     queryKey: ['truanonBadgeRank', did],
     queryFn: async () => {
       if (!did) return null
@@ -152,9 +158,18 @@ export function useTruAnonBadgeRank(did) {
           collection: LABEL_COLLECTION,
           rkey: 'self',
         })
-        console.log('get rank from label == ', res?.data?.value?.rank)
-        return res?.data?.value?.rank || null
-      } catch (err) {
+
+        const record = res?.data?.value
+        if (!record || typeof record !== 'object') return null
+
+        const rank = record.rank
+        const style = record.style
+
+        if (rank && typeof rank === 'string') {
+          return {rank, style}
+        }
+        return null
+      } catch {
         return null
       }
     },
@@ -164,23 +179,24 @@ export function useTruAnonBadgeRank(did) {
 
 export function useTruAnonBadgeRankMutation() {
   const agent = useAgent()
-  return useMutation({
-    mutationFn: async ({did, rank}) => {
-      // Create or update the record
+
+  return useMutation<void, Error, {did: string; badge: TruAnonBadge | null}>({
+    mutationFn: async ({did, badge}) => {
+      if (!did) return
+      const record = badge ?? {} // null clears it
+
       await agent.com.atproto.repo.putRecord({
         repo: did,
         collection: LABEL_COLLECTION,
         rkey: 'self',
-        record: {rank},
+        record,
       })
-      console.log('set rank from label == ', rank)
     },
   })
 }
 
 export function useTruanonPrefs(did: string) {
   const agent = useAgent()
-  // console.log('[TruAnon] Ask To Read prefs for DID:', did)
 
   return useQuery({
     queryKey: ['truanonPrefs', did],
@@ -207,7 +223,6 @@ export function useTruanonPrefs(did: string) {
 
 export function useTruanonPrefsMutation() {
   const agent = useAgent()
-  // console.log('[TruAnon] Ask To Write:')
 
   return useMutation<void, Error, {did: string; prefs: Record<string, any>}>({
     mutationFn: async ({did, prefs}) => {
@@ -217,8 +232,6 @@ export function useTruanonPrefsMutation() {
         rkey: 'self',
         record: prefs,
       })
-
-      console.log('[TruAnon] Prefs write successful')
     },
   })
 }

@@ -218,10 +218,7 @@ let ProfileHeaderStandard = ({
                 control={editProfileControl}
                 prefs={currentPrefs}
                 setPrefs={setCurrentPrefs}
-                onUpdate={newPrefs => {
-                  setCurrentPrefs(newPrefs)
-                  refetch()
-                }}
+                onUpdate={() => refetch()}
               />
             </>
           ) : profile.viewer?.blocking ? (

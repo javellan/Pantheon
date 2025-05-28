@@ -230,8 +230,8 @@ function AvatarWithBadge({
   profile: AppBskyActorDefs.ProfileViewDetailed
   size?: number
 }) {
-  const {data: badgeRank} = useTruAnonBadgeRank(profile.did)
-  const badgeColor = getTruAnonBadgeColor(badgeRank)
+  const {data: badge} = useTruAnonBadgeRank(profile.did)
+  const badgeColor = getTruAnonBadgeColor(badge?.rank)
 
   return (
     <UserAvatar

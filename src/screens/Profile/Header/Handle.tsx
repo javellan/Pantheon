@@ -7,6 +7,7 @@ import {useLingui} from '@lingui/react'
 import {isInvalidHandle} from '#/lib/strings/handles'
 import {isIOS} from '#/platform/detection'
 import {Shadow} from '#/state/cache/types'
+import {getTruAnonBadgeColor} from '#/state/queries/profile'
 import {atoms as a, useTheme, web} from '#/alf'
 import {NewskieDialog} from '#/components/NewskieDialog'
 import {Text} from '#/components/Typography'
@@ -141,15 +142,6 @@ export function ProfileHeaderHandle({
   }
 
   const renderTruAnon = () => {
-    const rankColors: Record<string, string> = {
-      Dangerous: '#e0245e',
-      Cautioned: '#ffad1f',
-      Credible: '#e0e0e0',
-      Reliable: '#17bf63',
-      Genuine: '#1d9bf0',
-      Unknown: '#666',
-    }
-
     const wantsVerify = userPrefs?.wants_verified === 1
     const hasTruAnon = truAnonData != null
     const shouldWaitForData = wantsVerify && !hasTruAnon
@@ -173,7 +165,8 @@ export function ProfileHeaderHandle({
     }
 
     const isUnknown = authorRank === 'Unknown'
-    const rankColor = rankColors[authorRank] || '#666'
+    const rankColor = getTruAnonBadgeColor(authorRank)
+
     const showPrivate = wants_private && !isUnknown
 
     const badgePill = (

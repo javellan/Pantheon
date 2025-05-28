@@ -46,6 +46,17 @@ export type TruAnonDetails = {
 
 const baseUrl = 'https://truanon.com/api'
 
+function getTruAnonBadgeStyle(
+  authorRank: string,
+  dataConfigurations: any[],
+): 'Checkmark' | 'Ribbon' {
+  const disallowed = ['Dangerous', 'Cautioned']
+  if (disallowed.includes(authorRank)) return 'Checkmark'
+
+  const hasTikTok = dataConfigurations?.some(d => d.dataPointType === 'tiktok')
+  return hasTikTok ? 'Ribbon' : 'Checkmark'
+}
+
 export function useTruAnonProfile(handle: string, did?: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
   const [details, setDetails] = useState<TruAnonDetails | null>(null)
@@ -78,13 +89,14 @@ export function useTruAnonProfile(handle: string, did?: string) {
       return
     }
 
-    // console.log('[TruAnon] Fetching profile API data for handle:', handle)
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
       const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
       const text = await res.text()
+
+      console.log('[TruAnon] Fetched get_profile URL:', profileUrl)
 
       let json
       try {
@@ -93,10 +105,20 @@ export function useTruAnonProfile(handle: string, did?: string) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
 
-      console.log('[TruAnon] Fetched get_profile URL:', profileUrl)
+      if (shouldFetchProfile) {
+        const rank = json.authorRank
+        const style = getTruAnonBadgeStyle(rank, json.dataConfigurations)
 
-      console.log('setBadgeRank ==== ', json.authorRank)
-      setBadgeRank({did, rank: json.authorRank})
+        setBadgeRank({
+          did,
+          badge: {
+            rank,
+            style,
+          },
+        })
+      } else {
+        setBadgeRank({did, badge: null})
+      }
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Error:', json)
