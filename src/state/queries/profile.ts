@@ -123,6 +123,46 @@ export function usePrefetchProfileQuery() {
   return prefetchProfileQuery
 }
 
+const LABEL_COLLECTION = 'app.truanon.label'
+
+export function useTruAnonBadgeColor(did) {
+  const agent = useAgent()
+  return useQuery({
+    queryKey: ['truanonBadgeColor', did],
+    queryFn: async () => {
+      if (!did) return null
+      try {
+        const res = await agent.com.atproto.repo.getRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+        })
+        console.log('get color from label == ', res?.data?.value?.color)
+        return res?.data?.value?.color || null
+      } catch (err) {
+        return null
+      }
+    },
+    enabled: !!did,
+  })
+}
+
+export function useTruAnonBadgeColorMutation() {
+  const agent = useAgent()
+  return useMutation({
+    mutationFn: async ({did, color}) => {
+      // Create or update the record
+      await agent.com.atproto.repo.putRecord({
+        repo: did,
+        collection: LABEL_COLLECTION,
+        rkey: 'self',
+        record: {color},
+      })
+      console.log('set color from label == ', color)
+    },
+  })
+}
+
 export function useTruanonPrefs(did: string) {
   const agent = useAgent()
   // console.log('[TruAnon] Ask To Read prefs for DID:', did)

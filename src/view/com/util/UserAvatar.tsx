@@ -46,6 +46,7 @@ interface BaseUserAvatarProps {
 interface UserAvatarProps extends BaseUserAvatarProps {
   type: UserAvatarType
   moderation?: ModerationUI
+  did?: string
   usePlainRNImage?: boolean
   onLoad?: () => void
 }
@@ -60,6 +61,7 @@ interface PreviewableUserAvatarProps extends BaseUserAvatarProps {
   disableHoverCard?: boolean
   disableNavigation?: boolean
   onBeforePress?: () => void
+  badgeColor?: string
 }
 
 const BLUR_AMOUNT = isWeb ? 5 : 100
@@ -174,6 +176,7 @@ DefaultAvatar = memo(DefaultAvatar)
 export {DefaultAvatar}
 
 let UserAvatar = ({
+  badgeColor,
   type = 'user',
   shape: overrideShape,
   size,
@@ -185,6 +188,7 @@ let UserAvatar = ({
   const pal = usePalette('default')
   const backgroundColor = pal.colors.backgroundLight
   const finalShape = overrideShape ?? (type === 'user' ? 'circle' : 'square')
+  var hasBadge = !!badgeColor
 
   const aviStyle = useMemo(() => {
     if (finalShape === 'square') {
@@ -200,8 +204,10 @@ let UserAvatar = ({
       height: size,
       borderRadius: Math.floor(size / 2),
       backgroundColor,
+      borderColor: badgeColor,
+      borderWidth: hasBadge ? (size < 32 ? 0 : size < 64 ? 2 : 0) : 0,
     }
-  }, [finalShape, size, backgroundColor])
+  }, [finalShape, size, backgroundColor, badgeColor, hasBadge])
 
   const alert = useMemo(() => {
     if (!moderation?.alert) {
@@ -270,7 +276,6 @@ let EditableUserAvatar = ({
   const {requestCameraAccessIfNeeded} = useCameraPermission()
   const {requestPhotoAccessIfNeeded} = usePhotoLibraryPermission()
   const sheetWrapper = useSheetWrapper()
-
   const aviStyle = useMemo(() => {
     if (type === 'algo' || type === 'list') {
       return {
@@ -417,6 +422,7 @@ let PreviewableUserAvatar = ({
   disableHoverCard,
   disableNavigation,
   onBeforePress,
+  badgeColor,
   ...rest
 }: PreviewableUserAvatarProps): React.ReactNode => {
   const {_} = useLingui()
@@ -427,10 +433,13 @@ let PreviewableUserAvatar = ({
     precacheProfile(queryClient, profile)
   }, [profile, queryClient, onBeforePress])
 
+  // console.log('badgeColor is user avatar ==== ', badgeColor)
+
   const avatarEl = (
     <UserAvatar
       avatar={profile.avatar}
       moderation={moderation}
+      badgeColor={badgeColor}
       type={profile.associated?.labeler ? 'labeler' : 'user'}
       {...rest}
     />

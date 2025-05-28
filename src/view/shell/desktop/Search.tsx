@@ -25,6 +25,7 @@ import {s} from '#/lib/styles'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
 import {useActorAutocompleteQuery} from '#/state/queries/actor-autocomplete'
 import {precacheProfile} from '#/state/queries/profile'
+import {useTruAnonBadgeColor} from '#/state/queries/profile'
 import {Link} from '#/view/com/util/Link'
 import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
@@ -120,12 +121,7 @@ let SearchProfileCard = ({
             paddingHorizontal: 12,
           },
         ]}>
-        <UserAvatar
-          size={40}
-          avatar={profile.avatar}
-          moderation={moderation.ui('avatar')}
-          type={profile.associated?.labeler ? 'labeler' : 'user'}
-        />
+        <AvatarWithBadge profile={profile} />
         <View style={{flex: 1}}>
           <Text
             emoji
@@ -221,6 +217,25 @@ export function DesktopSearch() {
         </View>
       )}
     </View>
+  )
+}
+
+function AvatarWithBadge({
+  profile,
+  size = 60,
+}: {
+  profile: AppBskyActorDefs.ProfileViewDetailed
+  size?: number
+}) {
+  const {data: badgeColor} = useTruAnonBadgeColor(profile.did)
+  // console.log('badgeColor ==== ', badgeColor)
+  return (
+    <UserAvatar
+      avatar={profile.avatar}
+      badgeColor={badgeColor}
+      type={profile.associated?.labeler ? 'labeler' : 'user'}
+      size={size}
+    />
   )
 }
 
