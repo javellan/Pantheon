@@ -123,12 +123,27 @@ export function usePrefetchProfileQuery() {
   return prefetchProfileQuery
 }
 
+export const truAnonRankColors: Record<string, string> = {
+  Dangerous: '#e0245e',
+  Cautioned: '#ffad1f',
+  Credible: '#cfc9bb',
+  Reliable: '#17bf63',
+  Genuine: '#1d9bf0',
+}
+
+export function getTruAnonBadgeColor(
+  rank: string | null | undefined,
+): string | null {
+  if (!rank) return null
+  return truAnonRankColors[rank] ?? '#999'
+}
+
 const LABEL_COLLECTION = 'app.truanon.label'
 
-export function useTruAnonBadgeColor(did) {
+export function useTruAnonBadgeRank(did) {
   const agent = useAgent()
   return useQuery({
-    queryKey: ['truanonBadgeColor', did],
+    queryKey: ['truanonBadgeRank', did],
     queryFn: async () => {
       if (!did) return null
       try {
@@ -137,8 +152,8 @@ export function useTruAnonBadgeColor(did) {
           collection: LABEL_COLLECTION,
           rkey: 'self',
         })
-        console.log('get color from label == ', res?.data?.value?.color)
-        return res?.data?.value?.color || null
+        console.log('get rank from label == ', res?.data?.value?.rank)
+        return res?.data?.value?.rank || null
       } catch (err) {
         return null
       }
@@ -147,18 +162,18 @@ export function useTruAnonBadgeColor(did) {
   })
 }
 
-export function useTruAnonBadgeColorMutation() {
+export function useTruAnonBadgeRankMutation() {
   const agent = useAgent()
   return useMutation({
-    mutationFn: async ({did, color}) => {
+    mutationFn: async ({did, rank}) => {
       // Create or update the record
       await agent.com.atproto.repo.putRecord({
         repo: did,
         collection: LABEL_COLLECTION,
         rkey: 'self',
-        record: {color},
+        record: {rank},
       })
-      console.log('set color from label == ', color)
+      console.log('set rank from label == ', rank)
     },
   })
 }

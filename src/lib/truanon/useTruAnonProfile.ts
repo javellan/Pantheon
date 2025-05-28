@@ -1,7 +1,11 @@
 import {useCallback, useEffect, useState} from 'react'
 import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
 
-import {useTruanonPrefs, useTruanonPrefsMutation} from '#/state/queries/profile'
+import {
+  useTruAnonBadgeRankMutation,
+  useTruanonPrefs,
+  useTruanonPrefsMutation,
+} from '#/state/queries/profile'
 
 const TRUANON_AUTH_HEADER = {
   Authorization: `Bearer ${TRUANON_AUTH_TOKEN}`,
@@ -48,6 +52,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
+  const {mutate: setBadgeRank} = useTruAnonBadgeRankMutation()
 
   const {data: loadedPrefs} = useTruanonPrefs(did || '')
 
@@ -89,6 +94,9 @@ export function useTruAnonProfile(handle: string, did?: string) {
       }
 
       console.log('[TruAnon] Fetched get_profile URL:', profileUrl)
+
+      console.log('setBadgeRank ==== ', json.authorRank)
+      setBadgeRank({did, rank: json.authorRank})
 
       if (!res.ok || json.error || json.type === 'error') {
         console.log('[TruAnon] API Error:', json)
@@ -159,7 +167,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
     } finally {
       setLoading(false)
     }
-  }, [handle, shouldFetchProfile, did, updateTruanonPrefs])
+  }, [handle, shouldFetchProfile, did, updateTruanonPrefs, setBadgeRank])
 
   useEffect(() => {
     if (handle) {

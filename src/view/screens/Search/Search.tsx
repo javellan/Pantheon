@@ -40,7 +40,10 @@ import {
   unstableCacheProfileView,
   useProfilesQuery,
 } from '#/state/queries/profile'
-import {useTruAnonBadgeColor} from '#/state/queries/profile'
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRank,
+} from '#/state/queries/profile'
 import {useSearchPostsQuery} from '#/state/queries/search-posts'
 import {useSession} from '#/state/session'
 import {useSetMinimalShellMode} from '#/state/shell'
@@ -95,7 +98,8 @@ function AvatarWithBadge({
   profile: AppBskyActorDefs.ProfileViewDetailed
   size?: number
 }) {
-  const {data: badgeColor} = useTruAnonBadgeColor(profile.did)
+  const {data: badgeRank} = useTruAnonBadgeRank(profile.did)
+  const badgeColor = getTruAnonBadgeColor(badgeRank)
 
   return (
     <UserAvatar

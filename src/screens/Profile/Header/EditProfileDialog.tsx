@@ -336,6 +336,7 @@ function DialogInner({
           </TextField.LabelText>
           {(assignedUrl || verifyUrl) && (
             <TruAnonVerificationSwitch
+              did={profile.did}
               verifyUrl={verifyUrl}
               assignedUrl={assignedUrl}
               prefs={prefs}

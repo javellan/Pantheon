@@ -25,7 +25,10 @@ import {s} from '#/lib/styles'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
 import {useActorAutocompleteQuery} from '#/state/queries/actor-autocomplete'
 import {precacheProfile} from '#/state/queries/profile'
-import {useTruAnonBadgeColor} from '#/state/queries/profile'
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRank,
+} from '#/state/queries/profile'
 import {Link} from '#/view/com/util/Link'
 import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
@@ -227,8 +230,9 @@ function AvatarWithBadge({
   profile: AppBskyActorDefs.ProfileViewDetailed
   size?: number
 }) {
-  const {data: badgeColor} = useTruAnonBadgeColor(profile.did)
-  // console.log('badgeColor ==== ', badgeColor)
+  const {data: badgeRank} = useTruAnonBadgeRank(profile.did)
+  const badgeColor = getTruAnonBadgeColor(badgeRank)
+
   return (
     <UserAvatar
       avatar={profile.avatar}
