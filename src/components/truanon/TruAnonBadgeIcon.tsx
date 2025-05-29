@@ -21,7 +21,7 @@ export function TruAnonBadgeIcon({
   const [isModalVisible, setModalVisible] = useState(false)
   const {colors} = useTheme()
 
-  if (!badge || !prefs?.wants_verified) return null
+  if (!badge || typeof prefs?.wants_verified !== 'number') return null
 
   const {rank, style} = badge
   const iconColor = getTruAnonBadgeColor(rank)
