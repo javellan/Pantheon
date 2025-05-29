@@ -183,14 +183,20 @@ export function useTruAnonBadgeRankMutation() {
   return useMutation<void, Error, {did: string; badge: TruAnonBadge | null}>({
     mutationFn: async ({did, badge}) => {
       if (!did) return
-      const record = badge ?? {} // null clears it
-
-      await agent.com.atproto.repo.putRecord({
-        repo: did,
-        collection: LABEL_COLLECTION,
-        rkey: 'self',
-        record,
-      })
+      if (badge == null) {
+        await agent.com.atproto.repo.deleteRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+        })
+      } else {
+        await agent.com.atproto.repo.putRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+          record: badge,
+        })
+      }
     },
   })
 }
@@ -202,7 +208,7 @@ export function useTruanonPrefs(did: string) {
     queryKey: ['truanonPrefs', did],
     queryFn: async () => {
       try {
-        const res = await agent.com.atproto.repo.getRecord({
+        await agent.com.atproto.repo.getRecord({
           repo: did,
           collection: 'app.truanon.prefs',
           rkey: 'self',

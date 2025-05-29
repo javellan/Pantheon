@@ -68,24 +68,23 @@ export function useTruAnonProfile(handle: string, did?: string) {
   const {data: loadedPrefs} = useTruanonPrefs(did || '')
 
   const mergedPrefs = {
-    wants_verified: false,
+    wants_verified: true,
     wants_personal: true,
     wants_social: true,
     wants_private: false,
     ...loadedPrefs,
   }
-  // console.log('[TruAnon] mergedPrefs', mergedPrefs)
 
   const shouldFetchProfile = Boolean(mergedPrefs?.wants_verified)
 
   const fetchProfile = useCallback(async () => {
+    // Early exit and clear all badge/data if wants_verified is false
     if (!shouldFetchProfile) {
-      console
-        .log
-        // '[TruAnon] Skipping fetch: wants_verified is false or undefined',
-        ()
-      setData({})
-      setDetails({})
+      setBadgeRank({did, badge: null})
+      setData(null)
+      setDetails(null)
+      setError(null)
+      setLoading(false)
       return
     }
 
@@ -105,10 +104,13 @@ export function useTruAnonProfile(handle: string, did?: string) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
 
-      if (shouldFetchProfile) {
+      if (!shouldFetchProfile) {
+        console.log('! shouldFetchProfile')
+        setBadgeRank({did, badge: null})
+      } else {
+        console.log('else  shouldFetchProfile')
         const rank = json.authorRank
         const style = getTruAnonBadgeStyle(rank, json.dataConfigurations)
-
         setBadgeRank({
           did,
           badge: {
@@ -116,19 +118,26 @@ export function useTruAnonProfile(handle: string, did?: string) {
             style,
           },
         })
-      } else {
-        setBadgeRank({did, badge: null})
       }
 
-      if (!res.ok || json.error || json.type === 'error') {
+      if (!res.ok) {
         console.log('[TruAnon] API Error:', json)
         await updateTruanonPrefs({
           did: did,
           prefs: {wants_verified: 0},
         })
 
-        setData({})
-        setDetails({})
+        if (json.type === 'not_found' || json.authorRank === undefined) {
+          console.log('set author rank to Unknown')
+          setData({authorRank: 'Unknown'})
+          setDetails(null)
+          setError(null)
+          return
+        }
+
+        setData(null)
+        setDetails(null)
+        setError(json.error || json.title || 'Unknown error')
         return
       }
 
@@ -181,11 +190,12 @@ export function useTruAnonProfile(handle: string, did?: string) {
         ageRange: extract('birthday', 'personal'),
         socials,
       })
+      setError(null)
     } catch (err: any) {
       console.warn('[TruAnon] Fetch failed:', err.message)
       setError(err.message)
-      setData({})
-      setDetails({})
+      setData(null)
+      setDetails(null)
     } finally {
       setLoading(false)
     }
@@ -193,9 +203,9 @@ export function useTruAnonProfile(handle: string, did?: string) {
 
   useEffect(() => {
     if (handle) {
-      // console.log('[TruAnon] Triggering fetchProfile()')
       fetchProfile()
     }
+     
   }, [handle, shouldFetchProfile, fetchProfile])
 
   return {

@@ -12,6 +12,7 @@ import {logger} from '#/logger'
 import {isWeb} from '#/platform/detection'
 import {
   useProfileUpdateMutation,
+  useTruAnonBadgeRankMutation,
   useTruanonPrefsMutation,
 } from '#/state/queries/profile'
 import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
@@ -120,8 +121,8 @@ function DialogInner({
     isError: isUpdateProfileError,
   } = useProfileUpdateMutation()
 
-  // FIX: Hook must be here, not inside a callback!
   const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
+  const {mutate: setBadgeRank} = useTruAnonBadgeRankMutation()
 
   const [imageError, setImageError] = useState('')
   const [verifyUrl, setVerifyUrl] = useState<string | undefined>()
@@ -192,10 +193,12 @@ function DialogInner({
   const onPressSave = useCallback(async () => {
     setImageError('')
     try {
-      // Save TruAnon prefs FIRST
       await updateTruanonPrefs({did: profile.did, prefs})
 
-      // Now save the profile
+      if (!prefs.wants_verified) {
+        setBadgeRank({did: profile.did, badge: null})
+      }
+
       await updateProfileMutation({
         profile,
         updates: {
@@ -205,9 +208,8 @@ function DialogInner({
         newUserAvatar,
         newUserBanner,
       })
-      // console.log('prefs = ', prefs)
-      onUpdate?.(prefs)
       control.close()
+      if (onUpdate) onUpdate() // <--- Always trigger parent to refetch everything
 
       if (dirty) {
         Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
@@ -227,7 +229,8 @@ function DialogInner({
     onUpdate,
     dirty,
     _,
-    updateTruanonPrefs, // add this for completeness
+    updateTruanonPrefs,
+    setBadgeRank,
   ])
 
   const displayNameTooLong = useWarnMaxGraphemeCount({

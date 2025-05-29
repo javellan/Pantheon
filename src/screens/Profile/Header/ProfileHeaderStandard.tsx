@@ -70,7 +70,9 @@ let ProfileHeaderStandard = ({
 
   const [currentPrefs, setCurrentPrefs] = useState(prefs)
 
-  const {data: loadedPrefs} = useTruanonPrefs(profile.did)
+  const {data: loadedPrefs, refetch: refetchPrefs} = useTruanonPrefs(
+    profile.did,
+  )
 
   useEffect(() => {
     if (loadedPrefs !== undefined) {
@@ -218,7 +220,10 @@ let ProfileHeaderStandard = ({
                 control={editProfileControl}
                 prefs={currentPrefs}
                 setPrefs={setCurrentPrefs}
-                onUpdate={() => refetch()}
+                onUpdate={() => {
+                  refetch()
+                  refetchPrefs()
+                }}
               />
             </>
           ) : profile.viewer?.blocking ? (
