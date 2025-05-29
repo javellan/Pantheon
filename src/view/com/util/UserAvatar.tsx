@@ -205,7 +205,7 @@ let UserAvatar = ({
       borderRadius: Math.floor(size / 2),
       backgroundColor,
       borderColor: badgeColor,
-      borderWidth: hasBadge ? (size < 32 ? 0 : size < 64 ? 2 : 0) : 0,
+      borderWidth: hasBadge ? (size < 32 ? 0 : size < 64 ? 2.5 : 0) : 0,
     }
   }, [finalShape, size, backgroundColor, badgeColor, hasBadge])
 

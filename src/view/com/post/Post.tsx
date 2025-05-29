@@ -21,6 +21,10 @@ import {colors, s} from '#/lib/styles'
 import {POST_TOMBSTONE, Shadow, usePostShadow} from '#/state/cache/post-shadow'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
 import {precacheProfile} from '#/state/queries/profile'
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRank,
+} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
 import {useComposerControls} from '#/state/shell/composer'
 import {AviFollowButton} from '#/view/com/posts/AviFollowButton'
@@ -149,6 +153,9 @@ function PostInner({
   const {currentAccount} = useSession()
   const isMe = replyAuthorDid === currentAccount?.did
 
+  const {data: badge} = useTruAnonBadgeRank(post.author.did)
+  const badgeColor = getTruAnonBadgeColor(badge?.rank)
+
   const [hover, setHover] = React.useState(false)
   return (
     <Link
@@ -173,6 +180,7 @@ function PostInner({
           <AviFollowButton author={post.author} moderation={moderation}>
             <PreviewableUserAvatar
               size={42}
+              badgeColor={badgeColor}
               profile={post.author}
               moderation={moderation.ui('avatar')}
               type={post.author.associated?.labeler ? 'labeler' : 'user'}
