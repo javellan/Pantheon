@@ -190,6 +190,8 @@ export function useTruAnonBadgeRankMutation() {
           rkey: 'self',
         })
       } else {
+        if (!badge?.rank) return
+
         await agent.com.atproto.repo.putRecord({
           repo: did,
           collection: LABEL_COLLECTION,
@@ -208,7 +210,7 @@ export function useTruanonPrefs(did: string) {
     queryKey: ['truanonPrefs', did],
     queryFn: async () => {
       try {
-        await agent.com.atproto.repo.getRecord({
+        const res = await agent.com.atproto.repo.getRecord({
           repo: did,
           collection: 'app.truanon.prefs',
           rkey: 'self',
@@ -217,7 +219,6 @@ export function useTruanonPrefs(did: string) {
         if (!res?.data?.value) {
           return null
         }
-
         return res.data.value as Record<string, any>
       } catch (err) {
         return null

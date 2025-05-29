@@ -110,7 +110,7 @@ export function ProfileHeaderHandle({
       <FontAwesome5
         name={icon as any}
         size={StyleSheet.flatten(a.text_sm).fontSize}
-        color={wants_private ? '#cfc9bb' : '#fff'}
+        color={wants_private ? getTruAnonBadgeColor('Credible') : '#fff'}
       />
     )
 
@@ -143,12 +143,11 @@ export function ProfileHeaderHandle({
 
   const renderTruAnon = () => {
     const wantsVerify = userPrefs?.wants_verified === 1
+
     const hasTruAnon = truAnonData != null
     const shouldWaitForData = wantsVerify && !hasTruAnon
-
-    if (userPrefs === undefined) return null
-    // console.log('userPrefs == ', userPrefs)
     if (shouldWaitForData) return null
+    if (userPrefs === undefined) return null
 
     let authorRank = null
 
@@ -176,7 +175,9 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: showPrivate ? '#cfc9bb' : rankColor,
+            borderColor: showPrivate
+              ? getTruAnonBadgeColor('Credible')
+              : rankColor,
             marginBottom: 12,
             borderWidth: 1,
             backgroundColor: showPrivate ? '#2c2c33' : '#000',
@@ -198,11 +199,22 @@ export function ProfileHeaderHandle({
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text style={[a.text_sm, {color: showPrivate ? '#cfc9bb' : '#fff'}]}>
+          <Text
+            style={[
+              a.text_sm,
+              {color: showPrivate ? getTruAnonBadgeColor('Credible') : '#fff'},
+            ]}>
             {authorRank}
           </Text>
           <Text
-            style={[a.text_xs, {color: showPrivate ? '#cfc9bb' : '#ede8df'}]}>
+            style={[
+              a.text_xs,
+              {
+                color: showPrivate
+                  ? getTruAnonBadgeColor('Credible')
+                  : '#ede8df',
+              },
+            ]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
               : `${truAnonData?.authorRankScore ?? '–'} of 5`}

@@ -12,7 +12,10 @@ import {
 import {WebView} from 'react-native-webview'
 import {Trans} from '@lingui/macro'
 
-import {useTruAnonBadgeRankMutation} from '#/state/queries/profile'
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRankMutation,
+} from '#/state/queries/profile'
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 
@@ -151,7 +154,9 @@ export function TruAnonVerificationSwitch({
           }}
           style={[
             {
-              backgroundColor: isVerified ? '#1d9bf0' : '#17bf63',
+              backgroundColor: isVerified
+                ? getTruAnonBadgeColor('Genuine')
+                : getTruAnonBadgeColor('Reliable'),
               shadowColor: '#000',
               shadowOffset: {width: 1, height: 2},
               shadowOpacity: 0.2,
@@ -197,7 +202,10 @@ export function TruAnonVerificationSwitch({
                     value={effectivePrefs[`wants_${key}`] === 1}
                     disabled={key !== 'verified' && !prefs?.wants_verified}
                     onValueChange={v => handleSwitchChange(`wants_${key}`, v)}
-                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    trackColor={{
+                      false: '#444',
+                      true: getTruAnonBadgeColor('Genuine'),
+                    }}
                     thumbColor="#fff"
                   />
                 </View>

@@ -221,8 +221,8 @@ let ProfileHeaderStandard = ({
                 prefs={currentPrefs}
                 setPrefs={setCurrentPrefs}
                 onUpdate={() => {
-                  refetch()
                   refetchPrefs()
+                  refetch()
                 }}
               />
             </>

@@ -68,7 +68,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
   const {data: loadedPrefs} = useTruanonPrefs(did || '')
 
   const mergedPrefs = {
-    wants_verified: true,
+    wants_verified: false,
     wants_personal: true,
     wants_social: true,
     wants_private: false,
@@ -105,10 +105,8 @@ export function useTruAnonProfile(handle: string, did?: string) {
       }
 
       if (!shouldFetchProfile) {
-        console.log('! shouldFetchProfile')
         setBadgeRank({did, badge: null})
       } else {
-        console.log('else  shouldFetchProfile')
         const rank = json.authorRank
         const style = getTruAnonBadgeStyle(rank, json.dataConfigurations)
         setBadgeRank({
@@ -128,8 +126,7 @@ export function useTruAnonProfile(handle: string, did?: string) {
         })
 
         if (json.type === 'not_found' || json.authorRank === undefined) {
-          console.log('set author rank to Unknown')
-          setData({authorRank: 'Unknown'})
+          setData(null)
           setDetails(null)
           setError(null)
           return
@@ -205,7 +202,6 @@ export function useTruAnonProfile(handle: string, did?: string) {
     if (handle) {
       fetchProfile()
     }
-     
   }, [handle, shouldFetchProfile, fetchProfile])
 
   return {
