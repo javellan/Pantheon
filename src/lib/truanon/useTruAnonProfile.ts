@@ -1,6 +1,12 @@
 import {useCallback, useEffect, useState} from 'react'
 import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
 
+import {
+  useTruAnonBadgeRankMutation,
+  useTruanonPrefs,
+  useTruanonPrefsMutation,
+} from '#/state/queries/profile'
+
 const TRUANON_AUTH_HEADER = {
   Authorization: `Bearer ${TRUANON_AUTH_TOKEN}`,
 }
@@ -39,55 +45,57 @@ export type TruAnonDetails = {
 }
 
 const baseUrl = 'https://truanon.com/api'
-// const baseUrl = 'http://127.0.0.1:5555/cgi-bin/WebObjects/TruAnon.woa/wa'
 
-export function useTruAnonProfile(handle: string) {
+function getTruAnonBadgeStyle(
+  authorRank: string,
+  dataConfigurations: any[],
+): 'Checkmark' | 'Ribbon' {
+  const disallowed = ['Dangerous', 'Cautioned']
+  if (disallowed.includes(authorRank)) return 'Checkmark'
+
+  const hasTikTok = dataConfigurations?.some(d => d.dataPointType === 'tiktok')
+  return hasTikTok ? 'Ribbon' : 'Checkmark'
+}
+
+export function useTruAnonProfile(handle: string, did?: string) {
   const [data, setData] = useState<TruAnonProfile | null>(null)
-  const [prefs, setPrefs] = useState({
-    wants_verified: true,
-    wants_personal: true,
-    wants_social: true,
-    wants_private: false,
-  })
   const [details, setDetails] = useState<TruAnonDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
+  const {mutate: setBadgeRank} = useTruAnonBadgeRankMutation()
+
+  const {data: loadedPrefs} = useTruanonPrefs(did || '')
+
+  const mergedPrefs = {
+    wants_verified: false,
+    wants_personal: true,
+    wants_social: true,
+    wants_private: false,
+    ...loadedPrefs,
+  }
+
+  const shouldFetchProfile = Boolean(mergedPrefs?.wants_verified)
 
   const fetchProfile = useCallback(async () => {
+    // Early exit and clear all badge/data if wants_verified is false
+    if (!shouldFetchProfile) {
+      setBadgeRank({did, badge: null})
+      setData(null)
+      setDetails(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
-      const prefsUrl = `https://devhauz.truanon.com/api/prefs/${safeHandle}`
-
-      let loadedPrefs = null
-      try {
-        const prefsRes = await fetch(prefsUrl, {headers: TRUANON_AUTH_HEADER})
-
-        if (prefsRes.ok) {
-          loadedPrefs = await prefsRes.json()
-          setPrefs({
-            wants_verified: !!loadedPrefs.wants_verified,
-            wants_personal: !!loadedPrefs.wants_personal,
-            wants_social: !!loadedPrefs.wants_social,
-            wants_private: !!loadedPrefs.wants_private,
-          })
-        } else {
-          console.log('[TAO] No prefs found.')
-        }
-      } catch (e) {
-        console.warn('[TAO] Pref fetch failed:', e.message)
-      }
-
-      if (!loadedPrefs?.wants_verified) {
-        console.log('[TAO] Showing Unknown badge (no verify).')
-        setData({authorRank: 'Unknown', dataConfigurations: []})
-        setDetails({})
-        return
-      }
-
       const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
       const text = await res.text()
+
+      console.log('[TruAnon] Fetched get_profile URL:', profileUrl)
 
       let json
       try {
@@ -96,12 +104,37 @@ export function useTruAnonProfile(handle: string) {
         throw new Error('Invalid JSON: ' + text.slice(0, 100))
       }
 
-      console.log('[TruAnon] Fetched Proflile get_profile URL:', profileUrl)
+      if (!shouldFetchProfile) {
+        setBadgeRank({did, badge: null})
+      } else {
+        const rank = json.authorRank
+        const style = getTruAnonBadgeStyle(rank, json.dataConfigurations)
+        setBadgeRank({
+          did,
+          badge: {
+            rank,
+            style,
+          },
+        })
+      }
 
-      if (!res.ok || json.error || json.type === 'error') {
+      if (!res.ok) {
         console.log('[TruAnon] API Error:', json)
-        setData({authorRank: 'Unknown', dataConfigurations: []})
-        setDetails({})
+        await updateTruanonPrefs({
+          did: did,
+          prefs: {wants_verified: 0},
+        })
+
+        if (json.type === 'not_found' || json.authorRank === undefined) {
+          setData(null)
+          setDetails(null)
+          setError(null)
+          return
+        }
+
+        setData(null)
+        setDetails(null)
+        setError(json.error || json.title || 'Unknown error')
         return
       }
 
@@ -154,21 +187,31 @@ export function useTruAnonProfile(handle: string) {
         ageRange: extract('birthday', 'personal'),
         socials,
       })
+      setError(null)
     } catch (err: any) {
       console.warn('[TruAnon] Fetch failed:', err.message)
       setError(err.message)
-      setData({authorRank: 'Unknown', dataConfigurations: []})
-      setDetails({})
+      setData(null)
+      setDetails(null)
     } finally {
       setLoading(false)
     }
-  }, [handle])
+  }, [handle, shouldFetchProfile, did, updateTruanonPrefs, setBadgeRank])
 
   useEffect(() => {
-    if (handle) fetchProfile()
-  }, [handle, fetchProfile])
+    if (handle) {
+      fetchProfile()
+    }
+  }, [handle, shouldFetchProfile, fetchProfile])
 
-  return {data, details, prefs, error, loading, refetch: fetchProfile}
+  return {
+    data,
+    details,
+    prefs: mergedPrefs,
+    error,
+    loading,
+    refetch: fetchProfile,
+  }
 }
 
 export async function getVerifyLink(handle: string): Promise<{
@@ -218,7 +261,7 @@ export async function getVerifyLink(handle: string): Promise<{
       console.warn('[TruAnon] No token received for unknown profile')
     }
   } catch (err) {
-    console.error('[TruAnon] Error fetching verification info:', err)
+    console.error('[TruAnon] Error verification info:', err)
   }
 
   return {}

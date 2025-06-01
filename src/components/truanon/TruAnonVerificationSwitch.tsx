@@ -12,10 +12,15 @@ import {
 import {WebView} from 'react-native-webview'
 import {Trans} from '@lingui/macro'
 
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRankMutation,
+} from '#/state/queries/profile'
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 
 export function TruAnonVerificationSwitch({
+  did,
   verifyUrl,
   assignedUrl,
   onVerified,
@@ -39,13 +44,36 @@ export function TruAnonVerificationSwitch({
   onVerified?: () => void
 }) {
   const [showWebModal, setShowWebModal] = useState(false)
-
+  const {mutate: setBadgeRank} = useTruAnonBadgeRankMutation()
   const t = useTheme()
-  const isVerified = Boolean(assignedUrl && assignedUrl.trim())
+  const isVerified = Boolean(assignedUrl?.trim())
+
+  const effectivePrefs = {
+    wants_verified: prefs?.wants_verified ?? 1,
+    wants_personal: prefs?.wants_personal ?? 1,
+    wants_social: prefs?.wants_social ?? 1,
+    wants_private: prefs?.wants_private ?? 0,
+  }
 
   const closeModal = () => {
     setShowWebModal(false)
     onVerified?.()
+  }
+
+  const handleSwitchChange = (key: string, value: boolean) => {
+    const updatedPrefs = {
+      wants_verified: effectivePrefs.wants_verified,
+      wants_personal: effectivePrefs.wants_personal,
+      wants_social: effectivePrefs.wants_social,
+      wants_private: effectivePrefs.wants_private,
+      [key]: value ? 1 : 0,
+    }
+
+    if (key === 'wants_verified' && !value) {
+      setBadgeRank({did, badge: null})
+    }
+
+    setPrefs(updatedPrefs)
   }
 
   return (
@@ -70,7 +98,6 @@ export function TruAnonVerificationSwitch({
             barStyle="light-content"
             translucent={false}
           />
-
           <View
             style={[
               a.flex_row,
@@ -87,7 +114,6 @@ export function TruAnonVerificationSwitch({
               </Text>
             </TouchableOpacity>
           </View>
-
           {verifyUrl ? (
             <WebView
               key={verifyUrl}
@@ -99,10 +125,10 @@ export function TruAnonVerificationSwitch({
               }}
               originWhitelist={['*']}
               cacheEnabled={false}
-              sharedCookiesEnabled={true}
-              javaScriptEnabled={true}
+              sharedCookiesEnabled
+              javaScriptEnabled
               mediaPlaybackRequiresUserAction={false}
-              domStorageEnabled={true}
+              domStorageEnabled
               startInLoadingState
               style={{flex: 1, backgroundColor: '#000'}}
             />
@@ -128,7 +154,9 @@ export function TruAnonVerificationSwitch({
           }}
           style={[
             {
-              backgroundColor: isVerified ? '#1d9bf0' : '#17bf63',
+              backgroundColor: isVerified
+                ? getTruAnonBadgeColor('Genuine')
+                : getTruAnonBadgeColor('Reliable'),
               shadowColor: '#000',
               shadowOffset: {width: 1, height: 2},
               shadowOpacity: 0.2,
@@ -157,81 +185,46 @@ export function TruAnonVerificationSwitch({
 
         {isVerified && (
           <View style={[a.mt_md, a.gap_md]}>
-            <View>
-              <View style={[a.pl_md]}>
+            {['verified', 'personal', 'social', 'private'].map(key => (
+              <View key={key} style={[a.pl_md]}>
                 <View style={[a.flex_row, a.justify_between, a.items_center]}>
                   <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
-                    Use Verified Identity
+                    {
+                      {
+                        verified: 'Use Verified Identity',
+                        personal: 'Display Personal Info',
+                        social: 'Display Social Profiles',
+                        private: 'Private Profile',
+                      }[key]
+                    }
                   </Text>
                   <Switch
-                    value={prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_verified: v})}
-                    trackColor={{false: '#444', true: '#1d9bf0'}}
+                    value={effectivePrefs[`wants_${key}`] === 1}
+                    disabled={key !== 'verified' && !prefs?.wants_verified}
+                    onValueChange={v => handleSwitchChange(`wants_${key}`, v)}
+                    trackColor={{
+                      false: '#444',
+                      true: getTruAnonBadgeColor('Genuine'),
+                    }}
                     thumbColor="#fff"
                   />
                 </View>
-                <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
-                  Turns off verified identity, showing only "Unknown"
-                </Text>
-              </View>
-            </View>
-
-            <View style={[a.pl_md]}>
-              <View>
-                <View style={[a.flex_row, a.justify_between, a.items_center]}>
-                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
-                    Display Personal Info
+                {key === 'verified' && (
+                  <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
+                    Turns off verified identity, showing only "Unknown"
                   </Text>
-                  <Switch
-                    value={prefs?.wants_personal}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_personal: v})}
-                    trackColor={{false: '#444', true: '#1d9bf0'}}
-                    thumbColor="#fff"
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View style={[a.pl_md]}>
-              <View>
-                <View style={[a.flex_row, a.justify_between, a.items_center]}>
-                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
-                    Display Social Profiles
+                )}
+                {key === 'private' && (
+                  <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
+                    Turns off all links and assures privacy
                   </Text>
-                  <Switch
-                    value={prefs?.wants_social}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_social: v})}
-                    trackColor={{false: '#444', true: '#1d9bf0'}}
-                    thumbColor="#fff"
-                  />
-                </View>
+                )}
               </View>
-            </View>
-
-            <View style={[a.pl_md]}>
-              <View>
-                <View style={[a.flex_row, a.justify_between, a.items_center]}>
-                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
-                    Private Profile
-                  </Text>
-                  <Switch
-                    value={prefs?.wants_private}
-                    disabled={!prefs?.wants_verified}
-                    onValueChange={v => setPrefs({...prefs, wants_private: v})}
-                    trackColor={{false: '#444', true: '#1d9bf0'}}
-                    thumbColor="#fff"
-                  />
-                </View>
-              </View>
-              <Text style={[a.text_xs, t.atoms.text_contrast_low]}>
-                Turns off all links and assures privacy
-              </Text>
-            </View>
+            ))}
           </View>
         )}
-        <View style={([a.mt_lg, a.mb_lg], {paddingBottom: 44, paddingTop: 16})}>
+
+        <View style={{paddingBottom: 44, paddingTop: 16}}>
           <Text style={[a.text_sm, a.text_contrast_low]}>
             {isVerified ? (
               <Trans />

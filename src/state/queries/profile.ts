@@ -123,6 +123,126 @@ export function usePrefetchProfileQuery() {
   return prefetchProfileQuery
 }
 
+export const truAnonRankColors: Record<string, string> = {
+  Dangerous: '#e0245e',
+  Cautioned: '#ffad1f',
+  Credible: '#cfc9bb',
+  Reliable: '#17bf63',
+  Genuine: '#1d9bf0',
+}
+
+export function getTruAnonBadgeColor(
+  rank: string | null | undefined,
+): string | null {
+  if (!rank) return null
+  return truAnonRankColors[rank] ?? '#999'
+}
+
+export type TruAnonBadge = {
+  rank: 'Dangerous' | 'Cautioned' | 'Credible' | 'Reliable' | 'Genuine'
+  style: 'Checkmark' | 'Ribbon'
+}
+
+const LABEL_COLLECTION = 'app.truanon.label'
+
+export function useTruAnonBadgeRank(did: string) {
+  const agent = useAgent()
+
+  return useQuery<TruAnonBadge | null>({
+    queryKey: ['truanonBadgeRank', did],
+    queryFn: async () => {
+      if (!did) return null
+      try {
+        const res = await agent.com.atproto.repo.getRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+        })
+
+        const record = res?.data?.value
+        if (!record || typeof record !== 'object') return null
+
+        const rank = record.rank
+        const style = record.style
+
+        if (rank && typeof rank === 'string') {
+          return {rank, style}
+        }
+        return null
+      } catch {
+        return null
+      }
+    },
+    enabled: !!did,
+  })
+}
+
+export function useTruAnonBadgeRankMutation() {
+  const agent = useAgent()
+
+  return useMutation<void, Error, {did: string; badge: TruAnonBadge | null}>({
+    mutationFn: async ({did, badge}) => {
+      if (!did) return
+      if (badge == null) {
+        await agent.com.atproto.repo.deleteRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+        })
+      } else {
+        if (!badge?.rank) return
+
+        await agent.com.atproto.repo.putRecord({
+          repo: did,
+          collection: LABEL_COLLECTION,
+          rkey: 'self',
+          record: badge,
+        })
+      }
+    },
+  })
+}
+
+export function useTruanonPrefs(did: string) {
+  const agent = useAgent()
+
+  return useQuery({
+    queryKey: ['truanonPrefs', did],
+    queryFn: async () => {
+      try {
+        const res = await agent.com.atproto.repo.getRecord({
+          repo: did,
+          collection: 'app.truanon.prefs',
+          rkey: 'self',
+        })
+
+        if (!res?.data?.value) {
+          return null
+        }
+        return res.data.value as Record<string, any>
+      } catch (err) {
+        return null
+      }
+    },
+    enabled: !!did,
+  })
+}
+
+export function useTruanonPrefsMutation() {
+  const agent = useAgent()
+
+  return useMutation<void, Error, {did: string; prefs: Record<string, any>}>({
+    mutationFn: async ({did, prefs}) => {
+      await agent.com.atproto.repo.putRecord({
+        repo: did,
+        collection: 'app.truanon.prefs',
+        rkey: 'self',
+        record: prefs,
+      })
+    },
+  })
+}
+
 interface ProfileUpdateParams {
   profile: AppBskyActorDefs.ProfileViewDetailed
   updates:

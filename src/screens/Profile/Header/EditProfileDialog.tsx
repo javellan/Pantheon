@@ -2,7 +2,6 @@ import {useCallback, useEffect, useState} from 'react'
 import {Dimensions, View} from 'react-native'
 import {Image as RNImage} from 'react-native-image-crop-picker'
 import {AppBskyActorDefs} from '@atproto/api'
-import {TRUANON_AUTH_TOKEN} from '@env'
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 
@@ -11,7 +10,11 @@ import {useWarnMaxGraphemeCount} from '#/lib/strings/helpers'
 import {getVerifyLink} from '#/lib/truanon/useTruAnonProfile'
 import {logger} from '#/logger'
 import {isWeb} from '#/platform/detection'
-import {useProfileUpdateMutation} from '#/state/queries/profile'
+import {
+  useProfileUpdateMutation,
+  useTruAnonBadgeRankMutation,
+  useTruanonPrefsMutation,
+} from '#/state/queries/profile'
 import {ErrorMessage} from '#/view/com/util/error/ErrorMessage'
 import * as Toast from '#/view/com/util/Toast'
 import {EditableUserAvatar} from '#/view/com/util/UserAvatar'
@@ -27,37 +30,25 @@ const DISPLAY_NAME_MAX_GRAPHEMES = 64
 const DESCRIPTION_MAX_GRAPHEMES = 256
 const SCREEN_HEIGHT = Dimensions.get('window').height
 
-async function savePrefs(handle: string, prefs: any) {
-  const url = `https://devhauz.truanon.com/api/prefs/${handle}`
-  const TRUANON_AUTH_HEADER = `Bearer ${TRUANON_AUTH_TOKEN}`
-
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: TRUANON_AUTH_HEADER,
-    },
-    body: JSON.stringify(prefs),
-  })
-}
-
 export function EditProfileDialog({
   profile,
   control,
   onClose,
   onUpdate,
   prefs,
+  setPrefs,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   control: Dialog.DialogControlProps
   onClose?: () => void
   onUpdate?: () => void
-  prefs?: {
-    wants_verified?: number
-    wants_personal?: number
-    wants_social?: number
-    wants_private?: number
+  prefs: {
+    wants_verified: number
+    wants_personal: number
+    wants_social: number
+    wants_private: number
   }
+  setPrefs: React.Dispatch<React.SetStateAction<any>>
 }) {
   const {_} = useLingui()
   const cancelControl = Dialog.useDialogControl()
@@ -84,6 +75,7 @@ export function EditProfileDialog({
         onUpdate={onUpdate}
         setDirty={setDirty}
         prefs={prefs}
+        setPrefs={setPrefs}
       />
       <Prompt.Basic
         control={cancelControl}
@@ -105,17 +97,19 @@ function DialogInner({
   profile,
   onUpdate,
   setDirty,
-  prefs: initialPrefs,
+  prefs,
+  setPrefs,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   onUpdate?: () => void
   setDirty: (dirty: boolean) => void
-  prefs?: {
-    wants_verified?: number
-    wants_personal?: number
-    wants_social?: number
-    wants_private?: number
+  prefs: {
+    wants_verified: number
+    wants_personal: number
+    wants_social: number
+    wants_private: number
   }
+  setPrefs: React.Dispatch<React.SetStateAction<any>>
 }) {
   const {_} = useLingui()
   const t = useTheme()
@@ -127,17 +121,12 @@ function DialogInner({
     isError: isUpdateProfileError,
   } = useProfileUpdateMutation()
 
+  const {mutateAsync: updateTruanonPrefs} = useTruanonPrefsMutation()
+  const {mutate: setBadgeRank} = useTruAnonBadgeRankMutation()
+
   const [imageError, setImageError] = useState('')
   const [verifyUrl, setVerifyUrl] = useState<string | undefined>()
   const [assignedUrl, setAssignedUrl] = useState<string | undefined>()
-
-  const [prefs, setPrefs] = useState(() => ({
-    wants_verified: !!initialPrefs?.wants_verified,
-    wants_personal: !!initialPrefs?.wants_personal,
-    wants_social: !!initialPrefs?.wants_social,
-    wants_private: !!initialPrefs?.wants_private,
-  }))
-
   const initialDisplayName = profile.displayName || ''
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const initialDescription = profile.description || ''
@@ -161,28 +150,13 @@ function DialogInner({
 
   const fetchVerify = useCallback(async () => {
     const result = await getVerifyLink(profile.handle)
-
     setVerifyUrl(result?.verifyUrl)
     setAssignedUrl(result?.assignedUrl)
-
-    const fetchedPrefs = result?.prefs
-    if (fetchedPrefs) {
-      setPrefs({
-        wants_verified: !!fetchedPrefs.wants_verified,
-        wants_personal: !!fetchedPrefs.wants_personal,
-        wants_social: !!fetchedPrefs.wants_social,
-        wants_private: !!fetchedPrefs.wants_private,
-      })
-      console.log('[TAO] Loaded prefs:', fetchedPrefs)
-    }
   }, [profile.handle])
 
   useEffect(() => {
     fetchVerify()
   }, [fetchVerify])
-  // console.log('verifyUrl:', verifyUrl)
-  // console.log('assignedUrl:', assignedUrl)
-  // console.log('truAnonDetails:', truAnonDetails)
 
   const onSelectNewAvatar = useCallback(async (img: RNImage | null) => {
     setImageError('')
@@ -219,15 +193,11 @@ function DialogInner({
   const onPressSave = useCallback(async () => {
     setImageError('')
     try {
-      await savePrefs(profile.handle, {
-        ...prefs,
-        last_rank_color: '#1d9bf0',
-        last_badge_icon: 'fa-star',
-        wants_verified: prefs.wants_verified ? 1 : 0,
-        wants_personal: prefs.wants_personal ? 1 : 0,
-        wants_social: prefs.wants_social ? 1 : 0,
-        wants_private: prefs.wants_private ? 1 : 0,
-      })
+      await updateTruanonPrefs({did: profile.did, prefs})
+
+      if (!prefs.wants_verified) {
+        setBadgeRank({did: profile.did, badge: null})
+      }
 
       await updateProfileMutation({
         profile,
@@ -238,9 +208,8 @@ function DialogInner({
         newUserAvatar,
         newUserBanner,
       })
-
-      onUpdate?.()
       control.close()
+      if (onUpdate) onUpdate() // <--- Always trigger parent to refetch everything
 
       if (dirty) {
         Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
@@ -249,8 +218,8 @@ function DialogInner({
       logger.error('Failed to update user profile', {message: String(e)})
     }
   }, [
-    profile,
     updateProfileMutation,
+    profile,
     displayName,
     description,
     newUserAvatar,
@@ -260,6 +229,8 @@ function DialogInner({
     onUpdate,
     dirty,
     _,
+    updateTruanonPrefs,
+    setBadgeRank,
   ])
 
   const displayNameTooLong = useWarnMaxGraphemeCount({
@@ -368,6 +339,7 @@ function DialogInner({
           </TextField.LabelText>
           {(assignedUrl || verifyUrl) && (
             <TruAnonVerificationSwitch
+              did={profile.did}
               verifyUrl={verifyUrl}
               assignedUrl={assignedUrl}
               prefs={prefs}

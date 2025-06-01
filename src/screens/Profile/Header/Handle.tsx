@@ -7,6 +7,7 @@ import {useLingui} from '@lingui/react'
 import {isInvalidHandle} from '#/lib/strings/handles'
 import {isIOS} from '#/platform/detection'
 import {Shadow} from '#/state/cache/types'
+import {getTruAnonBadgeColor} from '#/state/queries/profile'
 import {atoms as a, useTheme, web} from '#/alf'
 import {NewskieDialog} from '#/components/NewskieDialog'
 import {Text} from '#/components/Typography'
@@ -34,9 +35,18 @@ export function ProfileHeaderHandle({
   const invalidHandle = isInvalidHandle(profile.handle)
   const blockHide = profile.viewer?.blocking || profile.viewer?.blockedBy
 
-  const isPrivateView = !!userPrefs?.wants_private
-  const wantsPersonal = !!userPrefs?.wants_personal
-  const wantsSocial = !!userPrefs?.wants_social
+  const cleanPrefs = userPrefs
+    ? {
+        wants_verified: Number(userPrefs.wants_verified),
+        wants_personal: Number(userPrefs.wants_personal),
+        wants_social: Number(userPrefs.wants_social),
+        wants_private: Number(userPrefs.wants_private),
+      }
+    : undefined
+
+  const wants_private = !!cleanPrefs?.wants_private
+  const wantsPersonal = !!cleanPrefs?.wants_personal
+  const wantsSocial = !!cleanPrefs?.wants_social
 
   const dataPointsOfTypeKind = (
     type: string,
@@ -77,7 +87,7 @@ export function ProfileHeaderHandle({
         <FontAwesome5
           name={name as any}
           size={StyleSheet.flatten(a.text_sm).fontSize}
-          color="#fff"
+          color="#f4f4f4"
         />{' '}
         {values}
       </Text>
@@ -100,7 +110,7 @@ export function ProfileHeaderHandle({
       <FontAwesome5
         name={icon as any}
         size={StyleSheet.flatten(a.text_sm).fontSize}
-        color={isPrivateView ? '#999' : '#fff'}
+        color={wants_private ? getTruAnonBadgeColor('Credible') : '#fff'}
       />
     )
 
@@ -108,23 +118,23 @@ export function ProfileHeaderHandle({
       <Text
         style={[
           a.text_sm,
-          !isPrivateView && a.font_bold,
+          !wants_private && a.font_bold,
           t.atoms.text_contrast_medium,
         ]}>
         {Icon} {name}
       </Text>
     )
 
-    const Container = isPrivateView ? View : TouchableOpacity
+    const Container = wants_private ? View : TouchableOpacity
 
     return (
       <Container
         key={key}
-        accessibilityRole={isPrivateView ? undefined : 'button'}
+        accessibilityRole={wants_private ? undefined : 'button'}
         onPress={
-          isPrivateView ? undefined : () => Linking.openURL(`http://${value}`)
+          wants_private ? undefined : () => Linking.openURL(`http://${value}`)
         }
-        activeOpacity={isPrivateView ? undefined : 0.6}
+        activeOpacity={wants_private ? undefined : 0.6}
         style={{marginRight: 12, marginBottom: 6}}>
         {TextContent}
       </Container>
@@ -132,16 +142,31 @@ export function ProfileHeaderHandle({
   }
 
   const renderTruAnon = () => {
-    if (!truAnonData) return null
-    const rankColors: Record<string, string> = {
-      Dangerous: '#e0245e',
-      Cautioned: '#ffad1f',
-      Credible: '#fff',
-      Reliable: '#17bf63',
-      Genuine: '#1d9bf0',
+    const wantsVerify = userPrefs?.wants_verified === 1
+
+    const hasTruAnon = truAnonData != null
+    const shouldWaitForData = wantsVerify && !hasTruAnon
+    if (shouldWaitForData) return null
+    if (userPrefs === undefined) return null
+
+    let authorRank = null
+
+    if (wantsVerify) {
+      if (truAnonData?.authorRank !== undefined) {
+        authorRank = truAnonData.authorRank
+      } else {
+        // still loading — bail before render
+        return null
+      }
+    } else {
+      // not verifying — treat as implicitly "Unknown" for now
+      authorRank = 'Unknown'
     }
-    const rankColor = rankColors[truAnonData.authorRank] || '#666'
-    const isUnknown = truAnonData.authorRank === 'Unknown'
+
+    const isUnknown = authorRank === 'Unknown'
+    const rankColor = getTruAnonBadgeColor(authorRank)
+
+    const showPrivate = wants_private && !isUnknown
 
     const badgePill = (
       <View
@@ -150,10 +175,12 @@ export function ProfileHeaderHandle({
           a.align_center,
           {
             alignSelf: 'flex-start',
-            borderColor: isPrivateView ? '#999' : rankColor,
+            borderColor: showPrivate
+              ? getTruAnonBadgeColor('Credible')
+              : rankColor,
             marginBottom: 12,
             borderWidth: 1,
-            backgroundColor: isPrivateView ? '#2c2c33' : '#000',
+            backgroundColor: showPrivate ? '#2c2c33' : '#000',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 999,
@@ -165,21 +192,32 @@ export function ProfileHeaderHandle({
             elevation: 2,
           },
         ]}>
-        <Text style={[{color: isPrivateView ? '#999' : rankColor}]}>
+        <Text style={[{color: rankColor}]}>
           <FontAwesome
             name="check-circle"
             size={StyleSheet.flatten(a.text_sm).fontSize * 2.25}
-            color={rankColor}
           />
         </Text>
         <View style={{flexShrink: 1, marginRight: 8}}>
-          <Text style={[a.text_sm, {color: isPrivateView ? '#999' : '#fff'}]}>
-            {truAnonData.authorRank}
+          <Text
+            style={[
+              a.text_sm,
+              {color: showPrivate ? getTruAnonBadgeColor('Credible') : '#fff'},
+            ]}>
+            {authorRank}
           </Text>
-          <Text style={[a.text_xs, {color: isPrivateView ? '#999' : '#ccc'}]}>
+          <Text
+            style={[
+              a.text_xs,
+              {
+                color: showPrivate
+                  ? getTruAnonBadgeColor('Credible')
+                  : '#ede8df',
+              },
+            ]}>
             {isUnknown
               ? 'Ask Me To Verify Identity'
-              : `${truAnonData.authorRankScore ?? '–'} of 5`}
+              : `${truAnonData?.authorRankScore ?? '–'} of 5`}
           </Text>
         </View>
       </View>
@@ -192,7 +230,7 @@ export function ProfileHeaderHandle({
 
     return (
       <View style={{marginTop: 8, marginBottom: 8}}>
-        {!isPrivateView && truAnonData?.truAnonUrl && !isUnknown ? (
+        {truAnonData?.truAnonUrl && !showPrivate && !isUnknown ? (
           <TouchableOpacity
             accessibilityRole="button"
             activeOpacity={0.5}
@@ -201,7 +239,7 @@ export function ProfileHeaderHandle({
             {badgePill}
           </TouchableOpacity>
         ) : (
-          <View>{badgePill}</View>
+          badgePill
         )}
 
         {!isUnknown && (
@@ -211,10 +249,7 @@ export function ProfileHeaderHandle({
                 style={[
                   a.text_sm,
                   t.atoms.text_contrast_medium,
-                  {
-                    marginTop: 8,
-                    marginBottom: 8,
-                  },
+                  {marginTop: 8, marginBottom: 8},
                 ]}>
                 {renderLine(locationData, 'location')}
                 {'   '}

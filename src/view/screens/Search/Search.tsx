@@ -40,6 +40,10 @@ import {
   unstableCacheProfileView,
   useProfilesQuery,
 } from '#/state/queries/profile'
+import {
+  getTruAnonBadgeColor,
+  useTruAnonBadgeRank,
+} from '#/state/queries/profile'
 import {useSearchPostsQuery} from '#/state/queries/search-posts'
 import {useSession} from '#/state/session'
 import {useSetMinimalShellMode} from '#/state/shell'
@@ -84,6 +88,26 @@ function Loader() {
         <ActivityIndicator />
       </View>
     </Layout.Content>
+  )
+}
+
+function AvatarWithBadge({
+  profile,
+  size = 60,
+}: {
+  profile: AppBskyActorDefs.ProfileViewDetailed
+  size?: number
+}) {
+  const {data: badge} = useTruAnonBadgeRank(profile.did)
+  const badgeColor = getTruAnonBadgeColor(badge?.rank)
+
+  return (
+    <UserAvatar
+      avatar={profile.avatar}
+      badgeColor={badgeColor}
+      type={profile.associated?.labeler ? 'labeler' : 'user'}
+      size={size}
+    />
   )
 }
 
@@ -1059,9 +1083,9 @@ function SearchHistory({
                 {marginHorizontal: tokens.space._2xl * -1},
               ]}
               contentContainerStyle={[a.px_2xl, a.border_0]}>
-              {selectedProfiles.slice(0, 5).map((profile, index) => (
+              {selectedProfiles.slice(0, 5).map(profile => (
                 <View
-                  key={index}
+                  key={profile.did}
                   style={[
                     styles.profileItem,
                     !gtMobile && styles.profileItemMobile,
@@ -1073,11 +1097,7 @@ function SearchHistory({
                     anchorNoUnderline
                     onBeforePress={() => onProfileClick(profile)}
                     style={[a.align_center, a.w_full]}>
-                    <UserAvatar
-                      avatar={profile.avatar}
-                      type={profile.associated?.labeler ? 'labeler' : 'user'}
-                      size={60}
-                    />
+                    <AvatarWithBadge profile={profile} />
                     <Text
                       emoji
                       style={[a.text_xs, a.text_center, styles.profileName]}
