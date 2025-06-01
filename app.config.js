@@ -44,9 +44,9 @@ module.exports = function (config) {
     expo: {
       version: VERSION,
       name: 'TAO Social',
-      slug: 'tao-social',
-      scheme: 'tao-social',
-      owner: 'tao-llc',
+      slug: 'taosocial',
+      scheme: 'taosocial',
+      owner: 'hob.spillane',
       runtimeVersion: {
         policy: 'appVersion',
       },
@@ -115,7 +115,7 @@ module.exports = function (config) {
         entitlements: {
           'com.apple.developer.kernel.increased-memory-limit': true,
           'com.apple.developer.kernel.extended-virtual-addressing': true,
-          // 'com.apple.security.application-groups': 'group.app.bsky',
+          // 'com.apple.security.application-groups': 'group.app.taosocial',
         },
         privacyManifests: {
           NSPrivacyAccessedAPITypes: [
@@ -402,7 +402,7 @@ module.exports = function (config) {
                 //     bundleIdentifier: 'com.taollc.taosocial.Share-with-Bluesky',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
-                //         'group.app.bsky',
+                //         'group.app.taosocial',
                 //       ],
                 //     },
                 //   },
@@ -411,7 +411,7 @@ module.exports = function (config) {
                 //     bundleIdentifier: 'com.taollc.taosocial.BlueskyNSE',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
-                //         'group.app.bsky',
+                //         'group.app.taosocial',
                 //       ],
                 //     },
                 //   },
@@ -423,7 +423,7 @@ module.exports = function (config) {
               },
             },
           },
-          projectId: '55bd077a-d905-4184-9c7f-94789ba0f302',
+          projectId: '92920283-d1d7-475f-88f2-87731f81398b',
         },
       },
       hooks: {
