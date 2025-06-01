@@ -1,4 +1,4 @@
-appId: xyz.blueskyweb.app
+appId: com.taollc.taosocial
 ---
 - runScript:
     file: ../setupServer.js

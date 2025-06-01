@@ -399,7 +399,7 @@ module.exports = function (config) {
                 // appExtensions: [
                 //   {
                 //     targetName: 'Share-with-Bluesky',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.Share-with-Bluesky',
+                //     bundleIdentifier: 'com.taollc.taosocial.Share-with-Bluesky',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
                 //         'group.app.bsky',
@@ -408,7 +408,7 @@ module.exports = function (config) {
                 //   },
                 //   {
                 //     targetName: 'BlueskyNSE',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.BlueskyNSE',
+                //     bundleIdentifier: 'com.taollc.taosocial.BlueskyNSE',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
                 //         'group.app.bsky',
@@ -417,7 +417,7 @@ module.exports = function (config) {
                 //   },
                 //   {
                 //     targetName: 'BlueskyClip',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.AppClip',
+                //     bundleIdentifier: 'com.taollc.taosocial.AppClip',
                 //   },
                 // ],
               },
