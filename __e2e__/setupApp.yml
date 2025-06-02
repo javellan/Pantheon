@@ -1,7 +1,7 @@
-appId: xyz.blueskyweb.app
+appId: com.taollc.taosocial
 ---
 - launchApp:
-   appId: "xyz.blueskyweb.app"
+   appId: "com.taollc.taosocial"
    clearState: true
 - waitForAnimationToEnd
 - tapOn: "http://localhost:8081"

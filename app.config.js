@@ -44,9 +44,9 @@ module.exports = function (config) {
     expo: {
       version: VERSION,
       name: 'TAO Social',
-      slug: 'tao-social',
-      scheme: 'tao-social',
-      owner: 'tao-llc',
+      slug: 'taosocial',
+      scheme: 'taosocial',
+      owner: 'hob.spillane',
       runtimeVersion: {
         policy: 'appVersion',
       },
@@ -115,7 +115,7 @@ module.exports = function (config) {
         entitlements: {
           'com.apple.developer.kernel.increased-memory-limit': true,
           'com.apple.developer.kernel.extended-virtual-addressing': true,
-          // 'com.apple.security.application-groups': 'group.app.bsky',
+          // 'com.apple.security.application-groups': 'group.app.taosocial',
         },
         privacyManifests: {
           NSPrivacyAccessedAPITypes: [
@@ -399,31 +399,31 @@ module.exports = function (config) {
                 // appExtensions: [
                 //   {
                 //     targetName: 'Share-with-Bluesky',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.Share-with-Bluesky',
+                //     bundleIdentifier: 'com.taollc.taosocial.Share-with-Bluesky',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
-                //         'group.app.bsky',
+                //         'group.app.taosocial',
                 //       ],
                 //     },
                 //   },
                 //   {
                 //     targetName: 'BlueskyNSE',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.BlueskyNSE',
+                //     bundleIdentifier: 'com.taollc.taosocial.BlueskyNSE',
                 //     entitlements: {
                 //       'com.apple.security.application-groups': [
-                //         'group.app.bsky',
+                //         'group.app.taosocial',
                 //       ],
                 //     },
                 //   },
                 //   {
                 //     targetName: 'BlueskyClip',
-                //     bundleIdentifier: 'xyz.blueskyweb.app.AppClip',
+                //     bundleIdentifier: 'com.taollc.taosocial.AppClip',
                 //   },
                 // ],
               },
             },
           },
-          projectId: '55bd077a-d905-4184-9c7f-94789ba0f302',
+          projectId: '92920283-d1d7-475f-88f2-87731f81398b',
         },
       },
       hooks: {

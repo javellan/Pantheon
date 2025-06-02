@@ -1,4 +1,4 @@
-package xyz.blueskyweb.app.exporeceiveandroidintents
+package com.taollc.taosocial.exporeceiveandroidintents
 
 import android.content.Intent
 import android.graphics.Bitmap

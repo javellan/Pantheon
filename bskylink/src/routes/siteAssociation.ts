@@ -9,13 +9,13 @@ export default function (ctx: AppContext, app: Express) {
         apps: [],
         details: [
           {
-            appID: 'B3LX46C5HS.xyz.blueskyweb.app',
+            appID: '72SFN5T3MW.com.taollc.taosocial',
             paths: ['*'],
           },
         ],
       },
       appclips: {
-        apps: ['B3LX46C5HS.xyz.blueskyweb.app.AppClip'],
+        apps: ['72SFN5T3MW.com.taollc.taosocial.AppClip'],
       },
     })
   })

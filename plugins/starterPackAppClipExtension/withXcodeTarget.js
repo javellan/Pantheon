@@ -56,14 +56,14 @@ const withXcodeTarget = (config, {targetName}) => {
           buildSettingsObj.SWIFT_EMIT_LOC_STRINGS = 'YES'
           buildSettingsObj.SWIFT_VERSION = '5.0'
           buildSettingsObj.TARGETED_DEVICE_FAMILY = `"1"`
-          buildSettingsObj.DEVELOPMENT_TEAM = 'B3LX46C5HS'
+          buildSettingsObj.DEVELOPMENT_TEAM = '72SFN5T3MW'
           buildSettingsObj.IPHONEOS_DEPLOYMENT_TARGET = '15.1'
           buildSettingsObj.ASSETCATALOG_COMPILER_APPICON_NAME = 'AppIcon'
         }
       }
     }
 
-    pbxProject.addTargetAttribute('DevelopmentTeam', 'B3LX46C5HS', targetName)
+    pbxProject.addTargetAttribute('DevelopmentTeam', '72SFN5T3MW', targetName)
 
     if (!pbxProject.hash.project.objects.PBXTargetDependency) {
       pbxProject.hash.project.objects.PBXTargetDependency = {}

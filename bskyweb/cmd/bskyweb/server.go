@@ -394,11 +394,11 @@ func (srv *Server) errorHandler(err error, c echo.Context) {
 func (srv *Server) Download(c echo.Context) error {
 	ua := c.Request().UserAgent()
 	if strings.Contains(ua, "Android") {
-		return c.Redirect(http.StatusFound, "https://play.google.com/store/apps/details?id=xyz.blueskyweb.app")
+		return c.Redirect(http.StatusFound, "https://play.google.com/store/apps/details?id=com.taollc.taosocial")
 	}
 
 	if strings.Contains(ua, "iPhone") || strings.Contains(ua, "iPad") || strings.Contains(ua, "iPod") {
-		return c.Redirect(http.StatusFound, "https://apps.apple.com/tr/app/bluesky-social/id6444370199")
+		return c.Redirect(http.StatusFound, "https://apps.apple.com/tr/app/bluesky-social/id6746351404")
 	}
 
 	return c.Redirect(http.StatusFound, "/")

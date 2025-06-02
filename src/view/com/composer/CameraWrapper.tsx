@@ -142,7 +142,7 @@ const CameraWrapper: React.FC<CameraWrapperProps> = ({
           const videoHeight = video.height;
           const videoWidth = video.width;
   
-          const targetDir = "/data/user/0/xyz.blueskyweb.app/cache/ImagePicker/";
+          const targetDir = "/data/user/0/com.taollc.taosocial/cache/ImagePicker/";
           const originalFileName = videoUri.split('/').pop();
           const newFileName = `${uuid.v4()}.mp4`
           const newPath = `${targetDir}${newFileName}`;
