@@ -89,18 +89,18 @@ jobs:
         id: get-build-info
         run: bash scripts/setGitHubOutput.sh
 
-      - name: 🔔Notify Discord of Production Build
-        if: ${{ inputs.profile == 'production' }}
-        uses: discord-webhook/github-action@v1.0.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_CLIENT_ALERT_WEBHOOK }}
-          content: |
-            iOS production build for App Store submission is ready!
-            ```
-            Artifact: Check TestFlight to know when it is available
-            Version Number: ${{ steps.get-build-info.outputs.PACKAGE_VERSION }}
-            Build Number: ${{ steps.get-build-info.outputs.BSKY_IOS_BUILD_NUMBER }}
-            ```
+    #  - name: 🔔Notify Discord of Production Build
+    #    if: ${{ inputs.profile == 'production' }}
+    #    uses: discord-webhook/github-action@v1.0.0
+    #    with:
+    #      webhook-url: ${{ secrets.DISCORD_CLIENT_ALERT_WEBHOOK }}
+    #      content: |
+    #        iOS production build for App Store submission is ready!
+    #        ```
+    #        Artifact: Check TestFlight to know when it is available
+    #        Version Number: ${{ steps.get-build-info.outputs.PACKAGE_VERSION }}
+    #        Build Number: ${{ steps.get-build-info.outputs.BSKY_IOS_BUILD_NUMBER }}
+    #        ```
 
       - name: ⬇️ Restore Cache
         id: get-base-commit
