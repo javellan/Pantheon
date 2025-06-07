@@ -1,5 +1,7 @@
 import {useCallback, useEffect, useState} from 'react'
-import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
+import Constants from 'expo-constants'
+
+const {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} = Constants.expoConfig.extra
 
 import {
   useTruAnonBadgeRankMutation,
