@@ -158,6 +158,21 @@ function DialogInner({
     fetchVerify()
   }, [fetchVerify])
 
+  useEffect(() => {
+    if (prefs && prefs.wants_verified === undefined) {
+      const defaultPrefs = {
+        wants_verified: 1,
+        wants_personal: 0,
+        wants_social: 0,
+        wants_private: 0,
+      }
+      updateTruanonPrefs({did: profile.did, prefs: defaultPrefs}).catch(err =>
+        logger.error('Failed to set default truanon prefs', {error: err}),
+      )
+      setPrefs(defaultPrefs)
+    }
+  }, [prefs, profile.did, updateTruanonPrefs, setPrefs])
+
   const onSelectNewAvatar = useCallback(async (img: RNImage | null) => {
     setImageError('')
     if (img === null) {
