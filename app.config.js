@@ -44,9 +44,9 @@ module.exports = function (config) {
     expo: {
       version: VERSION,
       name: 'TAO Social',
-      slug: 'taosocial',
-      scheme: 'taosocial',
-      owner: 'hob.spillane',
+      slug: 'tao-social',
+      scheme: 'tao-social',
+      owner: 'tao-llc',
       runtimeVersion: {
         policy: 'appVersion',
       },
@@ -423,7 +423,7 @@ module.exports = function (config) {
               },
             },
           },
-          projectId: '92920283-d1d7-475f-88f2-87731f81398b',
+          projectId: '1b6ab0e8-2c18-4d28-869c-49d9d56d59ee',
         },
       },
       hooks: {
