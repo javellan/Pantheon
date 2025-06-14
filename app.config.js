@@ -44,8 +44,8 @@ module.exports = function (config) {
     expo: {
       version: VERSION,
       name: 'TAO Social',
-      slug: 'tao-social',
-      scheme: 'tao-social',
+      slug: 'taosocial',
+      scheme: 'taosocial',
       owner: 'tao-llc',
       runtimeVersion: {
         policy: 'appVersion',
