@@ -263,8 +263,8 @@ module.exports = function (config) {
         './plugins/withAndroidSplashScreenStatusBarTranslucentPlugin.js',
         './plugins/withAndroidNoJitpackPlugin.js',
         './plugins/withNoBundleCompression.js',
-        './plugins/shareExtension/withShareExtensions.js',
-        './plugins/notificationsExtension/withNotificationsExtension.js',
+        // './plugins/shareExtension/withShareExtensions.js',
+        // './plugins/notificationsExtension/withNotificationsExtension.js',
         './plugins/withAppDelegateReferrer.js',
         [
           'expo-font',
