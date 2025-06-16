@@ -40,6 +40,15 @@ module.exports = function (config) {
     IS_DEV ? 'dev' : ''
   }`
 
+  export default {
+    expo: {
+      extra: {
+        TRUANON_AUTH_TOKEN: process.env.TRUANON_AUTH_TOKEN,
+        TRUANON_SERVICE: process.env.TRUANON_SERVICE,
+      },
+    },
+  }
+
   return {
     expo: {
       version: VERSION,

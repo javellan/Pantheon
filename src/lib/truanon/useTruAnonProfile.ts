@@ -1,5 +1,7 @@
 import {useCallback, useEffect, useState} from 'react'
-import {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} from '@env'
+import Constants from 'expo-constants'
+
+const {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} = Constants.expoConfig.extra
 
 import {
   useTruAnonBadgeRankMutation,
@@ -173,6 +175,9 @@ export function useTruAnonProfile(handle: string, did?: string) {
               {
                 medium: 'fab fa-medium',
                 tiktok: 'fab fa-tiktok',
+                inforsecexchange: 'fab fa-mastodon',
+                'mastodon-social': 'fab fa-mastodon',
+                quora: 'fab fa-quora',
               }[d.dataPointType?.toLowerCase() || ''] ||
               d.dataPointIconClass ||
               'fas fa-link',

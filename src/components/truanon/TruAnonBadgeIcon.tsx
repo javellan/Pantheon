@@ -91,7 +91,7 @@ export function TruAnonBadgeIcon({
                   <FontAwesome5
                     name="ribbon"
                     size={a.text_2xl.fontSize * 2}
-                    color={iconColor}
+                    color={useRibbon ? iconColor : '#999'}
                   />
                   <Text
                     style={{
@@ -100,7 +100,7 @@ export function TruAnonBadgeIcon({
                       marginTop: 8,
                       textAlign: 'center',
                     }}>
-                    TikTok Verified
+                    {useRibbon ? 'TikTok Verified' : 'No TikTok'}
                   </Text>
                 </View>
 
