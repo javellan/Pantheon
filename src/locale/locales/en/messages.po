@@ -2212,8 +2212,8 @@ msgstr ""
 msgid "Deleted post."
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:322
-#: src/screens/Profile/Header/EditProfileDialog.tsx:329
+#: src/screens/Profile/Header/EditProfileDialog.tsx:337
+#: src/screens/Profile/Header/EditProfileDialog.tsx:344
 #: src/view/com/modals/CreateOrEditList.tsx:280
 #: src/view/com/modals/CreateOrEditList.tsx:301
 #: src/view/com/modals/EditProfile.tsx:193
@@ -2337,8 +2337,8 @@ msgstr ""
 msgid "Display larger alt text badges"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:307
-#: src/screens/Profile/Header/EditProfileDialog.tsx:313
+#: src/screens/Profile/Header/EditProfileDialog.tsx:322
+#: src/screens/Profile/Header/EditProfileDialog.tsx:328
 #: src/view/com/modals/EditProfile.tsx:187
 msgid "Display name"
 msgstr ""
@@ -2376,8 +2376,8 @@ msgstr ""
 #: src/components/truanon/TruAnonVerificationSwitch.tsx:113
 #: src/screens/Onboarding/StepProfile/index.tsx:330
 #: src/screens/Onboarding/StepProfile/index.tsx:333
-#: src/screens/Profile/Header/EditProfileDialog.tsx:254
-#: src/screens/Profile/Header/EditProfileDialog.tsx:261
+#: src/screens/Profile/Header/EditProfileDialog.tsx:269
+#: src/screens/Profile/Header/EditProfileDialog.tsx:276
 #: src/screens/Settings/components/AddAppPasswordDialog.tsx:215
 #: src/screens/Settings/components/AddAppPasswordDialog.tsx:222
 #: src/view/com/auth/server-input/index.tsx:232
@@ -2435,7 +2435,7 @@ msgstr ""
 msgid "e.g. alice"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:314
+#: src/screens/Profile/Header/EditProfileDialog.tsx:329
 msgid "e.g. Alice Lastname"
 msgstr ""
 
@@ -2533,8 +2533,8 @@ msgstr ""
 msgid "Edit post interaction settings"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:247
-#: src/screens/Profile/Header/EditProfileDialog.tsx:266
+#: src/screens/Profile/Header/EditProfileDialog.tsx:262
+#: src/screens/Profile/Header/EditProfileDialog.tsx:281
 #: src/screens/Profile/Header/ProfileHeaderLabeler.tsx:196
 #: src/screens/Profile/Header/ProfileHeaderStandard.tsx:212
 msgid "Edit profile"
@@ -5637,7 +5637,7 @@ msgstr ""
 msgid "Profile"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:215
+#: src/screens/Profile/Header/EditProfileDialog.tsx:230
 #: src/view/com/modals/EditProfile.tsx:124
 msgctxt "toast"
 msgid "Profile updated"
@@ -7285,7 +7285,7 @@ msgstr ""
 msgid "Tell a joke!"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:330
+#: src/screens/Profile/Header/EditProfileDialog.tsx:345
 msgid "Tell us a bit about yourself"
 msgstr ""
 
@@ -8290,7 +8290,7 @@ msgstr ""
 msgid "Verified email required"
 msgstr ""
 
-#: src/screens/Profile/Header/EditProfileDialog.tsx:338
+#: src/screens/Profile/Header/EditProfileDialog.tsx:353
 msgid "Verified identity"
 msgstr ""
 
