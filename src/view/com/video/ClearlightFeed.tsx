@@ -61,7 +61,7 @@ export function ClearlightFeed({
   isPageAdjacent: boolean
 }) {
   const t = useTheme()
-  const {hasSession} = useSession()
+  const {hasSession, currentAccount} = useSession()
   const {height} = useSafeAreaFrame()
   const enabled = isPageFocused || (isNative && isPageAdjacent)
   const opts = useMemo(() => ({enabled}), [enabled])
@@ -121,23 +121,23 @@ export function ClearlightFeed({
       if (players) {
         players.forEach(p => p.pause())
       }
-      const feedPrefs = getFeedPreferences()
+      const feedPrefs = getFeedPreferences(currentAccount?.did)
       if (feedPrefs.lastUpdated > lastFeedRefreshTime.current) {
         lastFeedRefreshTime.current = feedPrefs.lastUpdated
       }
       refetch()
     }
-  }, [refetch, players, isPageFocused])
+  }, [refetch, players, isPageFocused, currentAccount?.did])
 
   //If the user has updated their preferences, we need to refetch the feed
   useFocusEffect(
     useCallback(() => {
-      const feedPrefsLastUpdated = getFeedPreferencesLastUpdated()
+      const feedPrefsLastUpdated = getFeedPreferencesLastUpdated(currentAccount?.did)
       if (feedPrefsLastUpdated > lastFeedRefreshTime.current) {
         lastFeedRefreshTime.current = feedPrefsLastUpdated
         doRefresh()
       }
-    }, [doRefresh]),
+    }, [doRefresh, currentAccount?.did]),
   )
 
   const scrollValue = useSharedValue(false)

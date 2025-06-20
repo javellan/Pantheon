@@ -187,6 +187,7 @@ export function usePostFeedQuery(
               userInterests,
               // Not in the query key. Reacting to it switching isn't important:
               enableFollowingToDiscoverFallback,
+              did: agent.session?.did,
             }),
             cursor: undefined,
           }
@@ -445,6 +446,7 @@ function createApi({
   userInterests = [],
   agent,
   enableFollowingToDiscoverFallback,
+  did,
 }: {
   feedDesc: FeedDescriptor
   feedParams: FeedParams
@@ -452,6 +454,7 @@ function createApi({
   userInterests: Interest[]
   agent: BskyAgent
   enableFollowingToDiscoverFallback: boolean
+  did?: string
 }) {
   if (
     feedDesc ===
@@ -462,6 +465,7 @@ function createApi({
       feedParams,
       feedTuners,
       userInterests,
+      did,
     })
   }
   if (feedDesc === 'following') {
