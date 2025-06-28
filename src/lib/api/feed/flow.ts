@@ -168,18 +168,19 @@ export class MergeFlowApi implements FeedAPI {
     // below, otherwise it will the loop will be infinite and the client
     // process will be blocked indefinitely, preventing further attempts
     // to fetch from those feeds and correct the problem
+    // ADS: Inserted () around ternary operators line 177, 179, 181, 183 on 6/27/25
     const feedPreferences = getFeedPreferences()
     const availableRightNow = feedPreferences.feedTypes.reduce(
       (acc, feedType) => {
         switch (feedType.id) {
           case 'trending':
-            return acc + feedType.weight > 0 ? this.trendingFeed.numReady : 0
+            return acc + (feedType.weight > 0 ? this.trendingFeed.numReady : 0)
           case 'following':
-            return acc + feedType.weight > 0 ? this.following.numReady : 0
+            return acc + (feedType.weight > 0 ? this.following.numReady : 0)
           case 'interests':
-            return acc + feedType.weight > 0
+            return acc + (feedType.weight > 0
               ? this.interestFeeds.reduce((acc, cur) => acc + cur.numReady, 0)
-              : 0
+              : 0)
         }
         return acc
       },
