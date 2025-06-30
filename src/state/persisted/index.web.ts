@@ -91,6 +91,15 @@ export async function clearStorage() {
 }
 clearStorage satisfies PersistedApi['clearStorage']
 
+/**
+ * Initialize TAO storage keys for all accounts in the session
+ * Web version doesn't support multiple storage keys, so this is a no-op
+ */
+export async function initTaoStorageKeys(_accounts: Array<{did: string}>) {
+  // Web version doesn't support multiple storage keys, so this is a no-op
+}
+initTaoStorageKeys satisfies PersistedApi['initTaoStorageKeys']
+
 function onStorage() {
   const next = readFromStorage()
   if (next === _state) {
