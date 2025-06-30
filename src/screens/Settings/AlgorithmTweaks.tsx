@@ -40,6 +40,8 @@ import {UserCircle_Filled_Corner0_Rounded} from '#/components/icons/UserCircle'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
 import {InterestFinder} from './components/InterestFinder'
+import {getTaoStorageKeyForDid} from '#/state/persisted'
+import {useSession} from '#/state/session'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AlgorithmTweaks'>
 export function AlgorithmTweaksScreen({}: Props) {
@@ -54,17 +56,18 @@ export function AlgorithmTweaksScreen({}: Props) {
   const [aboveInterestHeight, setAboveInterestHeight] = useState(0)
   const [headerHeight, setHeaderHeight] = useState(0)
   const theme = useTheme()
+  const {currentAccount} = useSession()
   useEffect(() => {
     const fetchPrefs = async () => {
       try {
-        const prefs = mergedUserAndDefaultFeedPreferences()
+        const prefs = mergedUserAndDefaultFeedPreferences(currentAccount?.did)
         setFeedPreferences(prefs)
       } catch (e) {
         console.error('Failed to fetch user preferences', e)
       }
     }
     fetchPrefs()
-  }, [])
+  }, [currentAccount?.did])
 
   const debouncedInterestStateChange = React.useMemo(
     () =>
@@ -268,11 +271,14 @@ export function AlgorithmTweaksScreen({}: Props) {
     const strippedInterests = feedPreferences.interests
       .filter(interest => interest.selected)
       .map(({id, value, selected}) => ({id, value, selected}))
-    persisted.write(FEED_PREFERENCES, {
-      ...feedPreferences,
-      interests: strippedInterests,
-      lastUpdated: Date.now(),
-    })
+    const storageKey = currentAccount?.did ? getTaoStorageKeyForDid(currentAccount.did) : undefined
+    if (storageKey) {
+      persisted.write(FEED_PREFERENCES, {
+        ...feedPreferences,
+        interests: strippedInterests,
+        lastUpdated: Date.now(),
+      }, storageKey)
+    }
     setIsDirty(false)
   }
 

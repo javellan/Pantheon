@@ -45,6 +45,7 @@ export class MergeFlowApi implements FeedAPI {
   itemCursor = 0
   sampleCursor = 0
   sampleBatch: string[] = []
+  did?: string
 
   constructor({
     agent,
@@ -52,18 +53,21 @@ export class MergeFlowApi implements FeedAPI {
     feedTuners,
     userInterests = [],
     killDoomscroll,
+    did,
   }: {
     agent: BskyAgent
     feedParams: FeedParams
     feedTuners: FeedTunerFn[]
     userInterests?: Interest[]
     killDoomscroll?: boolean
+    did?: string
   }) {
     this.agent = agent
     this.params = feedParams
     this.feedTuners = feedTuners
     this.userInterests = userInterests
-    this.interestFeeds = this._createInterestFeeds(getFeedPreferences())
+    this.did = did
+    this.interestFeeds = this._createInterestFeeds(getFeedPreferences(did))
 
     this.following = new MergeFlowSource_Following({
       agent: this.agent,
@@ -87,7 +91,7 @@ export class MergeFlowApi implements FeedAPI {
     this.feedCursor = 0
     this.itemCursor = 0
     this.sampleCursor = 0
-    this.interestFeeds = this._createInterestFeeds(getFeedPreferences())
+    this.interestFeeds = this._createInterestFeeds(getFeedPreferences(this.did))
   }
   _createInterestFeeds(feedPreferences: FeedPreferences) {
     this.interestFeedLastUpdated = feedPreferences.lastUpdated
@@ -126,7 +130,7 @@ export class MergeFlowApi implements FeedAPI {
     cursor: string | undefined
     limit: number
   }): Promise<FeedAPIResponse> {
-    const feedPreferencesLastUpdated = getFeedPreferencesLastUpdated()
+    const feedPreferencesLastUpdated = getFeedPreferencesLastUpdated(this.did)
     if (!cursor || feedPreferencesLastUpdated > this.interestFeedLastUpdated) {
       this.reset()
     }
@@ -169,7 +173,7 @@ export class MergeFlowApi implements FeedAPI {
     // process will be blocked indefinitely, preventing further attempts
     // to fetch from those feeds and correct the problem
     // ADS: Inserted () around ternary operators line 177, 179, 181, 183 on 6/27/25
-    const feedPreferences = getFeedPreferences()
+    const feedPreferences = getFeedPreferences(this.did)
     const availableRightNow = feedPreferences.feedTypes.reduce(
       (acc, feedType) => {
         switch (feedType.id) {
