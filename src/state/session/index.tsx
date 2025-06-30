@@ -44,6 +44,12 @@ export function Provider({children}: React.PropsWithChildren<{}>) {
   const [state, dispatch] = React.useReducer(reducer, null, () => {
     const initialState = getInitialState(persisted.get('session').accounts)
     addSessionDebugLog({type: 'reducer:init', state: initialState})
+
+    // Initialize TAO storage keys for all accounts on app startup
+    if (initialState.accounts.length > 0) {
+      persisted.initTaoStorageKeys(initialState.accounts)
+    }
+
     return initialState
   })
 
@@ -202,6 +208,12 @@ export function Provider({children}: React.PropsWithChildren<{}>) {
     return persisted.onUpdate('session', nextSession => {
       const synced = nextSession
       addSessionDebugLog({type: 'persisted:receive', data: synced})
+
+      // Initialize TAO storage for all accounts on session change
+      if (synced.accounts.length > 0) {
+        persisted.initTaoStorageKeys(synced.accounts)
+      }
+
       dispatch({
         type: 'synced-accounts',
         syncedAccounts: synced.accounts,

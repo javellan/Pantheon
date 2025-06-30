@@ -30,7 +30,10 @@ export async function init(storageKey: string = BSKY_STORAGE) {
 }
 init satisfies PersistedApi['init']
 
-export function get<K extends keyof Schema>(key: K, storageKey: string = BSKY_STORAGE): Schema[K] {
+export function get<K extends keyof Schema>(
+  key: K,
+  storageKey: string = BSKY_STORAGE,
+): Schema[K] {
   return (_state[storageKey] || defaults)[key]
 }
 get satisfies PersistedApi['get']
@@ -68,6 +71,25 @@ export async function clearStorage(storageKey: string = BSKY_STORAGE) {
 }
 clearStorage satisfies PersistedApi['clearStorage']
 
+/**
+ * Initialize TAO storage keys for all accounts in the session
+ * This ensures that user-specific preferences are loaded into memory
+ */
+export async function initTaoStorageKeys(accounts: Array<{did: string}>) {
+  for (const account of accounts) {
+    const taoKey = getTaoStorageKeyForDid(account.did)
+    if (!_state[taoKey]) {
+      const stored = await readFromStorage(taoKey)
+      if (stored) {
+        _state[taoKey] = stored
+      } else {
+        _state[taoKey] = defaults
+      }
+    }
+  }
+}
+initTaoStorageKeys satisfies PersistedApi['initTaoStorageKeys']
+
 async function writeToStorage(value: Schema, storageKey: string) {
   const rawData = tryStringify(value)
   if (rawData) {
@@ -81,7 +103,9 @@ async function writeToStorage(value: Schema, storageKey: string) {
   }
 }
 
-async function readFromStorage(storageKey: string): Promise<Schema | undefined> {
+async function readFromStorage(
+  storageKey: string,
+): Promise<Schema | undefined> {
   let rawData: string | null = null
   try {
     rawData = await AsyncStorage.getItem(storageKey)
