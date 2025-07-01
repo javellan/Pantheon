@@ -529,7 +529,7 @@ msgstr ""
 msgid "Add App Password"
 msgstr ""
 
-#: src/screens/Settings/AlgorithmTweaks.tsx:390
+#: src/screens/Settings/AlgorithmTweaks.tsx:396
 #: src/screens/Settings/components/InterestFinder.tsx:127
 msgid "Add interest"
 msgstr ""
@@ -3074,7 +3074,7 @@ msgid "Feedback sent!"
 msgstr ""
 
 #: src/Navigation.tsx:443
-#: src/screens/Settings/AlgorithmTweaks.tsx:355
+#: src/screens/Settings/AlgorithmTweaks.tsx:361
 #: src/screens/StarterPack/StarterPackScreen.tsx:185
 #: src/view/screens/Feeds.tsx:612
 #: src/view/screens/Profile.tsx:224
@@ -6274,7 +6274,7 @@ msgstr ""
 #: src/components/dialogs/PostInteractionSettingsDialog.tsx:479
 #: src/components/dialogs/PostInteractionSettingsDialog.tsx:485
 #: src/components/StarterPack/QrCodeDialog.tsx:191
-#: src/screens/Settings/AlgorithmTweaks.tsx:366
+#: src/screens/Settings/AlgorithmTweaks.tsx:372
 #: src/screens/Settings/components/ChangeHandleDialog.tsx:243
 #: src/view/com/composer/GifAltText.tsx:190
 #: src/view/com/composer/GifAltText.tsx:199
@@ -9141,7 +9141,7 @@ msgstr ""
 msgid "Your full username will be <0>@{0}</0>"
 msgstr ""
 
-#: src/screens/Settings/AlgorithmTweaks.tsx:382
+#: src/screens/Settings/AlgorithmTweaks.tsx:388
 msgid "Your Interests"
 msgstr ""
 
