@@ -1,7 +1,9 @@
 import {useCallback, useEffect, useState} from 'react'
 import Constants from 'expo-constants'
 
-const {TRUANON_AUTH_TOKEN, TRUANON_SERVICE} = Constants.expoConfig.extra
+const extra = Constants.expoConfig?.extra || {}
+const TRUANON_AUTH_TOKEN = extra.TRUANON_AUTH_TOKEN as string | undefined
+const TRUANON_SERVICE = extra.TRUANON_SERVICE as string | undefined
 
 import {
   useTruAnonBadgeRankMutation,
@@ -90,10 +92,20 @@ export function useTruAnonProfile(handle: string, did?: string) {
       return
     }
 
+    if (!TRUANON_AUTH_TOKEN || !TRUANON_SERVICE) {
+      console.error('[TruAnon] Missing environment variables:', {
+        TRUANON_AUTH_TOKEN: !!TRUANON_AUTH_TOKEN,
+        TRUANON_SERVICE: !!TRUANON_SERVICE,
+      })
+      setError('TruAnon service not properly configured')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     try {
       const safeHandle = String(handle).split(':')[0]
-      const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE}`
+      const profileUrl = `${baseUrl}/get_profile?id=${safeHandle}&service=${TRUANON_SERVICE!}`
       const res = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
       const text = await res.text()
 
@@ -148,27 +160,28 @@ export function useTruAnonProfile(handle: string, did?: string) {
         authorAgeBadge: json.authorAgeBadge,
         authorPhoto: json.authorPhoto,
         truAnonUrl: json.dataConfigurations?.find(
-          d => d.dataPointType === 'truanon',
+          (d: DataConfiguration) => d.dataPointType === 'truanon',
         )?.displayValue,
         dataConfigurations: json.dataConfigurations || [],
       }
 
       const extract = (type: string, kind?: string) =>
         profile.dataConfigurations.find(
-          d => d.dataPointType === type && (!kind || d.dataPointKind === kind),
+          (d: DataConfiguration) =>
+            d.dataPointType === type && (!kind || d.dataPointKind === kind),
         )?.displayValue
 
       const socials =
         profile.dataConfigurations
           .filter(
-            d =>
+            (d: DataConfiguration) =>
               d.dataPointKind === 'social' &&
               d.displayValue &&
               !['truanon', 'peepletok', 'bskyapp'].includes(
                 (d.dataPointType || '').toLowerCase(),
               ),
           )
-          .map(d => ({
+          .map((d: DataConfiguration) => ({
             dataPointName: d.dataPointName || 'Link',
             displayValue: d.displayValue,
             dataPointIconClass:
@@ -226,7 +239,15 @@ export async function getVerifyLink(handle: string): Promise<{
 }> {
   if (!handle) return {}
 
-  const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE}`
+  if (!TRUANON_AUTH_TOKEN || !TRUANON_SERVICE) {
+    console.error('[TruAnon] Missing environment variables in getVerifyLink:', {
+      TRUANON_AUTH_TOKEN: !!TRUANON_AUTH_TOKEN,
+      TRUANON_SERVICE: !!TRUANON_SERVICE,
+    })
+    return {}
+  }
+
+  const profileUrl = `${baseUrl}/get_profile?id=${handle}&service=${TRUANON_SERVICE!}`
 
   try {
     const profileRes = await fetch(profileUrl, {headers: TRUANON_AUTH_HEADER})
@@ -249,13 +270,15 @@ export async function getVerifyLink(handle: string): Promise<{
       }
     }
 
-    const tokenUrl = `${baseUrl}/get_token?id=${handle}&service=${TRUANON_SERVICE}`
+    const tokenUrl = `${baseUrl}/get_token?id=${handle}&service=${TRUANON_SERVICE!}`
     const tokenRes = await fetch(tokenUrl, {headers: TRUANON_AUTH_HEADER})
     console.log('[TruAnon] Fetched Token Link get_token URL', tokenUrl)
 
     const tokenJson = await tokenRes.json()
     if (tokenJson?.id) {
-      const verifyUrl = `${baseUrl}/verifyProfile?id=${handle}&service=${TRUANON_SERVICE}&token=${tokenJson.id}`
+      const verifyUrl = `${baseUrl}/verifyProfile?id=${handle}&service=${TRUANON_SERVICE!}&token=${
+        tokenJson.id
+      }`
       console.log('[TruAnon] Generated public confirmation URL:', verifyUrl)
       return {
         verifyUrl,
