@@ -78,6 +78,8 @@ jobs:
           echo "EXPO_PUBLIC_BUNDLE_DATE=$(date -u +"%y%m%d%H")" >> .env
           echo "BITDRIFT_API_KEY=${{ secrets.BITDRIFT_API_KEY }}" >> .env
           echo "${{ secrets.GOOGLE_SERVICES_TOKEN }}" > google-services.json
+          echo "TRUANON_AUTH_TOKEN=$(secrets.TRUANON_AUTH_TOKEN)"
+          echo "TRUANON_SERVICE=$(secrets.TRUANON_SERVICE)"
 
       - name: 🏗️ EAS Build
         run: yarn use-build-number-with-bump eas build -p ios --profile ${{ inputs.profile || 'testflight' }} --local --output build.ipa --non-interactive
